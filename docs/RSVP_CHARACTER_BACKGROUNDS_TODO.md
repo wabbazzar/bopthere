@@ -125,8 +125,8 @@ Located in: `src/components/RSVPSection.tsx`
 - [x] `wesley4.png` - Message Form background ✅ **IMPLEMENTED & UPDATED**
 
 ## Technical Notes
-- Images stored in: `public/lovable-uploads/`
-- Reference path: `/lovable-uploads/[character][step].png`
+- Images stored in: `public/app-uploads/`
+- Reference path: `/app-uploads/[character][step].png`
 - Component location: `src/components/RSVPSection.tsx`
 - Character themes defined in: `src/types/character.ts`
 

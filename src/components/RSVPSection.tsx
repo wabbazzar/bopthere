@@ -51,22 +51,22 @@ const characterContent = {
 // Character-specific background images for each RSVP step
 const characterBackgrounds = {
   wesley: {
-    initial: '/lovable-uploads/wesley1.png',
-    diet: '/lovable-uploads/wesley2.png',
-    song: '/lovable-uploads/wesley3.png',
-    message: '/lovable-uploads/wesley4.png'
+    initial: '/app-uploads/wesley1.png',
+    diet: '/app-uploads/wesley2.png',
+    song: '/app-uploads/wesley3.png',
+    message: '/app-uploads/wesley4.png'
   },
   heather: {
-    initial: '/lovable-uploads/heather1.png',
-    diet: '/lovable-uploads/heather2.png',
-    song: '/lovable-uploads/heather3.png',
-    message: '/lovable-uploads/heather4.png'
+    initial: '/app-uploads/heather1.png',
+    diet: '/app-uploads/heather2.png',
+    song: '/app-uploads/heather3.png',
+    message: '/app-uploads/heather4.png'
   },
   puffy: {
-    initial: '/lovable-uploads/puffy1.png', // TODO: Add when image is provided
-    diet: '/lovable-uploads/puffy2.png',
-    song: '/lovable-uploads/puffy3.png',
-    message: '/lovable-uploads/puffy4.png'
+    initial: '/app-uploads/puffy1.png', // TODO: Add when image is provided
+    diet: '/app-uploads/puffy2.png',
+    song: '/app-uploads/puffy3.png',
+    message: '/app-uploads/puffy4.png'
   }
 };
 

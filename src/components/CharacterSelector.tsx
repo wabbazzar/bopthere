@@ -19,9 +19,9 @@ const characterDescriptions = {
 };
 
 const characterBackgrounds = {
-  wesley: '/lovable-uploads/d4bf9116-1d77-4dc1-8278-b6b3eed184cb.png',
-  heather: '/lovable-uploads/2b6d0572-685b-4cbb-81de-624a4331c0c2.png',
-  puffy: '/lovable-uploads/5ceda496-e0c3-46d7-bde0-47c2f4af4b09.png'
+  wesley: '/app-uploads/d4bf9116-1d77-4dc1-8278-b6b3eed184cb.png',
+  heather: '/app-uploads/2b6d0572-685b-4cbb-81de-624a4331c0c2.png',
+  puffy: '/app-uploads/5ceda496-e0c3-46d7-bde0-47c2f4af4b09.png'
 };
 
 interface CharacterSelectorProps {

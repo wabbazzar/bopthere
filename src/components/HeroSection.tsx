@@ -25,9 +25,9 @@ const characterContent = {
 };
 
 const characterBackgrounds = {
-  wesley: '/lovable-uploads/30a58018-bcb5-4eef-9456-61020c703a8d.png',
-  heather: '/lovable-uploads/5d08c86f-adac-4c7c-b094-5e623d2855fa.png',
-  puffy: '/lovable-uploads/761e38ab-93b7-4a7b-9263-808af8dd5be1.png'
+  wesley: '/app-uploads/30a58018-bcb5-4eef-9456-61020c703a8d.png',
+  heather: '/app-uploads/5d08c86f-adac-4c7c-b094-5e623d2855fa.png',
+  puffy: '/app-uploads/761e38ab-93b7-4a7b-9263-808af8dd5be1.png'
 };
 
 export const HeroSection: React.FC = () => {

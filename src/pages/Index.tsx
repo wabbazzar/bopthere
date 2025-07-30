@@ -21,7 +21,7 @@ const IndexContent: React.FC = () => {
     <div 
       className="min-h-screen relative"
       style={{
-        backgroundImage: !selectedCharacter ? `url(/lovable-uploads/30a58018-bcb5-4eef-9456-61020c703a8d.png)` : undefined,
+        backgroundImage: !selectedCharacter ? `url(/app-uploads/30a58018-bcb5-4eef-9456-61020c703a8d.png)` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'

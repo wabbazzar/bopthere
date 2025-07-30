@@ -1,22 +1,12 @@
-# Welcome to your Lovable project
+# Wedding Website
 
-## Project info
+A beautiful React-based wedding website built with modern web technologies.
 
-**URL**: https://lovable.dev/projects/8b059db9-114b-48f5-93aa-39def6b09646
+## Getting Started
 
-## How can I edit this code?
+**Development Setup**
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/8b059db9-114b-48f5-93aa-39def6b09646) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+To work locally using your IDE, clone this repo and follow these steps:
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -62,12 +52,8 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/8b059db9-114b-48f5-93aa-39def6b09646) and click on Share -> Publish.
+Run `npm run build` to create a production build, then deploy the `dist` folder to your hosting provider.
 
-## Can I connect a custom domain to my Lovable project?
+## Custom Domain
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+You can connect your own custom domain by deploying the built files to your hosting provider and configuring your domain's DNS settings to point to your hosting service.
