@@ -5,23 +5,19 @@ When working on Wesley & Heather's wedding app, please follow these guidelines t
 ## 1. Incremental Approach
 Work on one small, testable component at a time rather than multiple components simultaneously. Complete each step fully before moving to the next.
 
-## 2. Check Before Proceeding
-After each step, ask me about the current state of the project and wait for confirmation before proceeding to the next step. This includes checking:
-- If files were created/updated successfully
-- If any tests were run and what the results were
-- If I need any clarification about what was just done
+## 2. Autonomous Development
+Proceed with implementation autonomously while maintaining clear communication about progress. Work efficiently through tasks while being prepared to adapt based on feedback.
 
-## 3. Clear Explanations
-Provide a brief explanation of what each component does and how it fits into the overall wedding app architecture before implementing it.
+## 3. Clear Documentation
+Document what each component does and how it fits into the overall wedding app architecture during implementation.
 
 ## 4. File Management
-- Ask before creating multiple files at once
-- Confirm the intended location and name of each file
-- Check if similar files already exist that could be modified instead
+- Prefer editing existing files over creating new ones
 - Follow existing file structure patterns in `src/` directory
+- Check for similar files that could be modified instead of creating duplicates
 
-## 5. Project Context
-Always ask about the current state of the project before suggesting major changes or new implementations.
+## 5. Context Awareness
+Research and understand the current state of the project before making major changes or new implementations.
 
 ## 6. Wedding App Specific Requirements
 
@@ -78,6 +74,31 @@ Always ask about the current state of the project before suggesting major change
 - Test form submissions and data persistence
 - Ensure smooth character switching and theme changes
 - Validate RSVP flow functionality
+
+### Specialized Testing Agents
+Use specialized agents for comprehensive testing tasks:
+
+#### test-writer Agent
+- **Purpose**: Creates comprehensive test suites for code components, functions, or modules
+- **When to use**: When implementing new features that need thorough testing coverage
+- **Best practices**: 
+  - Provide incremental instructions to allow for iterative development
+  - Include specific requirements for wedding app context (character system, RSVP flow)
+  - Request progress updates to maintain oversight and provide course corrections
+
+#### test-critic Agent  
+- **Purpose**: Reviews and improves quality of existing test suites
+- **When to use**: When test suites need quality assessment, coverage analysis, or performance optimization
+- **Best practices**:
+  - Ask for specific analysis of test maintainability and brittleness
+  - Request recommendations for improving test performance
+  - Include failsafes to prevent getting stuck on minor issues
+
+#### Agent Usage Guidelines
+- Provide clear, incremental instructions that allow for feedback loops
+- Include specific context about wedding app requirements (character themes, mobile-first design)
+- Set clear boundaries to prevent agents from going down rabbit holes
+- Request regular progress updates and maintain oversight throughout the process
 
 ## 9. Build and Deployment
 Always verify the build works before finishing any task:
@@ -157,7 +178,7 @@ docs(wedding): Update ticket generation rules for character system
 
 Use the `docs/` directory for any temporary development files, analysis, or debugging scripts that aid in development but aren't part of the main codebase.
 
-Remember, I'd prefer a working solution that we build step by step rather than trying to implement everything at once. This ensures I understand each component and can maintain the wedding app effectively for our guests' experience.
+Focus on delivering working solutions built incrementally while maintaining code quality and comprehensive testing. Use specialized agents when appropriate to ensure thorough testing coverage and quality assurance.
 
 ## Wedding App Technology Stack
 

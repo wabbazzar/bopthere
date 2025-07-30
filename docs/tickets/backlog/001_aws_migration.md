@@ -6,11 +6,11 @@ INSTRUCTIONS FOR CLAUDE:
 
 **Status**: PENDING
 **Priority**: MEDIUM - Infrastructure modernization to leverage existing AWS account and reduce external dependencies
-**Estimated Effort**: 9 points - Major architectural change requiring new infrastructure, Lambda functions, API Gateway, client modifications, and deployment processes
+**Estimated Effort**: 10 points - Major architectural change requiring OpenTofu infrastructure as code, DynamoDB setup, Lambda functions, API Gateway, client modifications, and deployment processes
 **Created**: 2025-01-25
 
 ## Overview
-Migrate the wedding app's RSVP data storage from Supabase to AWS DynamoDB using existing AWS account (--profile personal) with Makefile-based table management for better control and consistency with preferred infrastructure patterns.
+Migrate the wedding app's RSVP data storage from Supabase to AWS DynamoDB using existing AWS account (--profile personal) with OpenTofu infrastructure as code and Makefile-based management for better control and consistency with preferred infrastructure patterns.
 
 ## User Stories
 
@@ -65,43 +65,56 @@ As a wedding guest, I want to submit my RSVP information so that Wesley & Heathe
 
 **Files to Create:**
 - `Makefile` - Table management commands (create, update, delete, describe)
-- `aws/dynamodb-table.yaml` - CloudFormation template for table definition
-- `aws/iam-policy.json` - IAM policy for DynamoDB access
+- `infrastructure/` - OpenTofu configuration directory
+- `infrastructure/main.tf` - OpenTofu configuration for DynamoDB table and IAM resources
+- `infrastructure/variables.tf` - OpenTofu variable definitions
+- `infrastructure/outputs.tf` - OpenTofu output values
 - `.env.example` - Environment variable template for AWS configuration
 
 **Files to Modify:**
 - `.gitignore` - Add AWS credential files and environment configs
 
 **Testing Requirements:**
-- Verify table creation with `make create-table`
+- Initialize OpenTofu with `make tofu-init` 
+- Plan infrastructure with `make tofu-plan`
+- Verify table creation with `make tofu-apply`
 - Test table access with AWS CLI using --profile personal
 - Validate schema matches Supabase structure exactly
+- Verify OpenTofu state management and backend configuration
 
 **Makefile Commands to Implement:**
 ```makefile
+# OpenTofu Infrastructure Operations
+tofu-init:            # Initialize OpenTofu configuration
+tofu-plan:            # Show planned infrastructure changes
+tofu-apply:           # Apply infrastructure changes
+tofu-destroy:         # Destroy infrastructure (with confirmation)
+tofu-validate:        # Validate OpenTofu configuration
+tofu-fmt:             # Format OpenTofu configuration files
+
 # DynamoDB Operations
-create-table:         # Create DynamoDB table
-update-table:         # Update table configuration
+create-table:         # Create DynamoDB table via OpenTofu
+update-table:         # Update table configuration via OpenTofu
 delete-table:         # Delete table (with confirmation)
 describe-table:       # Show table status and schema
 list-tables:          # List all DynamoDB tables
 
 # Lambda Operations
-deploy-lambda:        # Deploy Lambda function
+deploy-lambda:        # Deploy Lambda function via OpenTofu
 update-lambda:        # Update Lambda function code
 test-lambda:          # Test Lambda function with sample data
 delete-lambda:        # Delete Lambda function
 
 # API Gateway Operations
-deploy-api:           # Deploy API Gateway configuration
+deploy-api:           # Deploy API Gateway configuration via OpenTofu
 update-api:           # Update API Gateway settings
 test-api:             # Test API Gateway endpoints
 delete-api:           # Delete API Gateway
 
 # Full Stack Operations
-deploy-all:           # Deploy table + lambda + api gateway
+deploy-all:           # Deploy all infrastructure via OpenTofu
 test-all:             # Test complete integration chain
-cleanup-all:          # Delete all AWS resources (with confirmation)
+cleanup-all:          # Delete all AWS resources via OpenTofu (with confirmation)
 ```
 
 ### Phase 2: Frontend AWS Integration (4 points)
@@ -135,7 +148,8 @@ Frontend RSVPSection.tsx -> API Gateway -> Lambda -> DynamoDB
 
 **Files to Create:**
 - `aws/lambda/rsvp-handler.py` - Lambda function for RSVP CRUD operations
-- `aws/api-gateway.yaml` - API Gateway CloudFormation template
+- `infrastructure/lambda.tf` - Lambda function OpenTofu configuration
+- `infrastructure/api-gateway.tf` - API Gateway OpenTofu configuration
 - `src/integrations/aws/api-client.ts` - HTTP client for API Gateway calls
 - `src/integrations/aws/rsvp-service.ts` - Service layer abstracting API calls
 - `src/integrations/aws/types.ts` - TypeScript types for API requests/responses
@@ -210,6 +224,47 @@ const data = await response.json();
 - Performance testing to ensure <500ms response times
 - Error scenario testing (network failures, invalid data)
 
+### Phase 4: OpenTofu Infrastructure Management (1 point)
+**Deliverables:**
+- OpenTofu state management configuration
+- Infrastructure version control and deployment automation
+- Comprehensive infrastructure documentation
+
+**OpenTofu Configuration Structure:**
+```
+infrastructure/
+├── main.tf              # Main OpenTofu configuration
+├── variables.tf         # Variable definitions
+├── outputs.tf           # Output values
+├── providers.tf         # Provider configurations
+├── backend.tf           # State backend configuration
+├── dynamodb.tf          # DynamoDB table definitions
+├── lambda.tf            # Lambda function resources
+├── api-gateway.tf       # API Gateway configuration
+└── iam.tf              # IAM roles and policies
+```
+
+**Infrastructure Components:**
+- DynamoDB table with proper schema and indexes
+- Lambda function with appropriate runtime and permissions
+- API Gateway with CORS and rate limiting
+- IAM roles and policies following least-privilege principles
+- CloudWatch logging and monitoring resources
+
+**OpenTofu Best Practices:**
+- Use remote state backend (S3 + DynamoDB for locking)
+- Implement proper variable validation and descriptions
+- Use consistent naming conventions and tags
+- Enable detailed logging and monitoring
+- Implement proper dependency management between resources
+
+**Testing Requirements:**
+- Validate OpenTofu configuration with `tofu validate`
+- Test infrastructure deployment in isolated environment
+- Verify state management and locking functionality
+- Test infrastructure updates and rollback procedures
+- Document disaster recovery and state recovery processes
+
 ## Documentation Updates Required
 
 ### Core Documentation
@@ -219,6 +274,8 @@ const data = await response.json();
 ### Technical Documentation
 - [ ] Create `docs/aws-setup.md` - Detailed AWS configuration and deployment instructions
 - [ ] Create `docs/makefile-commands.md` - Documentation of all table management commands
+- [ ] Create `docs/opentofu-infrastructure.md` - OpenTofu configuration and infrastructure management guide
+- [ ] Create `docs/infrastructure-deployment.md` - Step-by-step infrastructure deployment procedures
 
 ### User Documentation
 - [ ] No user-facing documentation changes required (invisible backend change)
@@ -322,3 +379,31 @@ While not explicitly requested, consider:
 - Review AWS IAM permissions for least-privilege access
 - Consider API Gateway + Lambda pattern instead of direct DynamoDB access from frontend
 - Implement proper error handling to avoid exposing AWS internals to users
+
+### OpenTofu Infrastructure Considerations
+- **Use OpenTofu for all infrastructure as code** - avoid CloudFormation for consistency with project standards
+- **State Management**: Configure remote state backend with S3 and DynamoDB locking
+- **Version Control**: All infrastructure configurations must be version controlled
+- **Environment Separation**: Use workspaces or separate configurations for dev/staging/prod
+- **Security**: Store sensitive variables in secure backend, never commit secrets
+- **Validation**: Implement comprehensive validation and testing for infrastructure changes
+- **Documentation**: Maintain up-to-date documentation for all infrastructure components
+
+## 🔗 Resources
+
+### AWS Documentation
+- [AWS DynamoDB Developer Guide](https://docs.aws.amazon.com/dynamodb/latest/developerguide/)
+- [AWS Lambda Developer Guide](https://docs.aws.amazon.com/lambda/latest/dg/)
+- [AWS API Gateway Developer Guide](https://docs.aws.amazon.com/apigateway/latest/developerguide/)
+- [AWS IAM User Guide](https://docs.aws.amazon.com/iam/latest/userguide/)
+
+### OpenTofu Documentation  
+- [OpenTofu Documentation](https://opentofu.org/docs/)
+- [OpenTofu AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [OpenTofu Best Practices](https://opentofu.org/docs/intro/)
+- [OpenTofu State Management](https://opentofu.org/docs/language/state/)
+
+### Integration Guides
+- [DynamoDB with OpenTofu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table)
+- [Lambda Functions with OpenTofu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function)
+- [API Gateway with OpenTofu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_rest_api)

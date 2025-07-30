@@ -32,3 +32,14 @@ dist-ssr
 
 # Documentation with secrets
 docs/gh_refactor_todo.md
+
+# AWS and OpenTofu files
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+lambda-deployment.zip
+infrastructure/lambda-deployment.zip
+
+# AWS credentials
+.aws/

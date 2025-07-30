@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCharacter } from '@/contexts/CharacterContext';
 import { characterThemes } from '@/types/character';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { RSVPService } from '@/integrations/aws/rsvp-service';
+import { APIError } from '@/integrations/aws/api-client';
 import { ChevronLeft } from 'lucide-react';
 
 const characterContent = {
@@ -88,13 +89,9 @@ export const RSVPSection: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!selectedCharacter) return null;
-
-  const content = characterContent[selectedCharacter];
-  const theme = characterThemes[selectedCharacter];
-  
   // Preload all background images for the selected character to ensure smooth transitions
   useEffect(() => {
+    if (!selectedCharacter) return;
     const characterImages = characterBackgrounds[selectedCharacter];
     if (characterImages) {
       Object.values(characterImages).forEach((imagePath) => {
@@ -105,6 +102,11 @@ export const RSVPSection: React.FC = () => {
       });
     }
   }, [selectedCharacter]);
+
+  if (!selectedCharacter) return null;
+
+  const content = characterContent[selectedCharacter];
+  const theme = characterThemes[selectedCharacter];
   
   // Get the background image for the current character and step
   const getBackgroundImage = () => {
@@ -155,20 +157,16 @@ export const RSVPSection: React.FC = () => {
       
       console.log('Data being inserted:', insertData);
       
-      const { data, error } = await supabase
-        .from('rsvp_responses')
-        .insert([insertData])
-        .select();
-
-      if (error) {
-        console.error('Supabase error details:', error);
-        toast({
-          title: "Error",
-          description: `There was a problem saving your RSVP: ${error.message}`,
-          variant: "destructive"
-        });
-        return;
-      }
+      const data = await RSVPService.submitRSVP({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        attendance: formData.attendance as 'yes' | 'no',
+        notifications: formData.notifications,
+        dietary_restrictions: formData.dietaryRestrictions || undefined,
+        song_request: formData.songRequest || undefined,
+        message_for_couple: formData.messageForCouple || undefined
+      });
 
       console.log('RSVP saved successfully:', data);
       toast({
@@ -180,11 +178,19 @@ export const RSVPSection: React.FC = () => {
       setCurrentStep('complete');
     } catch (error) {
       console.error('Unexpected error during RSVP submission:', error);
-      toast({
-        title: "Error",
-        description: "There was an unexpected problem. Please try again.",
-        variant: "destructive"
-      });
+      if (error instanceof APIError) {
+        toast({
+          title: "Error",
+          description: error.message || "There was a problem saving your RSVP. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "There was an unexpected problem. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
