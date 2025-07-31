@@ -39,3 +39,16 @@ variable "allowed_origins" {
   type        = list(string)
   default     = ["https://heatherandwesley.com", "http://localhost:5173", "http://localhost:5174"]
 }
+
+variable "project_name" {
+  description = "Project name for resource naming"
+  type        = string
+  default     = "heatherandwesley"
+}
+
+variable "jwt_secret" {
+  description = "JWT secret key for authentication"
+  type        = string
+  sensitive   = true
+  default     = "your-secret-key-change-in-production"
+}

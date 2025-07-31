@@ -133,6 +133,12 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_integration.rsvp_options,
     aws_api_gateway_integration.rsvp_post,
     aws_api_gateway_integration.rsvp_get,
+    aws_api_gateway_integration.auth_login_options,
+    aws_api_gateway_integration.auth_login_post,
+    aws_api_gateway_integration.auth_verify_options,
+    aws_api_gateway_integration.auth_verify_post,
+    aws_api_gateway_integration.auth_register_options,
+    aws_api_gateway_integration.auth_register_post,
   ]
 
   lifecycle {

@@ -1,12 +1,15 @@
 # Wedding App AWS Infrastructure Management
-# Uses OpenTofu for infrastructure as code and AWS profile 'personal'
+# Uses AWS CLI for infrastructure management and AWS profile 'personal'
 
 # Variables
 AWS_PROFILE := personal
 AWS_REGION := us-west-2
 TABLE_NAME := heatherandwesley-users
+AUTH_TABLE_NAME := heatherandwesley-auth-users
 LAMBDA_NAME := heatherandwesley-rsvp-handler
+AUTH_LAMBDA_NAME := heatherandwesley-auth-handler
 API_NAME := heatherandwesley-api
+JWT_SECRET := your-secret-key-change-in-production
 
 # Default target
 .DEFAULT_GOAL := help
@@ -35,6 +38,15 @@ help:
 	@echo "  make update-lambda      Update Lambda function code"
 	@echo "  make test-lambda        Test Lambda function with sample data"
 	@echo "  make delete-lambda      Delete Lambda function"
+	@echo ""
+	@echo "Authentication Operations (CLI):"
+	@echo "  make create-auth-table  Create authentication DynamoDB table via CLI"
+	@echo "  make deploy-auth-lambda Deploy authentication Lambda via CLI"
+	@echo "  make deploy-auth-api    Deploy authentication API Gateway endpoints"
+	@echo "  make seed-users         Seed test users in authentication table"
+	@echo "  make test-auth          Test authentication endpoints"
+	@echo "  make deploy-auth-all    Deploy complete authentication system"
+	@echo "  make delete-auth        Delete authentication resources"
 	@echo ""
 	@echo "API Gateway Operations:"
 	@echo "  make deploy-api         Deploy API Gateway configuration via OpenTofu"
@@ -208,6 +220,154 @@ test-api-consistency: ## Test field consistency
 	@echo "Testing API field consistency..."
 	cd tests && pytest test_api_field_consistency.py -v
 
+# Authentication Operations (CLI-based)
+create-auth-table:
+	@echo "Creating authentication DynamoDB table..."
+	@aws dynamodb create-table \
+		--table-name $(AUTH_TABLE_NAME) \
+		--attribute-definitions AttributeName=username,AttributeType=S \
+		--key-schema AttributeName=username,KeyType=HASH \
+		--billing-mode PAY_PER_REQUEST \
+		--sse-specification Enabled=true \
+		--tags Key=Name,Value="Wedding App Authentication Users" Key=Description,Value="Stores user authentication data for wedding app" \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.'
+	@echo "Waiting for table to be active..."
+	@aws dynamodb wait table-exists \
+		--table-name $(AUTH_TABLE_NAME) \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION)
+	@echo "Authentication table created successfully!"
+
+describe-auth-table:
+	@echo "Describing authentication DynamoDB table..."
+	@aws dynamodb describe-table \
+		--table-name $(AUTH_TABLE_NAME) \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.'
+
+create-auth-lambda-role:
+	@echo "Creating IAM role for authentication Lambda..."
+	@aws iam create-role \
+		--role-name $(AUTH_LAMBDA_NAME)-role \
+		--assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \
+		--profile $(AWS_PROFILE) || echo "Role may already exist"
+	@aws iam attach-role-policy \
+		--role-name $(AUTH_LAMBDA_NAME)-role \
+		--policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole \
+		--profile $(AWS_PROFILE) || echo "Policy may already be attached"
+	@echo "Creating DynamoDB access policy..."
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --profile $(AWS_PROFILE) --query Account --output text) && \
+	aws iam put-role-policy \
+		--role-name $(AUTH_LAMBDA_NAME)-role \
+		--policy-name $(AUTH_LAMBDA_NAME)-dynamodb-policy \
+		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["dynamodb:PutItem","dynamodb:GetItem","dynamodb:Query","dynamodb:UpdateItem"],"Resource":["arn:aws:dynamodb:$(AWS_REGION):'$$ACCOUNT_ID':table/$(AUTH_TABLE_NAME)","arn:aws:dynamodb:$(AWS_REGION):'$$ACCOUNT_ID':table/$(AUTH_TABLE_NAME)/index/*"]}]}' \
+		--profile $(AWS_PROFILE) || echo "Policy may already exist"
+
+deploy-auth-lambda: create-auth-lambda-role
+	@echo "Building authentication Lambda deployment package..."
+	@rm -rf build/lambda-package && mkdir -p build/lambda-package
+	@cp aws/lambda/auth-handler.py build/lambda-package/
+	@poetry export --format requirements.txt --output build/requirements.txt --without-hashes
+	@pip install --index-url https://pypi.org/simple/ -r build/requirements.txt -t build/lambda-package/ --no-deps
+	@cd build/lambda-package && zip -r ../auth-lambda-deployment.zip . -x "*.pyc" "__pycache__/*"
+	@echo "Deploying authentication Lambda function..."
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --profile $(AWS_PROFILE) --query Account --output text) && \
+	aws lambda create-function \
+		--function-name $(AUTH_LAMBDA_NAME) \
+		--runtime python3.11 \
+		--role arn:aws:iam::$$ACCOUNT_ID:role/$(AUTH_LAMBDA_NAME)-role \
+		--handler auth-handler.lambda_handler \
+		--zip-file fileb://build/auth-lambda-deployment.zip \
+		--timeout 30 \
+		--memory-size 256 \
+		--environment Variables='{TABLE_NAME=$(AUTH_TABLE_NAME),JWT_SECRET=$(JWT_SECRET)}' \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.' || \
+	aws lambda update-function-code \
+		--function-name $(AUTH_LAMBDA_NAME) \
+		--zip-file fileb://build/auth-lambda-deployment.zip \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) && \
+	aws lambda update-function-configuration \
+		--function-name $(AUTH_LAMBDA_NAME) \
+		--environment Variables='{TABLE_NAME=$(AUTH_TABLE_NAME),JWT_SECRET=$(JWT_SECRET)}' \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION)
+	@echo "Authentication Lambda deployed successfully!"
+
+seed-users:
+	@echo "Seeding test users..."
+	@poetry run python scripts/seed-users.py --create-table --profile $(AWS_PROFILE) --table-name $(AUTH_TABLE_NAME)
+
+test-auth:
+	@echo "Testing authentication endpoints..."
+	@API_URL=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null) && \
+	if [ -n "$$API_URL" ]; then \
+		API_BASE="https://$$API_URL.execute-api.$(AWS_REGION).amazonaws.com/prod"; \
+		echo "Testing login endpoint at $$API_BASE/auth/login"; \
+		curl -X POST $$API_BASE/auth/login \
+			-H "Content-Type: application/json" \
+			-d '{"username":"testguest","password":"wedding2025"}' \
+			-w "\nHTTP Status: %{http_code}\n"; \
+		echo ""; \
+		echo "Testing VIP login..."; \
+		curl -X POST $$API_BASE/auth/login \
+			-H "Content-Type: application/json" \
+			-d '{"username":"testvip","password":"maui2025"}' \
+			-w "\nHTTP Status: %{http_code}\n"; \
+		echo ""; \
+		echo "Testing admin login..."; \
+		curl -X POST $$API_BASE/auth/login \
+			-H "Content-Type: application/json" \
+			-d '{"username":"testadmin","password":"admin2025"}' \
+			-w "\nHTTP Status: %{http_code}\n"; \
+	else \
+		echo "API Gateway not found. Deploy API Gateway first."; \
+	fi
+
+deploy-auth-api:
+	@echo "Deploying authentication API Gateway endpoints..."
+	@chmod +x scripts/deploy-auth-api.sh
+	@./scripts/deploy-auth-api.sh
+
+deploy-auth-all:
+	@echo "Deploying complete authentication system..."
+	$(MAKE) create-auth-table
+	$(MAKE) deploy-auth-lambda
+	$(MAKE) deploy-auth-api
+	$(MAKE) seed-users
+	@echo "Authentication system deployed successfully!"
+	@echo ""
+	@echo "Available endpoints:"
+	@API_URL=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null) && \
+	if [ -n "$$API_URL" ]; then \
+		echo "  POST https://$$API_URL.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/login"; \
+		echo "  POST https://$$API_URL.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/verify"; \
+		echo "  POST https://$$API_URL.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/register"; \
+	fi
+	@echo ""
+	@echo "Test credentials:"
+	@echo "  testguest / wedding2025 (guest role)"
+	@echo "  testvip / maui2025 (vip role)"
+	@echo "  testadmin / admin2025 (admin role)"
+
+delete-auth:
+	@echo "WARNING: This will delete authentication resources!"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		aws lambda delete-function --function-name $(AUTH_LAMBDA_NAME) --profile $(AWS_PROFILE) --region $(AWS_REGION) || echo "Lambda may not exist"; \
+		aws iam detach-role-policy --role-name $(AUTH_LAMBDA_NAME)-role --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole --profile $(AWS_PROFILE) || echo "Policy may not be attached"; \
+		aws iam delete-role-policy --role-name $(AUTH_LAMBDA_NAME)-role --policy-name $(AUTH_LAMBDA_NAME)-dynamodb-policy --profile $(AWS_PROFILE) || echo "Policy may not exist"; \
+		aws iam delete-role --role-name $(AUTH_LAMBDA_NAME)-role --profile $(AWS_PROFILE) || echo "Role may not exist"; \
+		aws dynamodb delete-table --table-name $(AUTH_TABLE_NAME) --profile $(AWS_PROFILE) --region $(AWS_REGION) || echo "Table may not exist"; \
+		echo "Authentication resources deleted!"; \
+	fi
+
 # Development helpers
 .PHONY: help tofu-init tofu-plan tofu-apply tofu-destroy tofu-validate tofu-fmt \
         create-table update-table delete-table describe-table list-tables \
@@ -215,4 +375,6 @@ test-api-consistency: ## Test field consistency
         deploy-api update-api test-api delete-api \
         deploy-all test-all cleanup-all \
         tf-init tf-plan tf-apply tf-deploy-all \
-        update-schemas test-api-consistency
+        update-schemas test-api-consistency \
+        create-auth-table describe-auth-table create-auth-lambda-role deploy-auth-lambda \
+        deploy-auth-api seed-users test-auth deploy-auth-all delete-auth

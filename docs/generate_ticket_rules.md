@@ -31,6 +31,24 @@ This document provides standardized rules for generating comprehensive tickets f
 - **`docs/wedding_bingo_cards.md`** - Bingo card feature requirements
 - **Existing ticket files** in `docs/tickets/` for patterns and precedents
 
+## Ticket File Location
+
+**IMPORTANT**: All new tickets MUST be saved to `docs/tickets/backlog/` directory, regardless of their status. This ensures proper organization and tracking of all work items.
+
+### File Naming Convention:
+- Format: `XXX_[type]_[short_description].md`
+- Types: feature, bug, refactor, chore, docs
+- Example: `045_feature_photo_gallery.md`
+
+### Directory Requirements:
+1. Always ensure the `docs/tickets/backlog/` directory exists before writing
+2. Save ALL new tickets to the backlog directory  
+3. Use the next available ticket number:
+   - Scan both `docs/tickets/backlog/` and `docs/tickets/archive/` directories
+   - Find the highest XXX number across all tickets
+   - Increment by 1 for the new ticket
+   - Example: If highest is 003, new ticket should be 004
+
 ## Wedding App Context
 
 ### App Purpose
@@ -68,6 +86,8 @@ Every ticket must follow this exact structure:
 
 **Top of every ticket**  
 INSTRUCTIONS FOR CLAUDE:
+- Save this ticket to `docs/tickets/backlog/XXX_[type]_[description].md`
+- Ensure the backlog directory exists before writing
 - Completed steps marked as [COMPLETE] in Headers
 - Commit with standard messaging between each phase
 

@@ -85,6 +85,29 @@ Use specialized agents for comprehensive testing tasks:
   - Provide incremental instructions to allow for iterative development
   - Include specific requirements for wedding app context (character system, RSVP flow)
   - Request progress updates to maintain oversight and provide course corrections
+  - **MANDATORY for AWS integrations**: Always request E2E smoke tests that verify Gateway → Lambda → DynamoDB flow
+
+##### Field Validation in Tests
+
+When writing tests for AWS integrations:
+
+1. **PRIMARY SOURCE**: Use exact field names from the ticket's "Field Reference" sections
+   - Test that requests use the exact fields shown in the ticket
+   - Validate responses contain the documented fields
+
+2. **FAILSAFE**: If field information is missing from the ticket:
+   ```bash
+   # Consult schema files
+   cat .wedding/context/dynamodb-schemas.json
+   cat .wedding/context/api-endpoints.md
+   cat .wedding/context/lambda-patterns.json
+   ```
+
+3. **ALWAYS INCLUDE**: Tests that validate:
+   - Request fields match schemas exactly
+   - Response fields are documented
+   - Field types match expectations
+   - No extra undocumented fields
 
 #### test-critic Agent  
 - **Purpose**: Reviews and improves quality of existing test suites
@@ -101,6 +124,8 @@ Use specialized agents for comprehensive testing tasks:
 - Request regular progress updates and maintain oversight throughout the process
 
 ## 9. Build and Deployment
+
+### Frontend Build Verification
 Always verify the build works before finishing any task:
 ```bash
 npm run build
@@ -110,6 +135,39 @@ npm run lint
 Check that the development server runs without errors:
 ```bash
 npm run dev
+```
+
+### AWS Deployment Standards
+- **NO Terraform/OpenTofu for new resources** - Use AWS CLI and Makefile
+- **Always use `--profile personal`** for all AWS commands
+- **Use PyPI (not CodeArtifact)** for Python dependencies
+- **Create Makefile targets** for all deployment operations
+
+#### Lambda Deployment Pattern:
+```bash
+# For new Lambda functions
+make deploy-[function]-lambda
+make test-[function]
+
+# For updates
+make update-[function]-lambda
+```
+
+#### DynamoDB Table Creation:
+```bash
+aws dynamodb create-table \
+  --table-name heatherandwesley-[feature] \
+  --attribute-definitions AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --profile personal
+```
+
+#### E2E Smoke Tests:
+Every AWS integration MUST include E2E smoke tests:
+```bash
+# Location: tests/e2e/test_[feature]_smoke.py
+# Run: pytest tests/e2e/test_[feature]_smoke.py -v
 ```
 
 ## 10. Git Commit Standards
@@ -174,9 +232,74 @@ docs(wedding): Update ticket generation rules for character system
 - **Character Immersion**: Maintain the magical quest experience throughout
 - **Responsive Design**: Wedding guests will primarily use mobile devices
 
-## 13. Temporary Files Management
+## 13. AWS Configuration
+
+**IMPORTANT**: Always use the `personal` profile for AWS operations:
+- All AWS CLI commands must include `--profile personal`
+- All boto3 sessions must specify `profile_name='personal'`
+- Infrastructure deployment with OpenTofu uses the `personal` profile by default
+
+Examples:
+```bash
+# AWS CLI commands
+aws dynamodb describe-table --table-name heatherandwesley-users --profile personal
+aws lambda get-function --function-name heatherandwesley-auth-handler --profile personal
+
+# Python boto3 usage
+session = boto3.Session(profile_name='personal')
+dynamodb = session.resource('dynamodb')
+```
+
+## 13a. Python Package Management
+
+**IMPORTANT**: Use PyPI (not CodeArtifact) for Python packages:
+- Poetry is configured to use PyPI via `poetry config repositories.pypi https://pypi.org/simple/`
+- `pip.conf` file ensures pip uses PyPI for Lambda package builds
+- Always use `--index-url https://pypi.org/simple/` flag when installing packages for Lambda
+
+Examples:
+```bash
+# Install packages for Lambda with PyPI
+pip install --index-url https://pypi.org/simple/ -r requirements.txt -t build/lambda-package/
+
+# Poetry operations use PyPI by default
+poetry install
+poetry add boto3
+```
+
+## 14. Temporary Files Management
 
 Use the `docs/` directory for any temporary development files, analysis, or debugging scripts that aid in development but aren't part of the main codebase.
+
+## 15. Ticket Generation
+
+When generating tickets for the Wedding App:
+- **Always save new tickets to**: `docs/tickets/backlog/XXX_[type]_[description].md`
+- **Never save to**: `docs/tickets/` root directory
+- **Ticket numbering**: Scan both backlog/ and archive/ directories to find the highest XXX number, then increment by 1
+- **Ensure directory exists**: Always verify `docs/tickets/backlog/` exists before writing
+- **Follow ticket rules**: Refer to `docs/generate_ticket_rules.md` for comprehensive ticket structure
+
+### AWS Integration Requirements
+
+When working with AWS services:
+
+1. **Binary Dependencies**: Avoid Python packages with binary dependencies in Lambda (e.g., bcrypt)
+   - Use pure Python alternatives or SHA256 for hashing
+   - Test deployment packages locally before uploading
+
+2. **Deployment Documentation**: Update these sections in real-time:
+   - Makefile targets for new resources
+   - Environment variables in Lambda configurations
+   - IAM permissions required
+   - DynamoDB table schemas and indexes
+
+3. **Verification Process**:
+   ```bash
+   # After deployment
+   make test-[feature]
+   make test-all-endpoints
+   ```
 
 Focus on delivering working solutions built incrementally while maintaining code quality and comprehensive testing. Use specialized agents when appropriate to ensure thorough testing coverage and quality assurance.
 
