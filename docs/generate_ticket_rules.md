@@ -8,6 +8,8 @@ This document provides standardized rules for generating comprehensive tickets f
 
 **CRITICAL**: Before generating any ticket, Claude MUST read these core documents:
 
+**NEW REQUIREMENT**: For any ticket involving AWS/backend integration, you MUST include exact field definitions from `.wedding/context/` files in EACH phase of the implementation plan. This eliminates guesswork and ensures code-writer and test-writer agents have the exact field information they need.
+
 ### Required Context Files:
 1. **`README.md`** - Project overview and technology stack
 2. **`package.json`** - Dependencies and available scripts  
@@ -57,7 +59,7 @@ Each character has unique:
 1. **Character Selection**: Initial modal to choose viewing perspective
 2. **Hero Section**: Character-specific background with wedding details
 3. **Wedding Details**: Information about the celebration
-4. **RSVP System**: Multi-step form (initial ’ diet ’ song ’ message ’ complete)
+4. **RSVP System**: Multi-step form (initial ï¿½ diet ï¿½ song ï¿½ message ï¿½ complete)
 5. **Responsive Design**: Works across mobile, tablet, desktop
 
 ## Standard Ticket Structure
@@ -120,6 +122,27 @@ As a [user role], I want [goal/functionality] so that [business value/benefit].
 - [Specific deliverable 1]
 - [Specific deliverable 2]
 
+**Field Reference (if AWS/backend integration):**
+From `.wedding/context/dynamodb-schemas.json`:
+```json
+{
+  "field_name": { "type": "string", "description": "exact description from schema" },
+  "another_field": { "type": "boolean", "description": "exact description from schema" }
+}
+```
+
+From `.wedding/context/api-endpoints.md`:
+```
+POST /endpoint
+Request: { exact request format from api-endpoints.md }
+Response: { exact response format from api-endpoints.md }
+```
+
+**Implementation steps:**
+1. Use ONLY the field names listed above (if applicable)
+2. Validate against schemas before implementation
+3. [Other specific implementation steps]
+
 **Files to Modify:**
 - `src/path/to/file.tsx` - [What changes]
 - `src/path/to/file.css` - [What changes]
@@ -131,12 +154,13 @@ As a [user role], I want [goal/functionality] so that [business value/benefit].
 - [Specific test cases]
 - [Browser/device testing needed]
 - [Character system testing]
+- Schema validation: Verify all field names match `.wedding/context/` schemas
 
 ### Phase 2: [Phase Name] ([X points])
-[Same structure as Phase 1]
+[Same structure as Phase 1, including Field Reference section if AWS integration]
 
 ### Phase 3: [Phase Name] ([X points])
-[Same structure as Phase 1]
+[Same structure as Phase 1, including Field Reference section if AWS integration]
 ```
 
 ### Documentation Updates Section
@@ -241,6 +265,41 @@ As a [user role], I want [goal/functionality] so that [business value/benefit].
 - Phase 2: Character system integration and theming  
 - Phase 3: Responsive design and testing
 
+**Example Phase with AWS Integration:**
+```markdown
+### Phase 2: Backend Integration (3 points)
+
+**Field Reference:**
+From `.wedding/context/dynamodb-schemas.json`:
+```json
+{
+  "name": { "type": "string", "description": "Full name of the guest" },
+  "email": { "type": "string", "description": "Email address of the guest" },
+  "attendance": { "type": "string", "description": "Guest's attendance status (e.g., 'attending', 'not_attending', 'maybe')" },
+  "dietary_restrictions": { "type": "string", "description": "Any dietary restrictions or allergies" },
+  "notifications": { "type": "boolean", "description": "Whether the guest opted in for notifications" }
+}
+```
+
+From `.wedding/context/api-endpoints.md`:
+```
+POST /rsvp
+Request: {
+  "name": "string (required)",
+  "email": "string (required)", 
+  "attendance": "yes|no (required)",
+  "dietary_restrictions": "string (optional)",
+  "notifications": "boolean (optional)"
+}
+```
+
+**Implementation steps:**
+1. Update RSVPForm.tsx to use ONLY the field names above
+2. Map form fields to exact API field names (not camelCase)
+3. Validate `attendance` is "yes" or "no" string, not boolean
+4. Ensure all required fields are included in request
+```
+
 ### 3. File Reference Standards
 
 **Always Include:**
@@ -288,11 +347,44 @@ Claude should ask **ONE clarifying question at a time** to ensure accurate ticke
 ### 6. Data Integration Requirements
 
 **Mandatory for Data-Related Tickets:**
+- Include exact field definitions from `.wedding/context/` in EACH phase
+- Copy field names and types EXACTLY from `dynamodb-schemas.json`
+- Include request/response formats from `api-endpoints.md`
+- Reference specific schema files to consult
 - Verify Supabase integration patterns
 - Follow existing database schema patterns
 - Ensure proper error handling and loading states
 - Consider data validation and security
 - Account for offline/network failure scenarios
+
+**Field Reference Format for Each Phase:**
+```markdown
+**Field Reference:**
+From `.wedding/context/dynamodb-schemas.json`:
+```json
+{
+  "name": { "type": "string", "description": "Full name of the guest" },
+  "email": { "type": "string", "description": "Email address of the guest" },
+  "attendance": { "type": "string", "description": "Guest's attendance status (e.g., 'attending', 'not_attending', 'maybe')" }
+}
+```
+
+From `.wedding/context/api-endpoints.md`:
+```
+POST /rsvp
+Request: {
+  "name": "string (required)",
+  "email": "string (required)",
+  "attendance": "yes|no (required)"
+}
+Response: {
+  "message": "RSVP submitted successfully",
+  "data": { ... }
+}
+```
+```
+
+**CRITICAL**: Never use guessed field names. Always copy exact names from schemas.
 
 ### 7. Character System Validation
 
@@ -311,15 +403,26 @@ Claude should ask **ONE clarifying question at a time** to ensure accurate ticke
 - Character system testing (all three perspectives)
 - Integration testing with existing features
 - Performance testing criteria where applicable
+- Schema validation testing for AWS integrations
+
+**Use Specialized Agents:**
+```markdown
+**Testing with specialized agents:**
+1. Run: `claude --agent test-writer "Write tests for [component] using exact field names from .wedding/context/dynamodb-schemas.json"`
+2. Run: `claude --agent test-critic "Review tests for [component] and verify field name accuracy"`
+3. Run: `claude --agent test-writer "Implement critic's suggestions for [component]"`
+```
 
 ## Quality Checklist
 
 Before finalizing any ticket, verify:
 
 - [ ] All required context documents have been read
+- [ ] **AWS/Backend phases include exact field definitions from `.wedding/context/` files**
 - [ ] User stories clearly define business value for wedding context
 - [ ] Technical requirements address character system integration
 - [ ] Implementation plan considers all three character perspectives
+- [ ] **Each phase with AWS integration has Field Reference section with exact schemas**
 - [ ] File references use absolute paths and specific descriptions
 - [ ] Documentation updates are explicitly called out
 - [ ] Success criteria are measurable and testable
@@ -328,6 +431,7 @@ Before finalizing any ticket, verify:
 - [ ] Point estimates reflect complexity, not time
 - [ ] Mobile and desktop compatibility is addressed
 - [ ] Wedding/celebration context is appropriate
+- [ ] **Field names are copied exactly from schemas, never guessed**
 
 ## Common Pitfalls to Avoid
 
