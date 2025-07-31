@@ -1,6 +1,6 @@
 # Wedding Website
 
-A beautiful React-based wedding website built with modern web technologies.
+A beautiful React-based wedding website built with modern web technologies, featuring a character-based experience and AWS serverless backend for RSVP management.
 
 ## Getting Started
 
@@ -110,3 +110,37 @@ Run `npm run build` to create a production build, then deploy the `dist` folder 
 ## Custom Domain
 
 You can connect your own custom domain by deploying the built files to your hosting provider and configuring your domain's DNS settings to point to your hosting service.
+
+## API Schema Management
+
+The project includes automated API schema documentation and field integrity validation:
+
+### Update Schemas
+```bash
+# Update all API schemas and documentation
+make update-schemas
+```
+
+This command will:
+- Extract DynamoDB table schemas
+- Document API Gateway routes
+- Capture Lambda request/response patterns
+- Generate human-readable documentation
+
+### Test Field Consistency
+```bash
+# Validate field consistency across all layers
+make test-api-consistency
+```
+
+### Schema Files
+Generated schemas are stored in `.wedding/context/`:
+- `dynamodb-schemas.json` - DynamoDB table field definitions
+- `api-endpoints.md` - Human-readable API documentation
+- `api-gateway-routes.json` - Route configurations
+- `lambda-patterns.json` - Request/response patterns
+- `field-mappings.md` - Field reference documentation
+- `agent-schema-rules.md` - Validation rules for AI agents
+
+### Automated Updates
+GitHub Actions automatically updates schemas every 4 hours or when backend code changes. Check `.github/workflows/update-schemas.yml` for details.
