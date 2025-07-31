@@ -54,18 +54,18 @@ tofu-init:
 
 tofu-plan:
 	@echo "Planning infrastructure changes..."
-	cd infrastructure && tofu plan -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)"
+	cd infrastructure && ./tofu-wrapper.sh plan -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)"
 
 tofu-apply:
 	@echo "Applying infrastructure changes..."
-	cd infrastructure && tofu apply -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)" -auto-approve
+	cd infrastructure && ./tofu-wrapper.sh apply -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)" -auto-approve
 
 tofu-destroy:
 	@echo "WARNING: This will destroy all infrastructure!"
 	@read -p "Are you sure? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		cd infrastructure && tofu destroy -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)"; \
+		cd infrastructure && ./tofu-wrapper.sh destroy -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)"; \
 	fi
 
 tofu-validate:
@@ -173,9 +173,29 @@ cleanup-all:
 		echo "Cleanup cancelled."; \
 	fi
 
+# Terraform fallback commands (use if OpenTofu has issues)
+tf-init:
+	@echo "Initializing Terraform configuration..."
+	cd infrastructure && terraform init
+
+tf-plan:
+	@echo "Planning infrastructure changes with Terraform..."
+	cd infrastructure && terraform plan -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)"
+
+tf-apply:
+	@echo "Applying infrastructure changes with Terraform..."
+	cd infrastructure && terraform apply -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)" -auto-approve
+
+tf-deploy-all:
+	@echo "Deploying all infrastructure with Terraform..."
+	$(MAKE) tf-init
+	$(MAKE) tf-apply
+	@echo "All infrastructure deployed successfully!"
+
 # Development helpers
 .PHONY: help tofu-init tofu-plan tofu-apply tofu-destroy tofu-validate tofu-fmt \
         create-table update-table delete-table describe-table list-tables \
         deploy-lambda update-lambda test-lambda delete-lambda \
         deploy-api update-api test-api delete-api \
-        deploy-all test-all cleanup-all
+        deploy-all test-all cleanup-all \
+        tf-init tf-plan tf-apply tf-deploy-all

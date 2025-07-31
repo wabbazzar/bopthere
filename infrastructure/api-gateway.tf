@@ -128,7 +128,6 @@ resource "aws_api_gateway_method_response" "rsvp_get" {
 # API Gateway Deployment
 resource "aws_api_gateway_deployment" "api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.wedding_api.id
-  stage_name  = "prod"
 
   depends_on = [
     aws_api_gateway_integration.rsvp_options,

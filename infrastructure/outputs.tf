@@ -20,7 +20,7 @@ output "lambda_function_arn" {
 
 output "api_gateway_url" {
   description = "URL of the API Gateway endpoint"
-  value       = "${aws_api_gateway_deployment.api_deployment.invoke_url}"
+  value       = aws_api_gateway_stage.prod.invoke_url
 }
 
 output "api_gateway_id" {
