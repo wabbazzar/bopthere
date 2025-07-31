@@ -1,0 +1,341 @@
+name: Update API Schemas
+
+on:
+  # Run every 4 hours
+  schedule:
+    - cron: '0 */4 * * *'
+  
+  # Run when backend code changes
+  push:
+    branches:
+      - main
+    paths:
+      - 'aws/lambda/**'
+      - 'scripts/**'
+      - 'infrastructure/**'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-2
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  update-schemas:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3 pytest
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Create output directories
+        run: |
+          mkdir -p .wedding/context
+      
+      - name: Generate DynamoDB schemas
+        id: generate_dynamodb
+        run: |
+          echo "Generating DynamoDB schemas..."
+          cd scripts
+          python generate_dynamodb_schemas.py 2>&1 | tee ../dynamodb_output.log
+          echo "dynamodb_exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: Extract API Gateway routes
+        id: extract_api
+        run: |
+          echo "Extracting API Gateway routes..."
+          cd scripts
+          python extract_api_gateway_routes.py 2>&1 | tee ../api_gateway_output.log
+          echo "api_exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: Extract Lambda patterns
+        id: extract_lambda
+        run: |
+          echo "Extracting Lambda patterns..."
+          cd scripts
+          python extract_lambda_patterns.py 2>&1 | tee ../lambda_patterns_output.log
+          echo "lambda_exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: Check for schema changes
+        id: check_changes
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No schema changes detected"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Schema changes detected"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            git diff --staged --name-only
+          fi
+      
+      - name: Run consistency tests
+        id: run_tests
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          echo "Running API consistency tests..."
+          cd tests
+          pytest test_api_field_consistency.py -v --tb=short 2>&1 | tee ../test_output.log
+          echo "test_exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: Commit schema updates
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Create detailed commit message
+          COMMIT_MSG="chore(schemas): update API schemas and documentation
+
+          Automated schema extraction results:
+          - DynamoDB schemas: ${{ steps.generate_dynamodb.outputs.dynamodb_exit_code == '0' && '✅ Success' || '❌ Failed' }}
+          - API Gateway routes: ${{ steps.extract_api.outputs.api_exit_code == '0' && '✅ Success' || '❌ Failed' }}
+          - Lambda patterns: ${{ steps.extract_lambda.outputs.lambda_exit_code == '0' && '✅ Success' || '❌ Failed' }}
+          - Consistency tests: ${{ steps.run_tests.outputs.test_exit_code == '0' && '✅ Passed' || '⚠️ Failed' }}
+
+          Updated files:"
+          
+          # Add list of changed files
+          CHANGED_FILES=$(git diff --staged --name-only | sed 's/^/  - /')
+          
+          git commit -m "$COMMIT_MSG
+          $CHANGED_FILES"
+          
+          git push
+      
+      - name: Create issue on failure
+        if: |
+          failure() || 
+          steps.generate_dynamodb.outputs.dynamodb_exit_code != '0' ||
+          steps.extract_api.outputs.api_exit_code != '0' ||
+          steps.extract_lambda.outputs.lambda_exit_code != '0' ||
+          (steps.check_changes.outputs.has_changes == 'true' && steps.run_tests.outputs.test_exit_code != '0')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Prepare issue body with logs
+            let issueBody = `## Schema Update Workflow Failed
+            
+            **Workflow Run:** [${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            **Triggered by:** ${context.eventName}
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### Execution Status
+            
+            | Step | Status |
+            |------|--------|
+            | Generate DynamoDB schemas | ${{ steps.generate_dynamodb.outputs.dynamodb_exit_code == '0' && '✅ Success' || '❌ Failed' }} |
+            | Extract API Gateway routes | ${{ steps.extract_api.outputs.api_exit_code == '0' && '✅ Success' || '❌ Failed' }} |
+            | Extract Lambda patterns | ${{ steps.extract_lambda.outputs.lambda_exit_code == '0' && '✅ Success' || '❌ Failed' }} |
+            | Consistency tests | ${{ steps.run_tests.outputs.test_exit_code == '0' && '✅ Passed' || '⚠️ Failed' }} |
+            
+            ### Error Logs
+            `;
+            
+            // Add relevant logs
+            const logFiles = [
+              { name: 'DynamoDB Schema Generation', file: 'dynamodb_output.log', exitCode: '${{ steps.generate_dynamodb.outputs.dynamodb_exit_code }}' },
+              { name: 'API Gateway Route Extraction', file: 'api_gateway_output.log', exitCode: '${{ steps.extract_api.outputs.api_exit_code }}' },
+              { name: 'Lambda Pattern Extraction', file: 'lambda_patterns_output.log', exitCode: '${{ steps.extract_lambda.outputs.lambda_exit_code }}' },
+              { name: 'Consistency Tests', file: 'test_output.log', exitCode: '${{ steps.run_tests.outputs.test_exit_code }}' }
+            ];
+            
+            for (const log of logFiles) {
+              if (log.exitCode !== '0' && fs.existsSync(log.file)) {
+                const content = fs.readFileSync(log.file, 'utf8');
+                const lastLines = content.split('\n').slice(-50).join('\n');
+                issueBody += `
+            
+            #### ${log.name}
+            <details>
+            <summary>View last 50 lines of output</summary>
+            
+            \`\`\`
+            ${lastLines}
+            \`\`\`
+            
+            </details>`;
+              }
+            }
+            
+            issueBody += `
+            
+            ### Next Steps
+            
+            1. Review the error logs above
+            2. Check if AWS credentials are properly configured
+            3. Verify that the DynamoDB table exists and is accessible
+            4. Ensure Python scripts have required permissions
+            5. Run \`make update-schemas\` locally to reproduce the issue
+            
+            ### Related Files
+            
+            - \`scripts/generate_dynamodb_schemas.py\`
+            - \`scripts/extract_api_gateway_routes.py\`
+            - \`scripts/extract_lambda_patterns.py\`
+            - \`tests/test_api_field_consistency.py\`
+            `;
+            
+            // Check for existing open issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'schema-update-failure,automated',
+              state: 'open'
+            });
+            
+            if (issues.data.length > 0) {
+              // Update existing issue
+              const issue = issues.data[0];
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: issueBody
+              });
+              console.log(`Updated existing issue #${issue.number}`);
+            } else {
+              // Create new issue
+              const newIssue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Schema Update Failed - ${new Date().toLocaleDateString()}`,
+                body: issueBody,
+                labels: ['schema-update-failure', 'automated', 'bug']
+              });
+              console.log(`Created new issue #${newIssue.data.number}`);
+            }
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_changes.outputs.has_changes }}" == "true" ]; then
+            echo "✅ Schema changes were detected and committed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No schema changes detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Execution Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Generate DynamoDB schemas | ${{ steps.generate_dynamodb.outputs.dynamodb_exit_code == '0' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Extract API Gateway routes | ${{ steps.extract_api.outputs.api_exit_code == '0' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Extract Lambda patterns | ${{ steps.extract_lambda.outputs.lambda_exit_code == '0' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_changes.outputs.has_changes }}" == "true" ]; then
+            echo "| Consistency tests | ${{ steps.run_tests.outputs.test_exit_code == '0' && '✅ Passed' || '⚠️ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Separate job for manual validation
+  validate-schemas:
+    runs-on: ubuntu-latest
+    needs: update-schemas
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3 pytest jsonschema
+      
+      - name: Validate JSON schemas
+        run: |
+          echo "Validating generated JSON schemas..."
+          python -c "
+import json
+import jsonschema
+from pathlib import Path
+
+schema_file = Path('.wedding/context/dynamodb-schemas.json')
+if schema_file.exists():
+    with open(schema_file) as f:
+        data = json.load(f)
+    
+    # Validate structure
+    assert 'schemas' in data, 'Missing schemas key'
+    assert 'metadata' in data, 'Missing metadata key'
+    
+    for table_name, schema in data['schemas'].items():
+        print(f'Validating schema for {table_name}...')
+        # Validate it's a valid JSON Schema
+        jsonschema.Draft7Validator.check_schema(schema)
+        print(f'  ✅ Valid JSON Schema')
+        
+        # Check required properties
+        assert 'properties' in schema, f'{table_name}: Missing properties'
+        assert 'type' in schema, f'{table_name}: Missing type'
+        assert schema['type'] == 'object', f'{table_name}: Type should be object'
+        
+    print('All schemas validated successfully!')
+else:
+    print('⚠️  No schema file found at expected location')
+"
+      
+      - name: Display schema summary
+        run: |
+          if [ -f .wedding/context/dynamodb-schemas.json ]; then
+            echo "### DynamoDB Schema Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            python -c "
+import json
+from pathlib import Path
+
+with open('.wedding/context/dynamodb-schemas.json') as f:
+    data = json.load(f)
+
+for table_name, schema in data['schemas'].items():
+    print(f'**Table: {table_name}**')
+    print(f'- Fields: {len(schema[\"properties\"])}')
+    print(f'- Required: {len(schema.get(\"required\", []))}')
+    print()
+"           >> $GITHUB_STEP_SUMMARY
+          fi

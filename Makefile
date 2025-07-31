@@ -46,6 +46,10 @@ help:
 	@echo "  make deploy-all         Deploy all infrastructure via OpenTofu"
 	@echo "  make test-all           Test complete integration chain"
 	@echo "  make cleanup-all        Delete all AWS resources via OpenTofu (with confirmation)"
+	@echo ""
+	@echo "Schema Management:"
+	@echo "  make update-schemas     Update all API schemas and documentation"
+	@echo "  make test-api-consistency  Test field consistency across layers"
 
 # OpenTofu Infrastructure Operations
 tofu-init:
@@ -192,10 +196,23 @@ tf-deploy-all:
 	$(MAKE) tf-apply
 	@echo "All infrastructure deployed successfully!"
 
+# Schema Management Operations
+update-schemas: ## Update all API schemas
+	@echo "Updating API schemas..."
+	cd scripts && python generate_dynamodb_schemas.py
+	cd scripts && python extract_api_gateway_routes.py
+	cd scripts && python extract_lambda_patterns.py
+	@echo "Schema update complete!"
+
+test-api-consistency: ## Test field consistency
+	@echo "Testing API field consistency..."
+	cd tests && pytest test_api_field_consistency.py -v
+
 # Development helpers
 .PHONY: help tofu-init tofu-plan tofu-apply tofu-destroy tofu-validate tofu-fmt \
         create-table update-table delete-table describe-table list-tables \
         deploy-lambda update-lambda test-lambda delete-lambda \
         deploy-api update-api test-api delete-api \
         deploy-all test-all cleanup-all \
-        tf-init tf-plan tf-apply tf-deploy-all
+        tf-init tf-plan tf-apply tf-deploy-all \
+        update-schemas test-api-consistency
