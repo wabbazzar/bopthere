@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AuthContextValue, AuthState, AuthAction, User } from '@/types/auth';
-import { AuthService } from '@/lib/auth';
+import { AuthService } from '@/lib/auth.ts';
 import { useToast } from '@/hooks/use-toast';
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
