@@ -6,7 +6,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# other
 local/
+*zip
 
 node_modules
 dist
@@ -41,6 +44,8 @@ docs/gh_refactor_todo.md
 .terraform.lock.hcl
 lambda-deployment.zip
 infrastructure/lambda-deployment.zip
+infrastructure/*-deployment.zip
+infrastructure/auth-lambda-deployment.zip
 
 # AWS credentials
 .aws/
