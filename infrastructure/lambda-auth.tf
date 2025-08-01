@@ -12,7 +12,7 @@ resource "aws_lambda_function" "auth_handler" {
 
   environment {
     variables = {
-      TABLE_NAME  = var.table_name
+      TABLE_NAME  = aws_dynamodb_table.auth_users.name
       JWT_SECRET  = var.jwt_secret
     }
   }

@@ -2,19 +2,29 @@ import json
 import boto3
 import os
 import jwt
-import bcrypt
+import hashlib
+import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 # Initialize DynamoDB resource
+# Note: AWS profile is handled by Lambda execution environment
 dynamodb = boto3.resource('dynamodb')
 table_name = os.environ.get('TABLE_NAME', 'heatherandwesley-users')
 table = dynamodb.Table(table_name)
 
 # JWT configuration
-JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-here')
+JWT_SECRET = os.environ.get('JWT_SECRET', 'development-secret-key-change-in-production')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRY_HOURS = 24
+
+# Validate JWT secret is set properly
+if JWT_SECRET == 'development-secret-key-change-in-production':
+    logger.warning('Using default JWT secret - should be set via environment variable in production')
 
 # Helper function to convert float to Decimal for DynamoDB
 def float_to_decimal(obj):
@@ -50,18 +60,41 @@ def verify_token(token):
     """Verify JWT token and return payload"""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        # Verify required claims are present
+        if 'username' not in payload or 'exp' not in payload:
+            logger.warning('JWT token missing required claims')
+            return None
         return payload
     except jwt.ExpiredSignatureError:
+        logger.info('JWT token has expired')
         return None
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
+        logger.warning(f'Invalid JWT token: {str(e)}')
         return None
+    except Exception as e:
+        logger.error(f'Error verifying JWT token: {str(e)}')
+        return None
+
+def hash_password(password):
+    """Hash password using SHA256 with salt (avoiding bcrypt binary dependency)"""
+    salt = os.urandom(32).hex()  # 32 bytes salt
+    password_hash = hashlib.sha256((password + salt).encode()).hexdigest()
+    return f"{salt}:{password_hash}"
+
+def verify_password(password, stored_hash):
+    """Verify password against stored hash"""
+    try:
+        salt, password_hash = stored_hash.split(':')
+        return hashlib.sha256((password + salt).encode()).hexdigest() == password_hash
+    except ValueError:
+        return False
 
 def lambda_handler(event, context):
     """
     Handle authentication requests for the wedding website
     Supports /auth/login and /auth/verify endpoints
     """
-    print(f"Received event: {json.dumps(event)}")
+    logger.info(f"Received event: {json.dumps(event, default=str)}")
     
     # Parse HTTP method and path
     http_method = event.get('httpMethod', 'GET')
@@ -114,9 +147,9 @@ def lambda_handler(event, context):
             
             user = response['Item']
             
-            # Verify password
+            # Verify password using SHA256 (avoiding bcrypt binary dependency)
             password_hash = user.get('password_hash', '')
-            if not bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+            if not verify_password(password, password_hash):
                 return {
                     'statusCode': 401,
                     'headers': headers,
@@ -127,28 +160,34 @@ def lambda_handler(event, context):
             
             # Update last login timestamp
             current_time = datetime.utcnow().isoformat() + 'Z'
-            table.update_item(
-                Key={'username': username},
-                UpdateExpression='SET last_login = :last_login',
-                ExpressionAttributeValues={':last_login': current_time}
-            )
+            try:
+                table.update_item(
+                    Key={'username': username},
+                    UpdateExpression='SET last_login = :last_login',
+                    ExpressionAttributeValues={':last_login': current_time}
+                )
+            except Exception as update_error:
+                logger.warning(f"Failed to update last_login for {username}: {str(update_error)}")
+                # Continue with login even if timestamp update fails
             
             # Generate JWT token
             token = generate_token(username, user.get('role', 'guest'))
             
-            # Return success response with token
+            # Return success response with token - using exact field names from ticket
+            response_user = {
+                'username': user.get('username'),
+                'email': user.get('email'),
+                'full_name': user.get('full_name'),
+                'role': user.get('role', 'guest')
+            }
+            
             return {
                 'statusCode': 200,
                 'headers': headers,
                 'body': json.dumps({
                     'message': 'Login successful',
                     'token': token,
-                    'user': {
-                        'username': user.get('username'),
-                        'email': user.get('email'),
-                        'full_name': user.get('full_name'),
-                        'role': user.get('role', 'guest')
-                    }
+                    'user': response_user
                 })
             }
             
@@ -158,10 +197,17 @@ def lambda_handler(event, context):
             token = body.get('token')
             
             if not token:
-                # Check Authorization header as fallback
-                auth_header = event.get('headers', {}).get('Authorization', '')
+                # Check Authorization header as fallback (case-insensitive)
+                headers_dict = event.get('headers', {})
+                # Handle case-insensitive header lookup
+                auth_header = ''
+                for key, value in headers_dict.items():
+                    if key.lower() == 'authorization':
+                        auth_header = value
+                        break
+                
                 if auth_header.startswith('Bearer '):
-                    token = auth_header.split(' ')[1]
+                    token = auth_header[7:]  # Remove 'Bearer ' prefix
                 else:
                     return {
                         'statusCode': 400,
@@ -198,22 +244,25 @@ def lambda_handler(event, context):
             
             user = response['Item']
             
-            # Return user info
+            # Return user info - using exact field names from ticket
+            response_user = {
+                'username': user.get('username'),
+                'email': user.get('email'),
+                'full_name': user.get('full_name'),
+                'role': user.get('role', 'guest')
+            }
+            
             return {
                 'statusCode': 200,
                 'headers': headers,
                 'body': json.dumps({
                     'message': 'Token is valid',
-                    'user': {
-                        'username': user.get('username'),
-                        'email': user.get('email'),
-                        'full_name': user.get('full_name'),
-                        'role': user.get('role', 'guest')
-                    }
+                    'user': response_user
                 })
             }
             
         elif path.endswith('/register') and http_method == 'POST':
+            # Registration endpoint for admin user creation
             # Parse request body
             body = json.loads(event.get('body', '{}'))
             
@@ -246,8 +295,8 @@ def lambda_handler(event, context):
                     })
                 }
             
-            # Hash password
-            password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            # Hash password using SHA256 with salt
+            password_hash = hash_password(password)
             
             # Get current timestamp
             current_time = datetime.utcnow().isoformat() + 'Z'
@@ -298,12 +347,11 @@ def lambda_handler(event, context):
             }
             
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.error(f"Error in auth handler: {str(e)}", exc_info=True)
         return {
             'statusCode': 500,
             'headers': headers,
             'body': json.dumps({
-                'error': 'Internal server error',
-                'message': str(e)
+                'error': 'Internal server error'
             })
         }

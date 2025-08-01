@@ -10,6 +10,13 @@ This document provides standardized rules for generating comprehensive tickets f
 
 **NEW REQUIREMENT**: For any ticket involving AWS/backend integration, you MUST include exact field definitions from `.wedding/context/` files in EACH phase of the implementation plan. This eliminates guesswork and ensures code-writer and test-writer agents have the exact field information they need.
 
+**CORS REQUIREMENT**: For any ticket involving API endpoints, you MUST include comprehensive CORS configuration sections. This applies to:
+- API Gateway endpoints
+- Lambda functions serving HTTP requests  
+- Frontend features making cross-origin requests
+- Authentication/authorization endpoints
+- Any integration between frontend (heatherandwesley.com) and backend APIs
+
 ### Required Context Files:
 1. **`README.md`** - Project overview and technology stack
 2. **`package.json`** - Dependencies and available scripts  
@@ -158,29 +165,65 @@ Request: { exact request format from api-endpoints.md }
 Response: { exact response format from api-endpoints.md }
 ```
 
+**CORS Configuration (if API endpoints involved):**
+
+*Required Headers:*
+```javascript
+// Lambda proxy integration response format
+{
+  "statusCode": 200,
+  "headers": {
+    "Access-Control-Allow-Origin": "https://heatherandwesley.com",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+    "Access-Control-Max-Age": "86400"
+  },
+  "body": JSON.stringify(responseData)
+}
+```
+
+*API Gateway CORS Settings:*
+- Enable CORS for all methods including OPTIONS
+- Configure allowed origins: `https://heatherandwesley.com`, `http://localhost:5173` (dev)
+- Allow credentials if authentication is required
+- Set proper preflight response caching
+
+*Implementation Requirements:*
+1. **OPTIONS Method Handling**: Every Lambda must handle preflight requests
+2. **Environment-based Origins**: Production vs development origin handling
+3. **Error Response CORS**: Ensure error responses include CORS headers
+4. **Authentication CORS**: Properly handle CORS with JWT/auth headers
+
 **Implementation steps:**
 1. Use ONLY the field names listed above (if applicable)
 2. Validate against schemas before implementation
-3. [Other specific implementation steps]
+3. Configure CORS headers in Lambda response format (if API integration)
+4. Test CORS configuration from frontend origin
+5. [Other specific implementation steps]
 
 **Files to Modify:**
 - `src/path/to/file.tsx` - [What changes]
 - `src/path/to/file.css` - [What changes]
+- `aws/lambda/[function-name].py` - [CORS header configuration if Lambda integration]
 
 **Files to Create:**
 - `src/path/to/new-file.tsx` - [Purpose and contents]
+- `aws/lambda/[function-name].py` - [Lambda function with CORS support if new API]
 
 **Testing Requirements:**
 - [Specific test cases]
 - [Browser/device testing needed]
 - [Character system testing]
 - Schema validation: Verify all field names match `.wedding/context/` schemas
+- **CORS Testing**: Verify cross-origin requests work from frontend to API
+- **Preflight Testing**: Test OPTIONS requests return correct CORS headers
+- **Browser Console**: Check for CORS errors in network tab
 
 ### Phase 2: [Phase Name] ([X points])
-[Same structure as Phase 1, including Field Reference section if AWS integration]
+[Same structure as Phase 1, including Field Reference and CORS Configuration sections if AWS integration]
 
 ### Phase 3: [Phase Name] ([X points])
-[Same structure as Phase 1, including Field Reference section if AWS integration]
+[Same structure as Phase 1, including Field Reference and CORS Configuration sections if AWS integration]
 ```
 
 ### Documentation Updates Section
@@ -424,6 +467,46 @@ Response: {
 - Integration testing with existing features
 - Performance testing criteria where applicable
 - Schema validation testing for AWS integrations
+- **CORS testing for API endpoints** (see CORS Testing section below)
+
+**CORS Testing Requirements (for API-related tickets):**
+
+*Manual Testing Checklist:*
+- [ ] Frontend can make successful requests to API endpoints
+- [ ] Preflight OPTIONS requests return correct CORS headers
+- [ ] Error responses include proper CORS headers
+- [ ] Both development (localhost:5173) and production origins work
+- [ ] Browser network tab shows no CORS errors
+- [ ] Authentication headers work with CORS (if applicable)
+
+*Automated Testing:*
+```bash
+# Test preflight request
+curl -X OPTIONS \
+  -H "Origin: https://heatherandwesley.com" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: Content-Type" \
+  https://api.heatherandwesley.com/endpoint
+
+# Expected response headers:
+# Access-Control-Allow-Origin: https://heatherandwesley.com
+# Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+# Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+```
+
+*Browser Console Testing:*
+```javascript
+// Test from browser console on heatherandwesley.com
+fetch('https://api.heatherandwesley.com/endpoint', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({test: 'data'})
+})
+.then(response => console.log('CORS working:', response))
+.catch(error => console.error('CORS error:', error));
+```
 
 **Use Specialized Agents:**
 ```markdown
@@ -431,6 +514,77 @@ Response: {
 1. Run: `claude --agent test-writer "Write tests for [component] using exact field names from .wedding/context/dynamodb-schemas.json"`
 2. Run: `claude --agent test-critic "Review tests for [component] and verify field name accuracy"`
 3. Run: `claude --agent test-writer "Implement critic's suggestions for [component]"`
+4. **For API endpoints**: Run: `claude --agent test-writer "Write CORS integration tests for [endpoint] including preflight and error scenarios"`
+```
+
+### 9. CORS Troubleshooting Guide
+
+**Common CORS Issues and Solutions:**
+
+*Issue: "Access to fetch at 'API_URL' from origin 'FRONTEND_URL' has been blocked by CORS policy"*
+- **Cause**: Missing or incorrect `Access-Control-Allow-Origin` header
+- **Solution**: Ensure Lambda returns proper CORS headers in ALL responses (including errors)
+- **Check**: Verify API Gateway CORS configuration matches Lambda response headers
+
+*Issue: "Request header 'content-type' is not allowed by Access-Control-Allow-Headers"*
+- **Cause**: Missing `Content-Type` in `Access-Control-Allow-Headers`
+- **Solution**: Add `Content-Type` to allowed headers list
+- **Note**: Case-sensitive matching required
+
+*Issue: "Method POST is not allowed by Access-Control-Allow-Methods"*
+- **Cause**: OPTIONS preflight not properly configured
+- **Solution**: Ensure Lambda handles OPTIONS method and returns correct methods list
+- **Check**: Verify API Gateway OPTIONS integration
+
+*Issue: CORS works in development but fails in production*
+- **Cause**: Different origins between environments
+- **Solution**: Environment-based origin configuration in Lambda
+- **Pattern**: Use environment variables for allowed origins
+
+**CORS Implementation Checklist for Lambda:**
+```python
+# Required in every Lambda function
+def lambda_handler(event, context):
+    # Determine origin based on environment
+    allowed_origins = {
+        'development': 'http://localhost:5173',
+        'production': 'https://heatherandwesley.com'
+    }
+    
+    origin = event.get('headers', {}).get('origin', '')
+    stage = event.get('requestContext', {}).get('stage', 'development')
+    
+    cors_headers = {
+        'Access-Control-Allow-Origin': allowed_origins.get(stage, allowed_origins['production']),
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+        'Access-Control-Max-Age': '86400'
+    }
+    
+    # Handle preflight
+    if event.get('httpMethod') == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': cors_headers,
+            'body': ''
+        }
+    
+    try:
+        # Your main logic here
+        result = process_request(event)
+        
+        return {
+            'statusCode': 200,
+            'headers': cors_headers,
+            'body': json.dumps(result)
+        }
+    except Exception as e:
+        # CRITICAL: Include CORS headers in error responses
+        return {
+            'statusCode': 500,
+            'headers': cors_headers,
+            'body': json.dumps({'error': str(e)})
+        }
 ```
 
 ## Quality Checklist
@@ -443,19 +597,22 @@ Before finalizing any ticket, verify:
 - [ ] Technical requirements address character system integration
 - [ ] Implementation plan considers all three character perspectives
 - [ ] **Each phase with AWS integration has Field Reference section with exact schemas**
+- [ ] **API endpoint phases include CORS Configuration section with specific headers**
 - [ ] File references use absolute paths and specific descriptions
 - [ ] Documentation updates are explicitly called out
 - [ ] Success criteria are measurable and testable
 - [ ] Dependencies include character system requirements
 - [ ] Risks assess impact on existing wedding app functionality
+- [ ] **CORS testing requirements included for API-related tickets**
 - [ ] Point estimates reflect complexity, not time
 - [ ] Mobile and desktop compatibility is addressed
 - [ ] Wedding/celebration context is appropriate
 - [ ] **Field names are copied exactly from schemas, never guessed**
+- [ ] **CORS troubleshooting guidance provided for Lambda functions**
 
 ## Common Pitfalls to Avoid
 
-### L Don't:
+### Don't:
 - Use time estimates (days, weeks, hours) instead of points
 - Create vague file references ("update the main component")
 - Skip character system integration considerations
@@ -463,8 +620,13 @@ Before finalizing any ticket, verify:
 - Forget to validate against existing character themes
 - Create phases longer than 5 points without breakdown
 - Make assumptions about character-specific requirements
+- **Forget CORS headers in Lambda error responses**
+- **Assume API Gateway CORS is sufficient without Lambda headers**
+- **Skip preflight OPTIONS method handling in Lambda functions**
+- **Use different origins between development and production without environment handling**
+- **Test CORS only from same origin (missing cross-origin validation)**
 
-###  Do:
+### Do:
 - Ask clarifying questions when character integration is unclear
 - Break complex work into logical, testable phases
 - Specify exact files and components to modify
@@ -472,6 +634,11 @@ Before finalizing any ticket, verify:
 - Validate all changes against existing wedding app patterns
 - Consider mobile-first design for wedding guests
 - Reference existing character system patterns and precedents
+- **Include CORS configuration in every API endpoint phase**
+- **Test CORS from both development and production origins**
+- **Provide environment-based origin handling in Lambda functions**
+- **Include CORS troubleshooting steps in testing requirements**
+- **Verify CORS headers are returned in ALL response scenarios (success, error, validation failure)**
 
 ---
 

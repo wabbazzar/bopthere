@@ -1,0 +1,234 @@
+import React, { useState } from 'react';
+import { useCharacter } from '@/contexts/CharacterContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { characterThemes } from '@/types/character';
+import { Button } from '@/components/ui/button';
+import { 
+  Calendar, 
+  Bed, 
+  Users, 
+  Gamepad, 
+  LogOut, 
+  Menu, 
+  X 
+} from 'lucide-react';
+import { FestivalTab } from '@/pages/Festival';
+
+interface FestivalNavProps {
+  activeTab: FestivalTab;
+  onTabChange: (tab: FestivalTab) => void;
+}
+
+interface TabConfig {
+  id: FestivalTab;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+}
+
+const tabs: TabConfig[] = [
+  {
+    id: 'itinerary',
+    label: 'Itinerary',
+    icon: Calendar,
+    description: 'Your wedding weekend schedule'
+  },
+  {
+    id: 'sleeping',
+    label: 'Sleeping',
+    icon: Bed,
+    description: 'Your accommodation details'
+  },
+  {
+    id: 'guests',
+    label: 'Guest List',
+    icon: Users,
+    description: 'See who\'s joining the celebration'
+  },
+  {
+    id: 'games',
+    label: 'Games',
+    icon: Gamepad,
+    description: 'Fun activities and challenges'
+  }
+];
+
+export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange }) => {
+  const { selectedCharacter } = useCharacter();
+  const { logout, user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  if (!selectedCharacter) return null;
+
+  const currentTheme = characterThemes[selectedCharacter];
+
+  const handleTabClick = (tabId: FestivalTab) => {
+    onTabChange(tabId);
+    setIsMobileMenuOpen(false); // Close mobile menu after selection
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+  };
+
+  return (
+    <>
+      {/* Desktop Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/20">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo/Title */}
+            <div className="flex items-center space-x-4">
+              <h2 
+                className="text-xl font-bold text-white hidden sm:block"
+                style={{ fontFamily: 'Cinzel, serif' }}
+              >
+                Festival Dashboard
+              </h2>
+              <h2 
+                className="text-lg font-bold text-white sm:hidden"
+                style={{ fontFamily: 'Cinzel, serif' }}
+              >
+                Festival
+              </h2>
+            </div>
+
+            {/* Desktop Tab Navigation */}
+            <div className="hidden md:flex items-center space-x-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = tab.id === activeTab;
+
+                return (
+                  <Button
+                    key={tab.id}
+                    variant={isActive ? "default" : "ghost"}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`
+                      relative transition-all duration-300 hover:scale-105
+                      ${isActive 
+                        ? 'shadow-lg' 
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                      }
+                    `}
+                    style={{
+                      backgroundColor: isActive ? currentTheme.primary : 'transparent',
+                      color: isActive ? 'white' : undefined
+                    }}
+                    title={tab.description}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    <span className="hidden lg:inline">{tab.label}</span>
+                    <span className="lg:hidden">{tab.label.split(' ')[0]}</span>
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* User info and logout */}
+            <div className="flex items-center space-x-4">
+              <div className="hidden sm:block text-right">
+                <p className="text-sm text-white/90">{user?.full_name}</p>
+                <p className="text-xs text-white/70 capitalize">{user?.role}</p>
+              </div>
+              
+              {/* Desktop Logout */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="hidden md:flex items-center transition-all duration-300 hover:scale-105"
+                style={{
+                  borderColor: currentTheme.secondary,
+                  color: 'white',
+                  backgroundColor: 'transparent'
+                }}
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Logout
+              </Button>
+
+              {/* Mobile Menu Toggle */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden text-white hover:bg-white/10"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Navigation Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="fixed top-16 left-0 right-0 bg-black/95 backdrop-blur-md border-b border-white/20">
+            <div className="container mx-auto px-4 py-4">
+              {/* Mobile user info */}
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/20">
+                <div>
+                  <p className="text-white font-medium">{user?.full_name}</p>
+                  <p className="text-white/70 text-sm capitalize">{user?.role}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="transition-all duration-300"
+                  style={{
+                    borderColor: currentTheme.secondary,
+                    color: 'white',
+                    backgroundColor: 'transparent'
+                  }}
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Logout
+                </Button>
+              </div>
+
+              {/* Mobile tab navigation */}
+              <div className="grid grid-cols-2 gap-2">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = tab.id === activeTab;
+
+                  return (
+                    <Button
+                      key={tab.id}
+                      variant={isActive ? "default" : "ghost"}
+                      onClick={() => handleTabClick(tab.id)}
+                      className={`
+                        flex flex-col items-center justify-center h-20 transition-all duration-300
+                        ${isActive 
+                          ? 'shadow-lg' 
+                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                        }
+                      `}
+                      style={{
+                        backgroundColor: isActive ? currentTheme.primary : 'transparent',
+                        color: isActive ? 'white' : undefined
+                      }}
+                    >
+                      <Icon className="w-6 h-6 mb-1" />
+                      <span className="text-sm font-medium">{tab.label}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};

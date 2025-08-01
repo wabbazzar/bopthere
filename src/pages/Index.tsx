@@ -1,14 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { CharacterProvider, useCharacter } from '@/contexts/CharacterContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { CharacterSelector } from '@/components/CharacterSelector';
 import { CharacterSwitcher } from '@/components/CharacterSwitcher';
 import { HeroSection } from '@/components/HeroSection';
 import { WeddingDetails } from '@/components/WeddingDetails';
 import { RSVPSection } from '@/components/RSVPSection';
+import { Festival } from '@/pages/Festival';
 
 const IndexContent: React.FC = () => {
   const { selectedCharacter } = useCharacter();
+  const { isAuthenticated } = useAuth();
   const [showCharacterSelector, setShowCharacterSelector] = useState(false);
 
   useEffect(() => {
@@ -16,6 +19,11 @@ const IndexContent: React.FC = () => {
       setShowCharacterSelector(true);
     }
   }, [selectedCharacter]);
+
+  // Phase 3 - When authenticated, show Festival app instead of public wedding site
+  if (isAuthenticated && selectedCharacter) {
+    return <Festival />;
+  }
 
   return (
     <div 

@@ -160,7 +160,7 @@ create_auth_endpoint() {
         --resource-id $RESOURCE_ID \
         --http-method OPTIONS \
         --status-code 200 \
-        --response-parameters method.response.header.Access-Control-Allow-Headers="'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",method.response.header.Access-Control-Allow-Methods="'OPTIONS,POST'",method.response.header.Access-Control-Allow-Origin="'*'" \
+        --response-parameters '{"method.response.header.Access-Control-Allow-Headers":"'"'"'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"'"'","method.response.header.Access-Control-Allow-Methods":"'"'"'OPTIONS,POST'"'"'","method.response.header.Access-Control-Allow-Origin":"'"'"'*'"'"'"}' \
         --profile $AWS_PROFILE \
         --region $AWS_REGION || echo "OPTIONS integration response may already exist"
     

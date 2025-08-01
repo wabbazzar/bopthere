@@ -1,6 +1,6 @@
 # DynamoDB table for user authentication
 resource "aws_dynamodb_table" "auth_users" {
-  name         = "heatherandwesley-users"
+  name         = "heatherandwesley-auth-users"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "username"
 

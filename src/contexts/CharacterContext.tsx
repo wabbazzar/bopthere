@@ -7,7 +7,7 @@ interface CharacterContextType {
   setSelectedCharacter: (character: Character) => void;
 }
 
-const CharacterContext = createContext<CharacterContextType>({
+export const CharacterContext = createContext<CharacterContextType>({
   selectedCharacter: null,
   setSelectedCharacter: () => {}
 });

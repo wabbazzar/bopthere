@@ -4,14 +4,15 @@ DynamoDB User Seeder for Wedding App
 Seeds test users in the heatherandwesley-users DynamoDB table
 
 This script creates test users with different roles for testing the authentication system.
-It includes proper password hashing with bcrypt and supports different environments.
+It includes proper password hashing with SHA256+salt matching auth-handler.py implementation.
 """
 
 import argparse
 import boto3
-import bcrypt
+import hashlib
 import json
 import logging
+import os
 import sys
 from datetime import datetime
 from decimal import Decimal
@@ -53,17 +54,34 @@ class UserSeeder:
     
     def _hash_password(self, password: str) -> str:
         """
-        Hash password using bcrypt
+        Hash password using SHA256 with salt (matching auth-handler.py implementation)
         
         Args:
             password: Plain text password
             
         Returns:
-            Bcrypt hashed password as string
+            SHA256 hashed password with salt as string (format: salt:hash)
         """
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-        return hashed.decode('utf-8')
+        salt = os.urandom(32).hex()  # 32 bytes salt
+        password_hash = hashlib.sha256((password + salt).encode()).hexdigest()
+        return f"{salt}:{password_hash}"
+    
+    def _verify_password(self, password: str, stored_hash: str) -> bool:
+        """
+        Verify password against stored hash (for testing purposes)
+        
+        Args:
+            password: Plain text password
+            stored_hash: Stored hash in format salt:hash
+            
+        Returns:
+            True if password matches, False otherwise
+        """
+        try:
+            salt, password_hash = stored_hash.split(':')
+            return hashlib.sha256((password + salt).encode()).hexdigest() == password_hash
+        except ValueError:
+            return False
     
     def _get_current_timestamp(self) -> str:
         """
@@ -90,6 +108,24 @@ class UserSeeder:
             return {k: self._float_to_decimal(v) for k, v in obj.items()}
         elif isinstance(obj, list):
             return [self._float_to_decimal(v) for v in obj]
+        return obj
+    
+    def _decimal_to_float(self, obj: Any) -> Any:
+        """
+        Convert Decimal values to float for JSON serialization compatibility
+        
+        Args:
+            obj: Object that may contain Decimal values
+            
+        Returns:
+            Object with Decimals converted to float
+        """
+        if isinstance(obj, Decimal):
+            return float(obj)
+        elif isinstance(obj, dict):
+            return {k: self._decimal_to_float(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._decimal_to_float(v) for v in obj]
         return obj
     
     def check_table_exists(self, table_name: str) -> bool:
@@ -127,6 +163,7 @@ class UserSeeder:
             logger.info("[DRY RUN]   Primary Key: username (String)")
             logger.info("[DRY RUN]   Billing Mode: PAY_PER_REQUEST")
             logger.info("[DRY RUN]   Encryption: Enabled")
+            logger.info("[DRY RUN]   Fields: username, password_hash, email, full_name, role, created_at, last_login")
             return True
         
         try:
@@ -231,16 +268,26 @@ class UserSeeder:
         Returns:
             Dictionary containing user data that was/would be created
         """
-        # Validate role
+        # Validate role (matching ticket schema)
         valid_roles = ['guest', 'vip', 'admin']
         if role not in valid_roles:
             raise ValueError(f"Role must be one of: {', '.join(valid_roles)}")
+        
+        # Validate required fields match DynamoDB schema from ticket
+        if not username or not isinstance(username, str):
+            raise ValueError("Username must be a non-empty string")
+        if not password or not isinstance(password, str):
+            raise ValueError("Password must be a non-empty string")
+        if not email or not isinstance(email, str):
+            raise ValueError("Email must be a non-empty string")
+        if not full_name or not isinstance(full_name, str):
+            raise ValueError("Full name must be a non-empty string")
         
         # Hash password
         password_hash = self._hash_password(password)
         current_time = self._get_current_timestamp()
         
-        # Prepare user item
+        # Prepare user item (exact schema from ticket)
         user_item = {
             'username': username,
             'password_hash': password_hash,
@@ -248,7 +295,7 @@ class UserSeeder:
             'full_name': full_name,
             'role': role,
             'created_at': current_time,
-            'last_login': ''  # Empty for new users
+            'last_login': ''  # Empty for new users (will be updated on first login)
         }
         
         # Convert any float values to Decimal for DynamoDB
@@ -256,6 +303,12 @@ class UserSeeder:
         
         if dry_run:
             logger.info(f"[DRY RUN] Would create user: {username}")
+            # Verify password hashing works correctly in dry run
+            if self._verify_password(password, password_hash):
+                logger.info(f"[DRY RUN] Password hashing verification: PASSED for {username}")
+            else:
+                logger.error(f"[DRY RUN] Password hashing verification: FAILED for {username}")
+            
             # Don't include password hash in dry run output for security
             safe_item = {k: v for k, v in user_item.items() if k != 'password_hash'}
             safe_item['password_hash'] = '[REDACTED]'
@@ -406,8 +459,8 @@ class UserSeeder:
             
             users = []
             for item in response.get('Items', []):
-                # Remove password hash for security
-                safe_item = {k: v for k, v in item.items() if k != 'password_hash'}
+                # Convert Decimal to native types and remove password hash for security
+                safe_item = self._decimal_to_float({k: v for k, v in item.items() if k != 'password_hash'})
                 users.append(safe_item)
             
             return users
@@ -465,7 +518,7 @@ Supported Roles:
     parser.add_argument(
         '--table-name',
         default='heatherandwesley-auth-users',
-        help='DynamoDB table name (default: heatherandwesley-auth-users)'
+        help='DynamoDB table name for authentication (default: heatherandwesley-auth-users)'
     )
     
     # AWS configuration
@@ -526,6 +579,12 @@ Supported Roles:
         help='Enable verbose logging'
     )
     
+    parser.add_argument(
+        '--validate-hashing',
+        action='store_true',
+        help='Test password hashing functionality without creating users'
+    )
+    
     args = parser.parse_args()
     
     # Configure logging level
@@ -535,6 +594,19 @@ Supported Roles:
     try:
         # Initialize seeder
         seeder = UserSeeder(profile_name=args.profile, region=args.region)
+        
+        # Test password hashing if requested
+        if args.validate_hashing:
+            logger.info("Testing password hashing functionality...")
+            test_passwords = ['test123', 'wedding2025', 'maui2025', 'admin2025']
+            
+            for test_pass in test_passwords:
+                hashed = seeder._hash_password(test_pass)
+                is_valid = seeder._verify_password(test_pass, hashed)
+                logger.info(f"Password '{test_pass}': {'PASS' if is_valid else 'FAIL'}")
+            
+            logger.info("Password hashing validation completed")
+            return
         
         # Check if table exists and create if requested
         if not seeder.check_table_exists(args.table_name):
@@ -557,8 +629,14 @@ Supported Roles:
                 logger.info("No users found in table")
             else:
                 logger.info(f"Found {len(users)} users:")
-                for user in users:
-                    logger.info(f"  - {user['username']} ({user.get('role', 'unknown')}) - {user.get('email', 'no email')}")
+                for i, user in enumerate(users):
+                    if args.verbose:
+                        logger.info(f"  User {i+1} fields: {list(user.keys())}")
+                    username = user.get('username', 'unknown')
+                    role = user.get('role', 'unknown')
+                    email = user.get('email', 'no email')
+                    created_at = user.get('created_at', 'unknown')
+                    logger.info(f"  - {username} ({role}) - {email} - created: {created_at}")
             
             return
         
