@@ -59,10 +59,15 @@ npm run test:watch <filename>   # For iterative development
 npm run lint                    # Final lint check
 npm run test                    # Run full test suite
 
-# Test Framework: Jest + React Testing Library
-# Structure: describe() blocks with it() statements
+# Test Framework: Jest + React Testing Library + Playwright
+# Structure: describe() blocks with it() statements for unit tests
 # Imports: @testing-library/react, @testing-library/jest-dom
 # Focus: Component rendering, user interactions, props testing
+
+# For E2E/Integration tests use Playwright:
+npx playwright test             # Run all Playwright tests
+npx playwright test --debug     # Debug mode with browser
+npx playwright test --ui        # Interactive UI mode
 ```
 
 ### JavaScript Vanilla ES Modules (detect: package.json without react, .js files with import/export):
@@ -102,9 +107,14 @@ npm run type-check              # Final type check
 npm run lint                    # Final lint check
 npm test                        # Run all tests
 
-# Test Framework: Jest/Vitest with TypeScript support
+# Test Framework: Jest/Vitest with TypeScript support + Playwright for E2E
 # Structure: Typed test functions with proper type annotations
 # Focus: Type safety, generic functions, interface contracts
+
+# For E2E/Integration tests use Playwright:
+npx playwright test             # Run all Playwright tests
+npx playwright test --headed    # Run with visible browser
+npx playwright codegen          # Generate test code from interactions
 ```
 
 **Scope Constraints:**
@@ -174,6 +184,7 @@ npm test                        # Run all tests
 3. **Edge Cases**: undefined, null, empty arrays/objects, edge values
 4. **Error Tests**: Try/catch blocks, promise rejections, validation errors
 5. **Integration Tests**: API calls, DOM interactions, module interactions
+6. **E2E Tests (Playwright)**: User flows, navigation, dialog interactions, complex UI behavior
 
 **Example Progress Report:**
 ```
@@ -225,4 +236,55 @@ When testing AWS Lambda/API Gateway/DynamoDB integrations, you MUST create E2E s
    - [ ] Error handling returns appropriate HTTP status codes
    - [ ] JWT/authentication flows work if applicable
 
+**Playwright E2E Testing Guidelines:**
+
+When writing Playwright tests for React/TypeScript projects:
+
+1. **Test File Structure**:
+   ```typescript
+   // tests/e2e/[feature].spec.ts
+   import { test, expect } from '@playwright/test';
+   
+   test.describe('[Feature] Tests', () => {
+     test.beforeEach(async ({ page }) => {
+       await page.goto('http://localhost:5173');
+     });
+     
+     test('should [specific behavior]', async ({ page }) => {
+       // Test implementation
+     });
+   });
+   ```
+
+2. **Debugging Complex UI Issues**:
+   - Use `?nav-debug` query param for navigation debugging
+   - Capture console logs: `page.on('console', msg => console.log(msg.text()))`
+   - Take screenshots at key points: `await page.screenshot({ path: 'debug.png' })`
+   - Check for blocking elements: `await page.evaluate(() => window.navDebugger?.showBlockers())`
+
+3. **Common Patterns**:
+   ```typescript
+   // Wait for animations
+   await page.waitForTimeout(300);
+   
+   // Check element visibility
+   await expect(page.locator('#element')).toBeVisible();
+   
+   // Test dialog interactions
+   await page.click('button:has-text("Open Dialog")');
+   await page.waitForSelector('[role="dialog"]');
+   
+   // Verify navigation works
+   const navButton = page.locator('#hamburger-menu');
+   await expect(navButton).toBeEnabled();
+   ```
+
+4. **Wedding App Specific Testing**:
+   - Test all three character perspectives
+   - Verify character theme switching
+   - Test mobile responsiveness: `await page.setViewportSize({ width: 375, height: 667 })`
+   - Validate RSVP flow end-to-end
+
 Remember: It's better to deliver 10 excellent, working tests quickly than 50 mediocre tests slowly. Always prioritize communication, working code, and incremental progress over comprehensive perfection. Detect the project language/framework automatically and use the appropriate tooling without asking.
+
+For complex UI debugging issues (like navigation becoming unclickable), always reach for Playwright first - it provides the visibility and control needed to diagnose and verify fixes.

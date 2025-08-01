@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCharacter } from '@/contexts/CharacterContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { characterThemes } from '@/types/character';
@@ -13,6 +13,7 @@ import {
   X 
 } from 'lucide-react';
 import { FestivalTab } from '@/pages/Festival';
+import { navDebugger } from '@/utils/navDebugger';
 
 interface FestivalNavProps {
   activeTab: FestivalTab;
@@ -57,17 +58,62 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
   const { selectedCharacter } = useCharacter();
   const { logout, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const menuStateRef = useRef(isMobileMenuOpen);
+
+  // Debug logging for component lifecycle and state
+  useEffect(() => {
+    navDebugger.log('FestivalNav', 'component-mounted', {
+      activeTab,
+      selectedCharacter,
+      isAuthenticated: !!user,
+      isMobileMenuOpen
+    });
+    
+    // Ensure nav is always interactive
+    const ensureNavInteractive = () => {
+      const nav = document.querySelector('nav');
+      if (nav) {
+        (nav as HTMLElement).style.pointerEvents = 'auto';
+      }
+    };
+    
+    ensureNavInteractive();
+    const interval = setInterval(ensureNavInteractive, 1000);
+
+    return () => {
+      clearInterval(interval);
+      navDebugger.log('FestivalNav', 'component-unmounted');
+    };
+  }, []);
+
+  useEffect(() => {
+    menuStateRef.current = isMobileMenuOpen;
+    navDebugger.log('FestivalNav', 'state-changed', {
+      isMobileMenuOpen,
+      user: user?.full_name || 'not logged in'
+    }, hamburgerRef.current);
+  }, [isMobileMenuOpen, user]);
 
   if (!selectedCharacter) return null;
 
   const currentTheme = characterThemes[selectedCharacter];
 
   const handleTabClick = (tabId: FestivalTab) => {
+    navDebugger.log('FestivalNav', 'tab-click', {
+      tabId,
+      previousTab: activeTab,
+      isMobileMenuOpen
+    });
     onTabChange(tabId);
     setIsMobileMenuOpen(false); // Close mobile menu after selection
   };
 
   const handleLogout = () => {
+    navDebugger.log('FestivalNav', 'logout-clicked', {
+      user: user?.full_name,
+      isMobileMenuOpen
+    });
     logout();
     setIsMobileMenuOpen(false);
   };
@@ -75,7 +121,7 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/20">
+      <nav className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-md border-b border-white/20" style={{ isolation: 'isolate', zIndex: 100 }}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo/Title */}
@@ -152,10 +198,30 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
 
               {/* Mobile Menu Toggle */}
               <Button
+                ref={hamburgerRef}
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden text-white hover:bg-white/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navDebugger.log('FestivalNav', 'hamburger-click-attempt', {
+                    currentState: menuStateRef.current,
+                    eventType: e.type,
+                    eventTarget: e.currentTarget.tagName,
+                    isDefaultPrevented: e.defaultPrevented
+                  }, e.currentTarget);
+                  const newState = !menuStateRef.current;
+                  menuStateRef.current = newState;
+                  setIsMobileMenuOpen(newState);
+                }}
+                onPointerDown={(e) => {
+                  navDebugger.log('FestivalNav', 'hamburger-pointer-down', {
+                    pointerType: e.pointerType,
+                    isPrimary: e.isPrimary
+                  }, e.currentTarget);
+                }}
+                className="md:hidden text-white hover:bg-white/10 relative"
+                key="hamburger-menu-button"
+                style={{ zIndex: 60, pointerEvents: 'auto' }}
               >
                 {isMobileMenuOpen ? (
                   <X className="w-5 h-5" />
@@ -170,8 +236,13 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
 
       {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
+        <div className="fixed inset-0 md:hidden" style={{ isolation: 'isolate', zIndex: 90 }}>
+          <div className="fixed inset-0 bg-black/50" onClick={(e) => {
+            e.stopPropagation();
+            navDebugger.log('FestivalNav', 'backdrop-clicked');
+            menuStateRef.current = false;
+            setIsMobileMenuOpen(false);
+          }} />
           <div className="fixed top-16 left-0 right-0 bg-black/95 backdrop-blur-md border-b border-white/20">
             <div className="container mx-auto px-4 py-4">
               {/* Mobile user info */}

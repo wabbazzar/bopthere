@@ -45,7 +45,17 @@ const IndexContent: React.FC = () => {
       
       <CharacterSelector 
         open={showCharacterSelector} 
-        onOpenChange={setShowCharacterSelector} 
+        onOpenChange={(open) => {
+          // Ensure dialog state is properly managed
+          setShowCharacterSelector(open);
+          if (!open) {
+            // Extra cleanup when dialog closes
+            setTimeout(() => {
+              const dialogOverlays = document.querySelectorAll('[data-radix-dialog-overlay]');
+              dialogOverlays.forEach(el => el.remove());
+            }, 300);
+          }
+        }} 
       />
       
       {selectedCharacter && (

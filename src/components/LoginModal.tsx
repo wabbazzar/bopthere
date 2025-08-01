@@ -8,6 +8,7 @@ import { Loader2, LogIn, Eye, EyeOff } from 'lucide-react';
 import { useCharacter } from '@/contexts/CharacterContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { characterThemes } from '@/types/character';
+import { navDebugger } from '@/utils/navDebugger';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -31,14 +32,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       return;
     }
 
+    navDebugger.log('LoginModal', 'login-submit-start', {
+      username: username.trim(),
+      selectedCharacter
+    });
+
     setIsSubmitting(true);
     
     try {
       await login(username.trim(), password);
+      navDebugger.log('LoginModal', 'login-success', {
+        username: username.trim()
+      });
       onClose();
       setUsername('');
       setPassword('');
     } catch (error) {
+      navDebugger.log('LoginModal', 'login-error', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       // Error handling is done in the AuthContext
     } finally {
       setIsSubmitting(false);

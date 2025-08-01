@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Character, characterThemes, characterNames } from '@/types/character';
 import { useCharacter } from '@/contexts/CharacterContext';
 import { Crown, Heart, Cat } from 'lucide-react';
+import { navDebugger } from '@/utils/navDebugger';
 
 const characterIcons = {
   wesley: Crown,
@@ -32,14 +33,104 @@ interface CharacterSelectorProps {
 export const CharacterSelector: React.FC<CharacterSelectorProps> = ({ open, onOpenChange }) => {
   const { setSelectedCharacter } = useCharacter();
 
+  useEffect(() => {
+    navDebugger.log('CharacterSelector', 'dialog-state-changed', {
+      open,
+      timestamp: Date.now()
+    });
+    
+    // Clean up any lingering styles when dialog closes
+    if (!open) {
+      setTimeout(() => {
+        // Reset body and html overflow styles
+        document.body.style.overflow = '';
+        document.body.style.pointerEvents = '';
+        document.documentElement.style.overflow = '';
+        
+        // Remove any orphaned dialog elements
+        const orphanedOverlays = document.querySelectorAll('[data-radix-dialog-overlay]');
+        orphanedOverlays.forEach(el => {
+          navDebugger.log('CharacterSelector', 'removing-orphaned-overlay', {
+            element: el.className
+          });
+          el.remove();
+        });
+      }, 300); // Wait for animation to complete
+    }
+  }, [open]);
+
   const handleCharacterSelect = (character: Character) => {
-    setSelectedCharacter(character);
+    navDebugger.log('CharacterSelector', 'character-selected', {
+      character,
+      dialogWillClose: true
+    });
+    
+    // Close dialog first, then set character
     onOpenChange(false);
+    
+    // Delay character selection to ensure dialog closes properly
+    setTimeout(() => {
+      setSelectedCharacter(character);
+    }, 50);
+    
+    // Check DOM state after selection and force cleanup if needed
+    setTimeout(() => {
+      const dialogElements = document.querySelectorAll('[role="dialog"], [data-radix-dialog-overlay]');
+      const overlays = document.querySelectorAll('.fixed.inset-0');
+      
+      navDebugger.log('CharacterSelector', 'post-selection-check', {
+        dialogStillOpen: dialogElements.length > 0,
+        overlaysPresent: overlays.length,
+        bodyOverflow: document.body.style.overflow,
+        htmlOverflow: document.documentElement.style.overflow,
+        activeElement: document.activeElement?.tagName
+      });
+      
+      // Force cleanup if dialog elements still exist
+      dialogElements.forEach(el => {
+        navDebugger.log('CharacterSelector', 'force-removing-dialog-element', {
+          element: el.tagName,
+          role: el.getAttribute('role')
+        });
+        el.remove();
+      });
+      
+      // Ensure focus is not trapped
+      if (document.activeElement && document.activeElement.tagName === 'BODY') {
+        // Focus is on body, which is good
+      } else if (document.activeElement?.closest('[role="dialog"]')) {
+        // Focus is still trapped in dialog, release it
+        (document.activeElement as HTMLElement).blur();
+        document.body.focus();
+      }
+      
+      // Final cleanup of body styles
+      document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
+      document.documentElement.style.overflow = '';
+    }, 200); // Increased delay to ensure dialog animation completes
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border border-purple-400 text-white max-h-[90vh] overflow-y-auto touch-pan-y">
+    <Dialog 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        navDebugger.log('CharacterSelector', 'dialog-onOpenChange', {
+          from: open,
+          to: newOpen
+        });
+        onOpenChange(newOpen);
+      }}
+    >
+      <DialogContent 
+        className="sm:max-w-2xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border border-purple-400 text-white max-h-[90vh] overflow-y-auto touch-pan-y"
+        onPointerDownOutside={(e) => {
+          navDebugger.log('CharacterSelector', 'clicked-outside-dialog');
+        }}
+        onEscapeKeyDown={() => {
+          navDebugger.log('CharacterSelector', 'escape-key-pressed');
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="text-3xl font-fantasy text-center bg-gradient-to-r from-yellow-400 to-purple-400 bg-clip-text text-transparent">
             Choose your character
@@ -55,13 +146,19 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({ open, onOp
             const theme = characterThemes[character];
             const backgroundImage = characterBackgrounds[character];
             
-            console.log(`Character: ${character}, Background Image: ${backgroundImage}`);
             
             return (
               <div
                 key={character}
                 className="group cursor-pointer transform transition-all duration-300 hover:scale-105 touch-manipulation"
-                onClick={() => handleCharacterSelect(character)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navDebugger.log('CharacterSelector', 'card-clicked', {
+                    character,
+                    target: e.currentTarget.className
+                  });
+                  handleCharacterSelect(character);
+                }}
               >
                 <div 
                   className="relative p-6 rounded-lg border-2 bg-gradient-to-br opacity-90 hover:opacity-100 transition-opacity overflow-hidden h-[300px]"
@@ -83,7 +180,6 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({ open, onOp
                         backgroundSize: 'cover'
                       }}
                       onError={(e) => {
-                        console.error(`Failed to load background image for ${character}:`, backgroundImage);
                         e.currentTarget.style.display = 'none';
                       }}
                     />
@@ -112,6 +208,15 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({ open, onOp
                       style={{ 
                         backgroundColor: `${theme.primary}90`,
                         color: 'white'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navDebugger.log('CharacterSelector', 'button-clicked', {
+                          character
+                        });
+                        // Button click should trigger the parent div's onClick
+                        // but let's make sure it does
+                        handleCharacterSelect(character);
                       }}
                     >
                       Choose {characterNames[character]}

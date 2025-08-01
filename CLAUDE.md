@@ -75,6 +75,176 @@ Research and understand the current state of the project before making major cha
 - Ensure smooth character switching and theme changes
 - Validate RSVP flow functionality
 
+### Playwright Testing and Debugging
+
+#### Why Playwright?
+Playwright provides powerful browser automation for debugging complex UI issues that are difficult to reproduce manually. It's particularly useful for:
+- Debugging intermittent navigation issues
+- Testing dialog and overlay interactions
+- Capturing console logs and errors
+- Taking screenshots at each step
+- Running JavaScript in the browser context
+
+#### Setting Up Playwright Tests
+
+1. **Installation** (if not already installed):
+```bash
+npm install -D @playwright/test
+npx playwright install chromium
+```
+
+2. **Basic Test Structure**:
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('navigation remains clickable after character selection', async ({ page }) => {
+  // Enable debug mode
+  await page.goto('http://localhost:5173?nav-debug');
+  
+  // Capture console logs
+  page.on('console', msg => console.log(`[${msg.type()}]`, msg.text()));
+  
+  // Test your interaction
+  await page.click('[data-character="wesley"]');
+  await page.waitForTimeout(500);
+  
+  // Check for blockers
+  const blockers = await page.evaluate(() => {
+    return (window as any).navDebugger?.showBlockers() || [];
+  });
+  
+  expect(blockers).toHaveLength(0);
+});
+```
+
+#### Debugging Navigation Issues with Playwright
+
+When debugging navigation or click issues:
+
+1. **Enable Debug Mode**: Always append `?nav-debug` to URLs
+2. **Capture Console Logs**: Monitor for warnings and errors
+3. **Check for Blocking Elements**:
+```javascript
+const blockers = await page.evaluate(() => {
+  return (window as any).navDebugger?.showBlockers() || [];
+});
+console.log('Blocking elements:', blockers);
+```
+
+4. **Take Strategic Screenshots**:
+```javascript
+await page.screenshot({ path: 'before-click.png' });
+await page.click('#hamburger-menu');
+await page.screenshot({ path: 'after-click.png' });
+```
+
+5. **Test Click Handlers**:
+```javascript
+const isClickable = await page.isVisible('#hamburger-menu');
+const isEnabled = await page.isEnabled('#hamburger-menu');
+console.log(`Button visible: ${isClickable}, enabled: ${isEnabled}`);
+```
+
+#### Common Debugging Patterns
+
+1. **Dialog Cleanup Issues**:
+```javascript
+// Check for orphaned dialog overlays
+const dialogElements = await page.$$('[role="dialog"], [data-radix-dialog-overlay]');
+console.log(`Found ${dialogElements.length} dialog elements`);
+
+// Force cleanup if needed
+await page.evaluate(() => {
+  document.querySelectorAll('[data-radix-dialog-overlay]').forEach(el => el.remove());
+});
+```
+
+2. **Z-Index Conflicts**:
+```javascript
+const zIndexes = await page.evaluate(() => {
+  const elements = document.querySelectorAll('.fixed');
+  return Array.from(elements).map(el => ({
+    class: el.className,
+    zIndex: window.getComputedStyle(el).zIndex
+  }));
+});
+console.table(zIndexes);
+```
+
+3. **Event Handler Verification**:
+```javascript
+const hasClickHandler = await page.evaluate((selector) => {
+  const element = document.querySelector(selector);
+  return element ? element.onclick !== null : false;
+}, '#hamburger-menu');
+```
+
+#### Example: Complete Navigation Debug Test
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('debug navigation after character selection', async ({ page }) => {
+  // Setup
+  await page.goto('http://localhost:5173?nav-debug');
+  const logs = [];
+  page.on('console', msg => logs.push(msg.text()));
+  
+  // Initial state
+  await page.screenshot({ path: 'debug/1-initial.png' });
+  
+  // Select character
+  await page.click('text=Choose Wesley');
+  await page.waitForTimeout(300); // Wait for dialog animation
+  
+  // Check for blockers
+  const blockers = await page.evaluate(() => {
+    return (window as any).navDebugger?.showBlockers() || [];
+  });
+  
+  if (blockers.length > 0) {
+    console.log('Found blockers:', JSON.stringify(blockers, null, 2));
+    await page.screenshot({ path: 'debug/2-blockers-found.png' });
+  }
+  
+  // Test navigation
+  const navButtons = await page.$$('nav button');
+  console.log(`Found ${navButtons.length} nav buttons`);
+  
+  for (let i = 0; i < navButtons.length; i++) {
+    const isClickable = await navButtons[i].isEnabled();
+    console.log(`Button ${i}: ${isClickable ? 'clickable' : 'NOT clickable'}`);
+  }
+  
+  // Export debug logs
+  const debugLogs = await page.evaluate(() => {
+    return (window as any).navDebugger?.exportLogs() || '[]';
+  });
+  
+  console.log('Debug logs:', debugLogs);
+});
+```
+
+#### Integration with CI/CD
+
+Add Playwright tests to your CI pipeline:
+
+```yaml
+# .github/workflows/test.yml
+- name: Install Playwright
+  run: npx playwright install --with-deps chromium
+
+- name: Run Playwright tests
+  run: npx playwright test
+
+- name: Upload test artifacts
+  if: failure()
+  uses: actions/upload-artifact@v3
+  with:
+    name: playwright-screenshots
+    path: test-results/
+```
+
 ### Specialized Testing Agents
 Use specialized agents for comprehensive testing tasks:
 
