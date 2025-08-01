@@ -86,12 +86,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 </Label>
                 <Input
                   id="username"
+                  name="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
                   disabled={isSubmitting}
                   required
+                  autoComplete="username"
+                  enterKeyHint="next"
                   className="transition-colors focus:ring-2"
                   style={{
                     borderColor: theme.secondary,
@@ -107,12 +110,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     disabled={isSubmitting}
                     required
+                    autoComplete="current-password"
+                    enterKeyHint="done"
                     className="pr-10 transition-colors focus:ring-2"
                     style={{
                       borderColor: theme.secondary,

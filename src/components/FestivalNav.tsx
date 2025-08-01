@@ -79,7 +79,7 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo/Title */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center">
               <h2 
                 className="text-xl font-bold text-white hidden sm:block"
                 style={{ fontFamily: 'Cinzel, serif' }}
@@ -87,7 +87,7 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
                 Festival Dashboard
               </h2>
               <h2 
-                className="text-lg font-bold text-white sm:hidden"
+                className="text-base font-bold text-white sm:hidden"
                 style={{ fontFamily: 'Cinzel, serif' }}
               >
                 Festival
@@ -127,9 +127,9 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
             </div>
 
             {/* User info and logout */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
               <div className="hidden sm:block text-right">
-                <p className="text-sm text-white/90">{user?.full_name}</p>
+                <p className="text-sm text-white/90 truncate max-w-[150px]">{user?.full_name}</p>
                 <p className="text-xs text-white/70 capitalize">{user?.role}</p>
               </div>
               
