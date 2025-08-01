@@ -34,16 +34,30 @@ export const Festival: React.FC = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen relative"
-      style={{
-        backgroundImage: `url(/app-uploads/epic_background.png)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen relative festival-page">
+      <style>{`
+        .festival-page {
+          background-image: url(/app-uploads/epic_background.png);
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+        }
+        
+        /* Fixed background for desktop only */
+        @media (min-width: 768px) {
+          .festival-page {
+            background-attachment: fixed;
+          }
+        }
+        
+        /* Ensure proper scrolling on iOS devices */
+        @supports (-webkit-touch-callout: none) {
+          .festival-page {
+            background-attachment: scroll !important;
+          }
+        }
+      `}</style>
+      
       {/* Background overlay for better text readability */}
       <div className="absolute inset-0 bg-black bg-opacity-40" />
       

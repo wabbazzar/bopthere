@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import guestData from '../../../data/guest_list.json';
 
 interface Guest {
+  id: string;
   name: string;
   occupation: string;
   partner: string | null;
@@ -64,7 +65,7 @@ export const GuestListView: React.FC = () => {
 
   // Filter and search logic
   const filteredGuests = useMemo(() => {
-    const guests: Guest[] = guestData.guests;
+    const guests: Guest[] = guestData.guests as Guest[];
     let filtered = guests;
 
     // Apply filter
@@ -96,7 +97,9 @@ export const GuestListView: React.FC = () => {
     return filtered;
   }, [filterType, searchTerm]);
 
-  if (!selectedCharacter) return null;
+  if (!selectedCharacter) {
+    return null;
+  }
 
   const currentTheme = characterThemes[selectedCharacter];
   const content = characterMessages[selectedCharacter];
@@ -191,7 +194,7 @@ export const GuestListView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredGuests.map((guest) => (
           <Card 
-            key={guest.name} 
+            key={guest.id} 
             className="bg-white/90 backdrop-blur-sm hover:shadow-lg transition-all duration-300 border-2"
             style={{ borderColor: `${currentTheme.primary}20` }}
           >

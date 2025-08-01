@@ -16,38 +16,38 @@
     },
     {
       "name": "Sandy",
-      "occupation": "Event Coordinator",
+      "occupation": "Boss Bish",
       "partner": "Monica",
       "bride_or_groom": "bride",
       "super_power": "Organizing chaos into perfection"
     },
     {
       "name": "Monica",
-      "occupation": "Photographer",
+      "occupation": "Scientist",
       "partner": "Sandy",
       "bride_or_groom": "bride",
-      "super_power": "Capturing memories in a single frame"
+      "super_power": "Capturing cancer in micro glass"
     },
     {
       "name": "Karli",
-      "occupation": "Teacher",
+      "occupation": "Designer",
       "partner": "Neil",
-      "bride_or_groom": "bride",
-      "super_power": "Inspiring minds to grow"
+      "bride_or_groom": "groom",
+      "super_power": "Creativity guru"
     },
     {
       "name": "Neil",
-      "occupation": "Engineer",
+      "occupation": "Firefighter",
       "partner": "Karli",
-      "bride_or_groom": "bride",
-      "super_power": "Building dreams into reality"
+      "bride_or_groom": "groom",
+      "super_power": "Saving lives"
     },
     {
       "name": "Heather Mom",
-      "occupation": "Retired Nurse",
+      "occupation": "Developer",
       "partner": null,
       "bride_or_groom": "bride",
-      "super_power": "Healing hearts with compassion"
+      "super_power": "SQL master"
     },
     {
       "name": "Heather Dad",
@@ -65,227 +65,227 @@
     },
     {
       "name": "Wesley Mom",
-      "occupation": "Educator",
+      "occupation": "Math Teacher",
       "partner": null,
       "bride_or_groom": "groom",
-      "super_power": "Nurturing wisdom in others"
+      "super_power": "Nurturing wisdom in young adolescents"
     },
     {
       "name": "Wesley Dad",
-      "occupation": "Architect",
+      "occupation": "Retired",
       "partner": null,
       "bride_or_groom": "groom",
-      "super_power": "Designing spaces for memories"
+      "super_power": "Shooting squirrels"
     },
     {
       "name": "Becca",
-      "occupation": "Marketing Director",
+      "occupation": "Judge's Apprentice",
       "partner": "Isiah",
       "bride_or_groom": "bride",
-      "super_power": "Connecting hearts and minds"
+      "super_power": "Marrying strange men in far away countries"
     },
     {
       "name": "Isiah",
-      "occupation": "Software Developer",
+      "occupation": "Banker",
       "partner": "Becca",
       "bride_or_groom": "bride",
-      "super_power": "Coding solutions to life's puzzles"
+      "super_power": "Marrying strangers in the south east of Asia"
     },
     {
       "name": "Amanda",
-      "occupation": "Veterinarian",
+      "occupation": "Guidance Counselor",
       "partner": "Conrad",
-      "bride_or_groom": "groom",
-      "super_power": "Speaking the language of animals"
+      "bride_or_groom": "bride",
+      "super_power": "Speaking the language of children"
     },
     {
       "name": "Conrad",
-      "occupation": "Chef",
+      "occupation": "Coach",
       "partner": "Amanda",
-      "bride_or_groom": "groom",
-      "super_power": "Creating culinary masterpieces"
+      "bride_or_groom": "bride",
+      "super_power": "Wraslin'"
     },
     {
       "name": "Camille",
-      "occupation": "Therapist",
+      "occupation": "Artist",
       "partner": "Kyle",
-      "bride_or_groom": "bride",
-      "super_power": "Mending souls with understanding"
+      "bride_or_groom": "groom",
+      "super_power": "Decluttering"
     },
     {
       "name": "Kyle",
-      "occupation": "Musician",
+      "occupation": "Developer",
       "partner": "Camille",
-      "bride_or_groom": "bride",
-      "super_power": "Weaving emotions into melodies"
+      "bride_or_groom": "groom",
+      "super_power": "pwning at board games"
     },
     {
       "name": "Josh",
-      "occupation": "Financial Advisor",
+      "occupation": "Scientist",
       "partner": "Crissy",
       "bride_or_groom": "groom",
-      "super_power": "Growing wealth from wisdom"
+      "super_power": "Ball sports"
     },
     {
       "name": "Crissy",
-      "occupation": "Interior Designer",
+      "occupation": "Nurse",
       "partner": "Josh",
       "bride_or_groom": "groom",
-      "super_power": "Transforming spaces into sanctuaries"
+      "super_power": "Taking care of babies"
     },
     {
       "name": "Rachel",
-      "occupation": "Doctor",
+      "occupation": "Executive Assistant",
       "partner": "Jason",
       "bride_or_groom": "bride",
-      "super_power": "Healing with science and heart"
+      "super_power": "Bossing Jason"
     },
     {
       "name": "Jason",
-      "occupation": "Lawyer",
+      "occupation": "Developer",
       "partner": "Rachel",
       "bride_or_groom": "bride",
-      "super_power": "Fighting for justice with words"
+      "super_power": "Justice for Cali"
     },
     {
       "name": "Jacob",
-      "occupation": "Entrepreneur",
+      "occupation": "Lawyer",
       "partner": "Michael",
       "bride_or_groom": "groom",
-      "super_power": "Turning ideas into empires"
+      "super_power": "Buying moneypit houses"
     },
     {
       "name": "Michael",
-      "occupation": "Graphic Designer",
+      "occupation": "Doctor",
       "partner": "Jacob",
       "bride_or_groom": "groom",
-      "super_power": "Bringing imagination to life"
+      "super_power": "Throwing large parties with a single compost toilet"
     },
     {
       "name": "Michelle",
-      "occupation": "Real Estate Agent",
+      "occupation": "Product Manager",
       "partner": "Peter",
-      "bride_or_groom": "bride",
-      "super_power": "Finding dream homes for dreamers"
+      "bride_or_groom": "groom",
+      "super_power": "Not pulling any punches"
     },
     {
       "name": "Peter",
-      "occupation": "Pilot",
+      "occupation": "Developer",
       "partner": "Michelle",
       "bride_or_groom": "bride",
-      "super_power": "Navigating through any storm"
+      "super_power": "Basically owns a private island"
     },
     {
       "name": "Annie",
-      "occupation": "Social Worker",
+      "occupation": "Education",
       "partner": "Mo",
       "bride_or_groom": "bride",
       "super_power": "Championing the unheard voices"
     },
     {
       "name": "Mo",
-      "occupation": "Personal Trainer",
+      "occupation": "Tech Analyst",
       "partner": "Annie",
       "bride_or_groom": "bride",
-      "super_power": "Empowering strength in others"
+      "super_power": "Cooking for Annie"
     },
     {
       "name": "Chace",
-      "occupation": "Film Director",
+      "occupation": "Counsellor",
       "partner": "Sienna",
-      "bride_or_groom": "groom",
-      "super_power": "Telling stories that move hearts"
+      "bride_or_groom": "bride",
+      "super_power": "Untroubling the troubled"
     },
     {
       "name": "Sienna",
-      "occupation": "Fashion Designer",
+      "occupation": "Doula",
       "partner": "Chace",
-      "bride_or_groom": "groom",
-      "super_power": "Weaving confidence into fabric"
+      "bride_or_groom": "bride",
+      "super_power": "Collecting chachkies"
     },
     {
       "name": "Connor",
-      "occupation": "Data Scientist",
+      "occupation": "Developer",
       "partner": "Vicky",
       "bride_or_groom": "groom",
-      "super_power": "Finding patterns in chaos"
+      "super_power": "Dog dad"
     },
     {
       "name": "Vicky",
-      "occupation": "Yoga Instructor",
+      "occupation": "Creative",
       "partner": "Connor",
       "bride_or_groom": "groom",
-      "super_power": "Balancing body and soul"
+      "super_power": "So many cousins and sisters"
     },
     {
       "name": "Abishai",
-      "occupation": "Mechanical Engineer",
+      "occupation": "Financier",
       "partner": "Maggie",
       "bride_or_groom": "groom",
-      "super_power": "Building the future piece by piece"
+      "super_power": "Jokes about butt stuff"
     },
     {
       "name": "Maggie",
-      "occupation": "Environmental Scientist",
+      "occupation": "Selling Food",
       "partner": "Abishai",
       "bride_or_groom": "groom",
-      "super_power": "Protecting Earth's tomorrow"
+      "super_power": "Ask her about PepsiCo"
     },
     {
       "name": "Prashanth",
-      "occupation": "Product Manager",
+      "occupation": "Surgeon",
       "partner": "Krystna",
       "bride_or_groom": "groom",
-      "super_power": "Orchestrating innovation"
+      "super_power": "Orchestrating innovation in your open body"
     },
     {
       "name": "Krystna",
-      "occupation": "UX Designer",
+      "occupation": "Surgeon",
       "partner": "Prashanth",
       "bride_or_groom": "groom",
-      "super_power": "Crafting experiences that delight"
+      "super_power": "Taking years off your face"
     },
     {
       "name": "James",
       "occupation": "Investment Banker",
       "partner": "Ryan",
-      "bride_or_groom": "groom",
+      "bride_or_groom": "bride",
       "super_power": "Making numbers tell stories"
     },
     {
       "name": "Ryan",
-      "occupation": "Architect",
+      "occupation": "Consultant",
       "partner": "James",
       "bride_or_groom": "groom",
-      "super_power": "Sketching dreams into blueprints"
+      "super_power": "Making money"
     },
     {
       "name": "Rachel",
-      "occupation": "Marine Biologist",
+      "occupation": "Life Coach",
       "partner": "Max",
       "bride_or_groom": "bride",
       "super_power": "Speaking for the ocean's voice"
     },
     {
       "name": "Max",
-      "occupation": "Renewable Energy Consultant",
+      "occupation": "Fitness Specialist",
       "partner": "Rachel",
-      "bride_or_groom": "bride",
-      "super_power": "Harnessing nature's power"
+      "bride_or_groom": "groom",
+      "super_power": "Turning your body into a machine"
     },
     {
       "name": "Nat",
-      "occupation": "Writer",
+      "occupation": "Massage Therapist",
       "partner": "Neel",
-      "bride_or_groom": "bride",
-      "super_power": "Weaving worlds with words"
+      "bride_or_groom": "groom",
+      "super_power": "Weaving worlds with words in your lymph nodes"
     },
     {
       "name": "Neel",
-      "occupation": "Game Developer",
+      "occupation": "Developer",
       "partner": "Nat",
-      "bride_or_groom": "bride",
-      "super_power": "Creating universes of play"
+      "bride_or_groom": "groom",
+      "super_power": "Speaking for the animals"
     }
   ],
   "summary": {
