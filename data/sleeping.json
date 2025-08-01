@@ -1,0 +1,336 @@
+{
+    "sleeping_assignments": {
+        "plantation": {
+            "accommodation_type": "Plantation",
+            "beds": [
+                {
+                    "bed_id": 1,
+                    "guests": [
+                        {
+                            "name": "Heather"
+                        },
+                        {
+                            "name": "Wesley"
+                        }
+                    ],
+                    "total_persons": 2
+                },
+                {
+                    "bed_id": 6,
+                    "guests": [
+                        {
+                            "name": "Sandy"
+                        },
+                        {
+                            "name": "Monica"
+                        }
+                    ],
+                    "total_persons": 2
+                },
+                {
+                    "bed_id": 17,
+                    "guests": [
+                        {
+                            "name": "Karli"
+                        },
+                        {
+                            "name": "Neil"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "villa_1": {
+            "accommodation_type": "Villa 1",
+            "beds": [
+                {
+                    "bed_id": 2,
+                    "guests": [
+                        {
+                            "name": "Heather Mom"
+                        }
+                    ],
+                    "total_persons": 1
+                }
+            ]
+        },
+        "villa_2": {
+            "accommodation_type": "Villa 2",
+            "beds": [
+                {
+                    "bed_id": 3,
+                    "guests": [
+                        {
+                            "name": "Heather Dad"
+                        },
+                        {
+                            "name": "Dad +1"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "villa_3": {
+            "accommodation_type": "Villa 3",
+            "beds": [
+                {
+                    "bed_id": 4,
+                    "guests": [
+                        {
+                            "name": "Wesley Mom"
+                        }
+                    ],
+                    "total_persons": 1
+                }
+            ]
+        },
+        "villa_4": {
+            "accommodation_type": "Villa 4",
+            "beds": [
+                {
+                    "bed_id": 7,
+                    "guests": [
+                        {
+                            "name": "Becca"
+                        },
+                        {
+                            "name": "Isiah"
+                        }
+                    ],
+                    "total_persons": 2
+                },
+                {
+                    "bed_id": 9,
+                    "guests": [
+                        {
+                            "name": "Amanda"
+                        },
+                        {
+                            "name": "Conrad"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "villa_5": {
+            "accommodation_type": "Villa 5",
+            "beds": [
+                {
+                    "bed_id": 5,
+                    "guests": [
+                        {
+                            "name": "Wesley Dad"
+                        }
+                    ],
+                    "total_persons": 1
+                },
+                {
+                    "bed_id": 15,
+                    "guests": [
+                        {
+                            "name": "Camille"
+                        },
+                        {
+                            "name": "Kyle"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "villa_6": {
+            "accommodation_type": "Villa 6",
+            "beds": [
+                {
+                    "bed_id": 16,
+                    "guests": [
+                        {
+                            "name": "Josh"
+                        },
+                        {
+                            "name": "Crissy"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "villa_7": {
+            "accommodation_type": "Villa 7",
+            "beds": [
+                {
+                    "bed_id": 8,
+                    "guests": [
+                        {
+                            "name": "Rachel"
+                        },
+                        {
+                            "name": "Jason"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "villa_8": {
+            "accommodation_type": "Villa 8",
+            "beds": [
+                {
+                    "bed_id": 18,
+                    "guests": [
+                        {
+                            "name": "Jacob"
+                        },
+                        {
+                            "name": "Michael"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "villa_9": {
+            "accommodation_type": "Villa 9",
+            "beds": [
+                {
+                    "bed_id": 19,
+                    "guests": [
+                        {
+                            "name": "Michelle"
+                        },
+                        {
+                            "name": "Peter"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "garden_hideaway": {
+            "accommodation_type": "Garden Hideaway",
+            "beds": [
+                {
+                    "bed_id": 10,
+                    "guests": [
+                        {
+                            "name": "Annie"
+                        },
+                        {
+                            "name": "Mo"
+                        }
+                    ],
+                    "total_persons": 2
+                },
+                {
+                    "bed_id": 11,
+                    "guests": [
+                        {
+                            "name": "Chace"
+                        },
+                        {
+                            "name": "Sienna"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "penthouse_i": {
+            "accommodation_type": "Penthouse I",
+            "beds": [
+                {
+                    "bed_id": 12,
+                    "guests": [
+                        {
+                            "name": "Connor"
+                        },
+                        {
+                            "name": "Vicky"
+                        }
+                    ],
+                    "total_persons": 2
+                },
+                {
+                    "bed_id": 13,
+                    "guests": [
+                        {
+                            "name": "Abishai"
+                        },
+                        {
+                            "name": "Maggie"
+                        }
+                    ],
+                    "total_persons": 2
+                },
+                {
+                    "bed_id": 14,
+                    "guests": [
+                        {
+                            "name": "Prashanth"
+                        },
+                        {
+                            "name": "Krystna"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        },
+        "penthouse_ii": {
+            "accommodation_type": "Penthouse II",
+            "beds": [
+                {
+                    "bed_id": 20,
+                    "guests": [
+                        {
+                            "name": "James"
+                        },
+                        {
+                            "name": "Ryan"
+                        }
+                    ],
+                    "total_persons": 2
+                },
+                {
+                    "bed_id": 21,
+                    "guests": [
+                        {
+                            "name": "Rachel"
+                        },
+                        {
+                            "name": "Max"
+                        }
+                    ],
+                    "total_persons": 2
+                },
+                {
+                    "bed_id": 22,
+                    "guests": [
+                        {
+                            "name": "Nat"
+                        },
+                        {
+                            "name": "Neel"
+                        }
+                    ],
+                    "total_persons": 2
+                }
+            ]
+        }
+    },
+    "summary": {
+        "total_accommodations": 12,
+        "total_beds": 22,
+        "total_guests": 43,
+        "confirmed_guests": 43,
+        "pending_confirmations": 0
+    },
+    "metadata": {
+        "created": "2024-01-01",
+        "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+        "event_type": "wedding_weekend_accommodations"
+    }
+}

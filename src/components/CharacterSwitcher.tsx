@@ -61,7 +61,7 @@ export const CharacterSwitcher: React.FC = () => {
 
   return (
     <>
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 md:left-auto md:right-4 md:transform-none flex gap-2" style={{ isolation: 'isolate', zIndex: 100 }}>
+      <div className="fixed top-4 left-0 right-0 md:left-auto md:right-4 flex gap-1.5 justify-center md:justify-end px-3 md:px-0" style={{ isolation: 'isolate', zIndex: 100 }}>
         {/* Character selection buttons */}
         {characters.map((character) => {
           const Icon = characterIcons[character];
@@ -82,7 +82,7 @@ export const CharacterSwitcher: React.FC = () => {
                 setSelectedCharacter(character);
               }}
               className={`
-                transition-all duration-300 hover:scale-105
+                transition-all duration-300 hover:scale-105 text-xs sm:text-sm px-2.5 flex-1 md:flex-none
                 ${isActive 
                   ? 'border-2 shadow-lg' 
                   : 'border opacity-70 hover:opacity-100'
@@ -94,8 +94,8 @@ export const CharacterSwitcher: React.FC = () => {
                 color: isActive ? 'white' : theme.primary
               }}
             >
-              <Icon className="w-4 h-4 mr-1" />
-              {characterNames[character]}
+              <Icon className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+{characterNames[character]}
             </Button>
           );
         })}
@@ -119,7 +119,7 @@ export const CharacterSwitcher: React.FC = () => {
                 pointerType: e.pointerType
               }, e.currentTarget);
             }}
-            className="transition-all duration-300 hover:scale-105 border opacity-70 hover:opacity-100"
+            className="transition-all duration-300 hover:scale-105 border opacity-70 hover:opacity-100 text-xs sm:text-sm px-2.5"
             key="logout-button"
             style={{
               borderColor: currentTheme.secondary,
@@ -127,8 +127,8 @@ export const CharacterSwitcher: React.FC = () => {
             }}
             title={`Logged in as ${user?.full_name}`}
           >
-            <LogOut className="w-4 h-4 mr-1" />
-            Logout
+            <LogOut className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+Logout
           </Button>
         ) : (
           <Button
@@ -148,15 +148,15 @@ export const CharacterSwitcher: React.FC = () => {
                 pointerType: e.pointerType
               }, e.currentTarget);
             }}
-            className="transition-all duration-300 hover:scale-105 border opacity-70 hover:opacity-100"
+            className="transition-all duration-300 hover:scale-105 border opacity-70 hover:opacity-100 text-xs sm:text-sm px-2.5"
             key="login-button"
             style={{
               borderColor: currentTheme.secondary,
               color: currentTheme.primary
             }}
           >
-            <LogIn className="w-4 h-4 mr-1" />
-            Login
+            <LogIn className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+Login
           </Button>
         )}
       </div>

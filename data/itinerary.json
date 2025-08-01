@@ -1,0 +1,162 @@
+{
+    "wedding_weekend_itinerary": {
+        "friday": {
+            "day": 5,
+            "date_label": "Friday - Arrival Day",
+            "activities": [
+                {
+                    "start_time": "12:00 PM",
+                    "end_time": "6:00 PM",
+                    "title": "Arrival & Check-in",
+                    "description": "Guests arrive and settle in",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "logistics"
+                },
+                {
+                    "start_time": "7:00 PM",
+                    "end_time": "11:00 PM",
+                    "title": "Welcome Drinks",
+                    "description": "Drinks with open tab",
+                    "location": "Mauibars / South Shore Tiki",
+                    "type": "social"
+                }
+            ]
+        },
+        "saturday": {
+            "day": 6,
+            "date_label": "Saturday - Wedding Day",
+            "activities": [
+                {
+                    "start_time": "8:00 AM",
+                    "end_time": "11:00 AM",
+                    "title": "Group Hike",
+                    "description": "Morning group hiking activity",
+                    "location": "Haleakalā National Park, HI",
+                    "type": "activity"
+                },
+                {
+                    "start_time": "11:00 AM",
+                    "end_time": "5:00 PM",
+                    "title": "Free Time",
+                    "description": "Choose your own adventure",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "rest"
+                },
+                {
+                    "start_time": "5:00 PM",
+                    "end_time": "7:00 PM",
+                    "title": "Ululani Hawaiian Shave Ice",
+                    "description": "Lunch and refreshments",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "food"
+                },
+                {
+                    "start_time": "6:00 PM",
+                    "end_time": "6:30 PM",
+                    "title": "Sunset Welcome Ceremony",
+                    "description": "Welcome ceremony at sunset",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "ceremony"
+                },
+                {
+                    "start_time": "6:00 PM",
+                    "end_time": "8:00 PM",
+                    "title": "Full Hawaiian Luau",
+                    "description": "Traditional Hawaiian feast and celebration",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "reception"
+                },
+                {
+                    "start_time": "8:00 PM",
+                    "end_time": "12:00 AM",
+                    "title": "Rave",
+                    "description": "Late night celebration",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "party"
+                }
+            ]
+        },
+        "sunday": {
+            "day": 7,
+            "date_label": "Sunday - Recovery & Fun",
+            "activities": [
+                {
+                    "start_time": "9:00 AM",
+                    "end_time": "10:30 AM",
+                    "title": "Morning Group Yoga",
+                    "description": "Relaxing yoga session",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "activity"
+                },
+                {
+                    "start_time": "11:00 AM",
+                    "end_time": "1:00 PM",
+                    "title": "Holey Grail Donuts",
+                    "description": "Brunch and coffee",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "food"
+                },
+                {
+                    "start_time": "1:00 PM",
+                    "end_time": "4:00 PM",
+                    "title": "Beach Day",
+                    "description": "Hang out at the beach",
+                    "location": "Keawekapu beach, HI",
+                    "type": "activity"
+                },
+                {
+                    "start_time": "4:00 PM",
+                    "end_time": "6:00 PM",
+                    "title": "Game Night Setup",
+                    "description": "Casual games and socializing",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "social"
+                },
+                {
+                    "start_time": "7:00 PM",
+                    "end_time": "9:00 PM",
+                    "title": "Oli Oli Brick Oven Pizza",
+                    "description": "Dinner at brick oven pizza restaurant",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "food"
+                },
+                {
+                    "start_time": "9:30 PM",
+                    "end_time": "12:00 AM",
+                    "title": "Game Night",
+                    "description": "Wedding Bingo, Traveler's Codenames, Romance Trivia, and more!",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "social"
+                }
+            ]
+        },
+        "monday": {
+            "day": 8,
+            "date_label": "Monday - Departure Day",
+            "activities": [
+                {
+                    "start_time": "9:00 AM",
+                    "end_time": "12:00 PM",
+                    "title": "Farewell Brunch",
+                    "description": "Final meal together before departures",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "food"
+                },
+                {
+                    "start_time": "12:00 PM",
+                    "end_time": "6:00 PM",
+                    "title": "Departure & Check-out",
+                    "description": "Guests depart throughout the day",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "logistics"
+                }
+            ]
+        }
+    },
+    "metadata": {
+        "created": "2024-01-01",
+        "total_days": 4,
+        "location": "Maui, Hawaii",
+        "event_type": "wedding_weekend"
+    }
+}

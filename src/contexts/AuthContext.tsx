@@ -115,10 +115,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         payload: { user: response.user, token: response.token },
       });
 
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${response.user.full_name}!`,
-      });
+      // Disabled welcome back toast
+      // toast({
+      //   title: "Login Successful",
+      //   description: `Welcome back, ${response.user.full_name}!`,
+      // });
     } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
       
@@ -140,10 +141,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     AuthService.logout();
     dispatch({ type: 'LOGOUT' });
     
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
+    // Disabled logout toast
+    // toast({
+    //   title: "Logged Out",
+    //   description: "You have been successfully logged out.",
+    // });
   };
 
   const verifyToken = async (): Promise<void> => {

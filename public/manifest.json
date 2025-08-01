@@ -1,0 +1,86 @@
+{
+  "name": "Heather & Wesley",
+  "short_name": "Heather & Wesley",
+  "description": "Join us for an epic celebration of love in Maui, December 5-9, 2025",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#d4af37",
+  "orientation": "portrait",
+  "categories": ["lifestyle", "events"],
+  "icons": [
+    {
+      "src": "/app-uploads/hwapp.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/app-uploads/hwapp.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/app-uploads/hwapp.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-uploads/hwapp.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-uploads/hwapp.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-uploads/hwapp.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-uploads/hwapp.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/app-uploads/screenshot-1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "label": "Choose Your Character"
+    },
+    {
+      "src": "/app-uploads/screenshot-2.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "label": "RSVP for the Quest"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "RSVP Now",
+      "short_name": "RSVP",
+      "description": "Quick access to RSVP form",
+      "url": "/rsvp",
+      "icons": [
+        {
+          "src": "/app-uploads/rsvp-icon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

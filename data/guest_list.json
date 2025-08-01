@@ -1,0 +1,304 @@
+{
+  "guests": [
+    {
+      "name": "Heather",
+      "occupation": "Bride",
+      "partner": "Wesley",
+      "bride_or_groom": "bride",
+      "super_power": "Bringing joy and light to every room"
+    },
+    {
+      "name": "Wesley",
+      "occupation": "Groom",
+      "partner": "Heather",
+      "bride_or_groom": "groom",
+      "super_power": "Making everyone feel like family"
+    },
+    {
+      "name": "Sandy",
+      "occupation": "Event Coordinator",
+      "partner": "Monica",
+      "bride_or_groom": "bride",
+      "super_power": "Organizing chaos into perfection"
+    },
+    {
+      "name": "Monica",
+      "occupation": "Photographer",
+      "partner": "Sandy",
+      "bride_or_groom": "bride",
+      "super_power": "Capturing memories in a single frame"
+    },
+    {
+      "name": "Karli",
+      "occupation": "Teacher",
+      "partner": "Neil",
+      "bride_or_groom": "bride",
+      "super_power": "Inspiring minds to grow"
+    },
+    {
+      "name": "Neil",
+      "occupation": "Engineer",
+      "partner": "Karli",
+      "bride_or_groom": "bride",
+      "super_power": "Building dreams into reality"
+    },
+    {
+      "name": "Heather Mom",
+      "occupation": "Retired Nurse",
+      "partner": null,
+      "bride_or_groom": "bride",
+      "super_power": "Healing hearts with compassion"
+    },
+    {
+      "name": "Heather Dad",
+      "occupation": "Business Owner",
+      "partner": "Dad +1",
+      "bride_or_groom": "bride",
+      "super_power": "Turning visions into success"
+    },
+    {
+      "name": "Dad +1",
+      "occupation": "Artist",
+      "partner": "Heather Dad",
+      "bride_or_groom": "bride",
+      "super_power": "Painting life with vibrant colors"
+    },
+    {
+      "name": "Wesley Mom",
+      "occupation": "Educator",
+      "partner": null,
+      "bride_or_groom": "groom",
+      "super_power": "Nurturing wisdom in others"
+    },
+    {
+      "name": "Wesley Dad",
+      "occupation": "Architect",
+      "partner": null,
+      "bride_or_groom": "groom",
+      "super_power": "Designing spaces for memories"
+    },
+    {
+      "name": "Becca",
+      "occupation": "Marketing Director",
+      "partner": "Isiah",
+      "bride_or_groom": "bride",
+      "super_power": "Connecting hearts and minds"
+    },
+    {
+      "name": "Isiah",
+      "occupation": "Software Developer",
+      "partner": "Becca",
+      "bride_or_groom": "bride",
+      "super_power": "Coding solutions to life's puzzles"
+    },
+    {
+      "name": "Amanda",
+      "occupation": "Veterinarian",
+      "partner": "Conrad",
+      "bride_or_groom": "groom",
+      "super_power": "Speaking the language of animals"
+    },
+    {
+      "name": "Conrad",
+      "occupation": "Chef",
+      "partner": "Amanda",
+      "bride_or_groom": "groom",
+      "super_power": "Creating culinary masterpieces"
+    },
+    {
+      "name": "Camille",
+      "occupation": "Therapist",
+      "partner": "Kyle",
+      "bride_or_groom": "bride",
+      "super_power": "Mending souls with understanding"
+    },
+    {
+      "name": "Kyle",
+      "occupation": "Musician",
+      "partner": "Camille",
+      "bride_or_groom": "bride",
+      "super_power": "Weaving emotions into melodies"
+    },
+    {
+      "name": "Josh",
+      "occupation": "Financial Advisor",
+      "partner": "Crissy",
+      "bride_or_groom": "groom",
+      "super_power": "Growing wealth from wisdom"
+    },
+    {
+      "name": "Crissy",
+      "occupation": "Interior Designer",
+      "partner": "Josh",
+      "bride_or_groom": "groom",
+      "super_power": "Transforming spaces into sanctuaries"
+    },
+    {
+      "name": "Rachel",
+      "occupation": "Doctor",
+      "partner": "Jason",
+      "bride_or_groom": "bride",
+      "super_power": "Healing with science and heart"
+    },
+    {
+      "name": "Jason",
+      "occupation": "Lawyer",
+      "partner": "Rachel",
+      "bride_or_groom": "bride",
+      "super_power": "Fighting for justice with words"
+    },
+    {
+      "name": "Jacob",
+      "occupation": "Entrepreneur",
+      "partner": "Michael",
+      "bride_or_groom": "groom",
+      "super_power": "Turning ideas into empires"
+    },
+    {
+      "name": "Michael",
+      "occupation": "Graphic Designer",
+      "partner": "Jacob",
+      "bride_or_groom": "groom",
+      "super_power": "Bringing imagination to life"
+    },
+    {
+      "name": "Michelle",
+      "occupation": "Real Estate Agent",
+      "partner": "Peter",
+      "bride_or_groom": "bride",
+      "super_power": "Finding dream homes for dreamers"
+    },
+    {
+      "name": "Peter",
+      "occupation": "Pilot",
+      "partner": "Michelle",
+      "bride_or_groom": "bride",
+      "super_power": "Navigating through any storm"
+    },
+    {
+      "name": "Annie",
+      "occupation": "Social Worker",
+      "partner": "Mo",
+      "bride_or_groom": "bride",
+      "super_power": "Championing the unheard voices"
+    },
+    {
+      "name": "Mo",
+      "occupation": "Personal Trainer",
+      "partner": "Annie",
+      "bride_or_groom": "bride",
+      "super_power": "Empowering strength in others"
+    },
+    {
+      "name": "Chace",
+      "occupation": "Film Director",
+      "partner": "Sienna",
+      "bride_or_groom": "groom",
+      "super_power": "Telling stories that move hearts"
+    },
+    {
+      "name": "Sienna",
+      "occupation": "Fashion Designer",
+      "partner": "Chace",
+      "bride_or_groom": "groom",
+      "super_power": "Weaving confidence into fabric"
+    },
+    {
+      "name": "Connor",
+      "occupation": "Data Scientist",
+      "partner": "Vicky",
+      "bride_or_groom": "groom",
+      "super_power": "Finding patterns in chaos"
+    },
+    {
+      "name": "Vicky",
+      "occupation": "Yoga Instructor",
+      "partner": "Connor",
+      "bride_or_groom": "groom",
+      "super_power": "Balancing body and soul"
+    },
+    {
+      "name": "Abishai",
+      "occupation": "Mechanical Engineer",
+      "partner": "Maggie",
+      "bride_or_groom": "groom",
+      "super_power": "Building the future piece by piece"
+    },
+    {
+      "name": "Maggie",
+      "occupation": "Environmental Scientist",
+      "partner": "Abishai",
+      "bride_or_groom": "groom",
+      "super_power": "Protecting Earth's tomorrow"
+    },
+    {
+      "name": "Prashanth",
+      "occupation": "Product Manager",
+      "partner": "Krystna",
+      "bride_or_groom": "groom",
+      "super_power": "Orchestrating innovation"
+    },
+    {
+      "name": "Krystna",
+      "occupation": "UX Designer",
+      "partner": "Prashanth",
+      "bride_or_groom": "groom",
+      "super_power": "Crafting experiences that delight"
+    },
+    {
+      "name": "James",
+      "occupation": "Investment Banker",
+      "partner": "Ryan",
+      "bride_or_groom": "groom",
+      "super_power": "Making numbers tell stories"
+    },
+    {
+      "name": "Ryan",
+      "occupation": "Architect",
+      "partner": "James",
+      "bride_or_groom": "groom",
+      "super_power": "Sketching dreams into blueprints"
+    },
+    {
+      "name": "Rachel",
+      "occupation": "Marine Biologist",
+      "partner": "Max",
+      "bride_or_groom": "bride",
+      "super_power": "Speaking for the ocean's voice"
+    },
+    {
+      "name": "Max",
+      "occupation": "Renewable Energy Consultant",
+      "partner": "Rachel",
+      "bride_or_groom": "bride",
+      "super_power": "Harnessing nature's power"
+    },
+    {
+      "name": "Nat",
+      "occupation": "Writer",
+      "partner": "Neel",
+      "bride_or_groom": "bride",
+      "super_power": "Weaving worlds with words"
+    },
+    {
+      "name": "Neel",
+      "occupation": "Game Developer",
+      "partner": "Nat",
+      "bride_or_groom": "bride",
+      "super_power": "Creating universes of play"
+    }
+  ],
+  "summary": {
+    "total_guests": 43,
+    "bride_side": 26,
+    "groom_side": 17,
+    "couples": 20,
+    "singles": 3
+  },
+  "metadata": {
+    "created": "2024-01-01",
+    "event": "Heather & Wesley's Wedding",
+    "location": "Makoa Resorts, Maui, Hawaii",
+    "date": "December 5-9, 2025"
+  }
+}

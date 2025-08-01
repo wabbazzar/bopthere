@@ -8,17 +8,33 @@ import { HeroSection } from '@/components/HeroSection';
 import { WeddingDetails } from '@/components/WeddingDetails';
 import { RSVPSection } from '@/components/RSVPSection';
 import { Festival } from '@/pages/Festival';
+import { OfflineStatus } from '@/components/OfflineStatus';
+import { InstallPrompt } from '@/components/InstallPrompt';
+import { usePWA } from '@/hooks/usePWA';
 
 const IndexContent: React.FC = () => {
   const { selectedCharacter } = useCharacter();
   const { isAuthenticated } = useAuth();
   const [showCharacterSelector, setShowCharacterSelector] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const { canInstall } = usePWA();
 
   useEffect(() => {
     if (!selectedCharacter) {
       setShowCharacterSelector(true);
     }
   }, [selectedCharacter]);
+
+  // Show install prompt after character selection if app is installable
+  useEffect(() => {
+    if (selectedCharacter && canInstall && !showCharacterSelector) {
+      const timer = setTimeout(() => {
+        setShowInstallPrompt(true);
+      }, 3000); // Show after 3 seconds
+      
+      return () => clearTimeout(timer);
+    }
+  }, [selectedCharacter, canInstall, showCharacterSelector]);
 
   // Phase 3 - When authenticated, show Festival app instead of public wedding site
   if (isAuthenticated && selectedCharacter) {
@@ -65,6 +81,13 @@ const IndexContent: React.FC = () => {
           <WeddingDetails />
           <RSVPSection />
         </>
+      )}
+
+      {/* PWA Components */}
+      <OfflineStatus />
+      
+      {showInstallPrompt && (
+        <InstallPrompt onClose={() => setShowInstallPrompt(false)} />
       )}
     </div>
   );

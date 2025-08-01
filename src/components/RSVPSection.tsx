@@ -11,7 +11,8 @@ import { characterThemes } from '@/types/character';
 import { useToast } from '@/hooks/use-toast';
 import { RSVPService } from '@/integrations/aws/rsvp-service';
 import { APIError } from '@/integrations/aws/api-client';
-import { ChevronLeft } from 'lucide-react';
+import { useOfflineRSVP } from '@/hooks/useOfflineRSVP';
+import { ChevronLeft, Wifi, WifiOff } from 'lucide-react';
 
 const characterContent = {
   wesley: {
@@ -76,6 +77,7 @@ type FormStep = 'initial' | 'diet' | 'song' | 'message' | 'complete';
 export const RSVPSection: React.FC = () => {
   const { selectedCharacter } = useCharacter();
   const { toast } = useToast();
+  const { submitRSVP, isOffline } = useOfflineRSVP();
   const [currentStep, setCurrentStep] = useState<FormStep>('initial');
   const [formData, setFormData] = useState({
     name: '',
@@ -144,53 +146,46 @@ export const RSVPSection: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const insertData = {
+      // Convert form data to the format expected by useOfflineRSVP
+      const rsvpData = {
         name: formData.name,
         email: formData.email,
-        phone: formData.phone || null,
-        attendance: formData.attendance,
-        notifications: formData.notifications,
-        dietary_restrictions: formData.dietaryRestrictions || null,
-        song_request: formData.songRequest || null,
-        message_for_couple: formData.messageForCouple || null
+        attending: formData.attendance === 'yes',
+        dietaryRestrictions: formData.dietaryRestrictions || undefined,
+        plusOne: false, // This form doesn't have plus one yet
+        message: formData.messageForCouple || undefined
       };
-      
-      console.log('Data being inserted:', insertData);
-      
-      const data = await RSVPService.submitRSVP({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone || undefined,
-        attendance: formData.attendance as 'yes' | 'no',
-        notifications: formData.notifications,
-        dietary_restrictions: formData.dietaryRestrictions || undefined,
-        song_request: formData.songRequest || undefined,
-        message_for_couple: formData.messageForCouple || undefined
-      });
 
-      console.log('RSVP saved successfully:', data);
-      toast({
-        title: "RSVP received!",
-        description: "Thank you for your response. We'll be in touch with more details soon!",
-        duration: 2000,
-      });
+      console.log('Data being submitted:', rsvpData);
+      
+      // Try offline-capable submission
+      const result = await submitRSVP(rsvpData);
 
-      setCurrentStep('complete');
+      if (result.success) {
+        console.log('RSVP saved successfully:', result);
+        
+        const toastTitle = result.offline ? "RSVP saved offline!" : "RSVP received!";
+        const toastDescription = result.offline 
+          ? "Your RSVP has been saved locally and will be submitted when you're back online."
+          : "Thank you for your response. We'll be in touch with more details soon!";
+
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          duration: 3000,
+        });
+
+        setCurrentStep('complete');
+      } else {
+        throw new Error('RSVP submission failed');
+      }
     } catch (error) {
       console.error('Unexpected error during RSVP submission:', error);
-      if (error instanceof APIError) {
-        toast({
-          title: "Error",
-          description: error.message || "There was a problem saving your RSVP. Please try again.",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "There was an unexpected problem. Please try again.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Error",
+        description: "There was a problem saving your RSVP. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -480,6 +475,12 @@ export const RSVPSection: React.FC = () => {
               <CardTitle className="font-fantasy text-4xl font-bold" style={{ color: theme.primary }}>
                 {stepContent.title}
               </CardTitle>
+              {isOffline && (
+                <div className="flex items-center justify-center mt-2 text-sm text-yellow-600">
+                  <WifiOff size={16} className="mr-1" />
+                  <span>Offline - your RSVP will be saved locally</span>
+                </div>
+              )}
             </CardHeader>
           )}
           {currentStep !== 'complete' && !shouldPositionAtBottom && currentStep !== 'initial' && (
