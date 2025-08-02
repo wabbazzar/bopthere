@@ -3,6 +3,7 @@ import { useCharacter } from '@/contexts/CharacterContext';
 import { characterThemes } from '@/types/character';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gamepad, Trophy, Target, Star, Zap, Gift, Puzzle } from 'lucide-react';
+import { TetrisGame } from './TetrisGame';
 
 const characterMessages = {
   wesley: {
@@ -67,82 +68,8 @@ export const GamesView: React.FC = () => {
         </CardHeader>
       </Card>
 
-      {/* Coming Soon Card */}
-      <Card className="bg-white/95 backdrop-blur-sm border-2 shadow-lg">
-        <CardContent className="p-8 text-center">
-          <div className="max-w-2xl mx-auto">
-            <div className="mb-6">
-              <div 
-                className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-                style={{ backgroundColor: `${currentTheme.secondary}40` }}
-              >
-                <Star 
-                  className="w-8 h-8"
-                  style={{ color: currentTheme.secondary }}
-                />
-              </div>
-              <h3 
-                className="text-2xl font-bold mb-4"
-                style={{ 
-                  fontFamily: 'Cinzel, serif',
-                  color: currentTheme.primary
-                }}
-              >
-                Coming Soon
-              </h3>
-              <p 
-                className="text-lg leading-relaxed mb-6"
-                style={{ 
-                  fontFamily: 'Crimson Text, serif',
-                  color: currentTheme.dark
-                }}
-              >
-                {content.message}
-              </p>
-            </div>
-
-            {/* Preview Features */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Target className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span className="text-sm font-medium text-center" style={{ color: currentTheme.dark }}>
-                  Challenge Games
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Trophy className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span className="text-sm font-medium text-center" style={{ color: currentTheme.dark }}>
-                  Leaderboards
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Puzzle className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span className="text-sm font-medium text-center" style={{ color: currentTheme.dark }}>
-                  Team Activities
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Zap className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span className="text-sm font-medium text-center" style={{ color: currentTheme.dark }}>
-                  Quick Rounds
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Gift className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span className="text-sm font-medium text-center" style={{ color: currentTheme.dark }}>
-                  Prizes & Rewards
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Star className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span className="text-sm font-medium text-center" style={{ color: currentTheme.dark }}>
-                  Special Events
-                </span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tetris Game */}
+      <TetrisGame character={selectedCharacter} theme={currentTheme} />
     </div>
   );
 };
