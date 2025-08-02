@@ -221,7 +221,7 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
                 }}
                 className="md:hidden text-white hover:bg-white/10 relative"
                 key="hamburger-menu-button"
-                style={{ zIndex: 60, pointerEvents: 'auto' }}
+                style={{ zIndex: 110, pointerEvents: 'auto', position: 'relative' }}
               >
                 {isMobileMenuOpen ? (
                   <X className="w-5 h-5" />

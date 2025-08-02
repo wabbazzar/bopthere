@@ -3,6 +3,8 @@ import { LoginCredentials, LoginResponse, User } from '@/types/auth';
 
 const TOKEN_KEY = 'wedding-auth-token';
 const USER_KEY = 'wedding-auth-user';
+const LOGIN_TIMESTAMP_KEY = 'wedding-auth-timestamp';
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
 export class AuthService {
   /**
@@ -11,6 +13,7 @@ export class AuthService {
   static setAuthData(token: string, user: User): void {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+    localStorage.setItem(LOGIN_TIMESTAMP_KEY, Date.now().toString());
   }
 
   /**
@@ -40,15 +43,33 @@ export class AuthService {
   static clearAuthData(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(LOGIN_TIMESTAMP_KEY);
   }
 
   /**
-   * Check if user is authenticated (has valid token)
+   * Check if user is authenticated (has valid token and within 30 days)
    */
   static isAuthenticated(): boolean {
     const token = this.getToken();
     const user = this.getUser();
-    return !!(token && user);
+    const loginTimestamp = localStorage.getItem(LOGIN_TIMESTAMP_KEY);
+    
+    if (!token || !user || !loginTimestamp) {
+      return false;
+    }
+    
+    // Check if login is older than 30 days
+    const loginTime = parseInt(loginTimestamp, 10);
+    const currentTime = Date.now();
+    const timeDifference = currentTime - loginTime;
+    
+    if (timeDifference > THIRTY_DAYS_MS) {
+      // Login expired, clear auth data
+      this.clearAuthData();
+      return false;
+    }
+    
+    return true;
   }
 
   /**
@@ -85,7 +106,7 @@ export class AuthService {
 
     try {
       const response = await apiRequest<{ user: User }>('/auth/verify', {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
