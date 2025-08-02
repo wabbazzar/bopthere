@@ -1,0 +1,30 @@
+[
+  {
+    "username": "weddingplanner",
+    "password": "coordinator2025",
+    "email": "planner@weddingcoordinator.com",
+    "full_name": "Sarah Wedding Planner",
+    "role": "admin"
+  },
+  {
+    "username": "photographer",
+    "password": "snapshot2025",
+    "email": "photo@weddingstudio.com",
+    "full_name": "Mike Photographer",
+    "role": "vip"
+  },
+  {
+    "username": "bridesmaid1",
+    "password": "flowers2025",
+    "email": "jane@example.com",
+    "full_name": "Jane Smith",
+    "role": "vip"
+  },
+  {
+    "username": "groomsman1", 
+    "password": "cheers2025",
+    "email": "john@example.com",
+    "full_name": "John Doe",
+    "role": "vip"
+  }
+]

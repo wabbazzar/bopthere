@@ -381,6 +381,26 @@ docs(wedding): Update ticket generation rules for character system
 
 ## 11. File Organization
 
+### CRITICAL: Directory Organization Rules
+
+**ALL temporary files MUST go into `tmp/`:**
+- Debugging scripts
+- Temporary scripts  
+- Build artifacts
+- Scratch files
+- Development utilities
+
+**ALL files staged for deletion MUST go into `@local/`:**
+- Files being phased out
+- Deprecated components
+- Legacy code awaiting removal
+
+**ALL tests MUST go in `@tests/` with proper subdirectories:**
+- `@tests/unit/` - Unit tests
+- `@tests/e2e/` - End-to-end tests
+- `@tests/e2e/smoke/` - Smoke tests
+- `@tests/integration/` - Integration tests
+
 ### Core Files to Understand:
 - `src/App.tsx` - Main application setup
 - `src/pages/Index.tsx` - Main page with character system
@@ -439,7 +459,13 @@ poetry add boto3
 
 ## 14. Temporary Files Management
 
-Use the `docs/` directory for any temporary development files, analysis, or debugging scripts that aid in development but aren't part of the main codebase.
+**FOLLOW STRICT DIRECTORY ORGANIZATION:**
+
+- **Use `tmp/` for ALL temporary files** - debugging scripts, analysis files, build artifacts, scratch files that aid in development but aren't part of the main codebase
+- **Use `@local/` for files staged for deletion** - deprecated components, legacy code, files being phased out
+- **Use `@tests/` with proper subdirectories** - all testing files must be properly organized by type (unit, e2e, smoke, integration)
+
+**DO NOT** use `docs/` for temporary files - maintain clean documentation structure.
 
 ## 15. Ticket Generation
 
