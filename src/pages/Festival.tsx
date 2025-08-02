@@ -34,55 +34,47 @@ export const Festival: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative festival-page">
-      <style>{`
-        .festival-page {
-          background-image: url(/app-uploads/epic_background.png);
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-        }
+    <div className="min-h-screen relative">
+      {/* Fixed background layer */}
+      <div 
+        className="fixed inset-0 w-full h-full"
+        style={{
+          backgroundImage: 'url(/app-uploads/epic_background.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          zIndex: -1
+        }}
+      >
+        {/* Background overlay for better text readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-40" />
+      </div>
+      
+      {/* Scrollable content layer */}
+      <div className="relative z-10">
+        {/* Festival Navigation */}
+        <FestivalNav activeTab={activeTab} onTabChange={setActiveTab} />
         
-        /* Fixed background for desktop only */
-        @media (min-width: 768px) {
-          .festival-page {
-            background-attachment: fixed;
-          }
-        }
-        
-        /* Ensure proper scrolling on iOS devices */
-        @supports (-webkit-touch-callout: none) {
-          .festival-page {
-            background-attachment: scroll !important;
-          }
-        }
-      `}</style>
-      
-      {/* Background overlay for better text readability */}
-      <div className="absolute inset-0 bg-black bg-opacity-40" />
-      
-      {/* Festival Navigation */}
-      <FestivalNav activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      {/* Main Content */}
-      <main className="relative z-10 container mx-auto px-4 pt-20 pb-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Welcome header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
-              Welcome to the Festival, {user.full_name}!
-            </h1>
-            <p className="text-xl text-white/90" style={{ fontFamily: 'Crimson Text, serif' }}>
-              Your personalized wedding experience awaits
-            </p>
+        {/* Main Content */}
+        <main className="container mx-auto px-4 pt-20 pb-8">
+          <div className="max-w-6xl mx-auto">
+            {/* Welcome header */}
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                Welcome to the Festival, {user.full_name}!
+              </h1>
+              <p className="text-xl text-white/90" style={{ fontFamily: 'Crimson Text, serif' }}>
+                Your personalized wedding experience awaits
+              </p>
+            </div>
+            
+            {/* Active view content */}
+            <div className="transition-all duration-500 ease-in-out">
+              {renderActiveView()}
+            </div>
           </div>
-          
-          {/* Active view content */}
-          <div className="transition-all duration-500 ease-in-out">
-            {renderActiveView()}
-          </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

@@ -74,9 +74,10 @@ const IndexContent: React.FC = () => {
         }} 
       />
       
+      <CharacterSwitcher showCharacterSelector={showCharacterSelector} />
+      
       {selectedCharacter && (
         <>
-          <CharacterSwitcher />
           <HeroSection />
           <WeddingDetails />
           <RSVPSection />

@@ -14,7 +14,11 @@ const characterIcons = {
   puffy: Cat
 };
 
-export const CharacterSwitcher: React.FC = () => {
+interface CharacterSwitcherProps {
+  showCharacterSelector?: boolean;
+}
+
+export const CharacterSwitcher: React.FC<CharacterSwitcherProps> = ({ showCharacterSelector = false }) => {
   const { selectedCharacter, setSelectedCharacter } = useCharacter();
   const { isAuthenticated, logout, user } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -43,9 +47,10 @@ export const CharacterSwitcher: React.FC = () => {
     }, isAuthenticated ? logoutButtonRef.current : loginButtonRef.current);
   }, [isAuthenticated, user, showLoginModal]);
 
-  if (!selectedCharacter) return null;
+  // Use CSS to hide instead of early return to avoid hooks issues
+  const shouldHide = !selectedCharacter || showCharacterSelector;
 
-  const currentTheme = characterThemes[selectedCharacter];
+  const currentTheme = selectedCharacter ? characterThemes[selectedCharacter] : characterThemes.wesley;
   const characters: Character[] = ['wesley', 'heather', 'puffy'];
 
   // Throttle logout to prevent rapid clicks during state transitions
@@ -61,7 +66,16 @@ export const CharacterSwitcher: React.FC = () => {
 
   return (
     <>
-      <div className="fixed top-4 left-0 right-0 md:left-auto md:right-4 flex gap-1.5 justify-center md:justify-end px-3 md:px-0" style={{ isolation: 'isolate', zIndex: 100 }}>
+      <div 
+        className="fixed top-4 left-0 right-0 md:left-auto md:right-4 flex gap-1.5 justify-center md:justify-end px-3 md:px-0" 
+        style={{ 
+          isolation: 'isolate', 
+          zIndex: 100,
+          visibility: shouldHide ? 'hidden' : 'visible',
+          opacity: shouldHide ? 0 : 1,
+          transition: 'opacity 0.3s ease-in-out'
+        }}
+      >
         {/* Character selection buttons */}
         {characters.map((character) => {
           const Icon = characterIcons[character];
