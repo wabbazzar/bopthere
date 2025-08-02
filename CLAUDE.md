@@ -336,8 +336,9 @@ aws dynamodb create-table \
 #### E2E Smoke Tests:
 Every AWS integration MUST include E2E smoke tests:
 ```bash
-# Location: tests/e2e/test_[feature]_smoke.py
-# Run: pytest tests/e2e/test_[feature]_smoke.py -v
+# Location: tests/e2e/smoke/test_[feature]_smoke.py
+# Run: make test-e2e-smoke
+# Or specific: cd tests/e2e/smoke && pytest test_[feature]_smoke.py -v
 ```
 
 ## 10. Git Commit Standards
@@ -395,11 +396,13 @@ docs(wedding): Update ticket generation rules for character system
 - Deprecated components
 - Legacy code awaiting removal
 
-**ALL tests MUST go in `@tests/` with proper subdirectories:**
-- `@tests/unit/` - Unit tests
-- `@tests/e2e/` - End-to-end tests
-- `@tests/e2e/smoke/` - Smoke tests
-- `@tests/integration/` - Integration tests
+**ALL tests MUST go in `tests/` with proper subdirectories:**
+- `tests/unit/frontend/` - Jest tests for React components
+- `tests/unit/backend/` - Python tests for Lambda/API
+- `tests/integration/frontend/` - React + API integration tests
+- `tests/integration/backend/` - Lambda + DynamoDB integration tests
+- `tests/e2e/playwright/` - Browser automation tests
+- `tests/e2e/smoke/` - API smoke tests
 
 ### Core Files to Understand:
 - `src/App.tsx` - Main application setup
@@ -463,7 +466,7 @@ poetry add boto3
 
 - **Use `tmp/` for ALL temporary files** - debugging scripts, analysis files, build artifacts, scratch files that aid in development but aren't part of the main codebase
 - **Use `@local/` for files staged for deletion** - deprecated components, legacy code, files being phased out
-- **Use `@tests/` with proper subdirectories** - all testing files must be properly organized by type (unit, e2e, smoke, integration)
+- **Use `tests/` with proper subdirectories** - all testing files must be properly organized by type and technology (unit/frontend, unit/backend, integration/frontend, integration/backend, e2e/playwright, e2e/smoke)
 
 **DO NOT** use `docs/` for temporary files - maintain clean documentation structure.
 

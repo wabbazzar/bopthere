@@ -218,7 +218,34 @@ update-schemas: ## Update all API schemas
 
 test-api-consistency: ## Test field consistency
 	@echo "Testing API field consistency..."
-	cd tests && pytest test_api_field_consistency.py -v
+	cd tests/integration/backend && pytest test_api_field_consistency.py -v
+
+# Test Operations
+test-unit-python: ## Run Python unit tests
+	@echo "Running Python unit tests..."
+	cd tests/unit/backend && pytest -v
+
+test-unit-frontend: ## Run frontend Jest unit tests
+	@echo "Running frontend unit tests..."
+	npm test
+
+test-integration-python: ## Run Python integration tests
+	@echo "Running Python integration tests..."
+	cd tests/integration/backend && pytest -v
+
+test-e2e-playwright: ## Run Playwright E2E tests
+	@echo "Running Playwright E2E tests..."
+	npx playwright test tests/e2e/playwright/
+
+test-e2e-smoke: ## Run smoke tests
+	@echo "Running E2E smoke tests..."
+	cd tests/e2e/smoke && pytest -v
+
+test-python: test-unit-python test-integration-python test-e2e-smoke ## Run all Python tests
+
+test-frontend: test-unit-frontend test-e2e-playwright ## Run all frontend tests
+
+test-all-new: test-python test-frontend ## Run all tests with new structure
 
 # Authentication Operations (CLI-based)
 create-auth-table:
@@ -377,4 +404,6 @@ delete-auth:
         tf-init tf-plan tf-apply tf-deploy-all \
         update-schemas test-api-consistency \
         create-auth-table describe-auth-table create-auth-lambda-role deploy-auth-lambda \
-        deploy-auth-api seed-users test-auth deploy-auth-all delete-auth
+        deploy-auth-api seed-users test-auth deploy-auth-all delete-auth \
+        test-unit-python test-unit-frontend test-integration-python \
+        test-e2e-playwright test-e2e-smoke test-python test-frontend test-all-new
