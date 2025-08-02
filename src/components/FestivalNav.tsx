@@ -121,7 +121,7 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-md border-b border-white/20" style={{ isolation: 'isolate', zIndex: 100 }}>
+      <nav className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-md border-b border-white/20" style={{ isolation: 'isolate', zIndex: 100 }}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo/Title */}
@@ -130,13 +130,13 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
                 className="text-xl font-bold text-white hidden sm:block"
                 style={{ fontFamily: 'Cinzel, serif' }}
               >
-                Festival Dashboard
+                Maui 2025
               </h2>
               <h2 
                 className="text-base font-bold text-white sm:hidden"
                 style={{ fontFamily: 'Cinzel, serif' }}
               >
-                Festival
+                Maui 2025
               </h2>
             </div>
 
@@ -243,7 +243,7 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
             menuStateRef.current = false;
             setIsMobileMenuOpen(false);
           }} />
-          <div className="fixed top-16 left-0 right-0 bg-black/95 backdrop-blur-md border-b border-white/20">
+          <div className="fixed top-16 left-0 right-0 bg-black/20 backdrop-blur-md border-b border-white/20">
             <div className="container mx-auto px-4 py-4">
               {/* Mobile user info */}
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/20">
