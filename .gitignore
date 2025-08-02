@@ -1,19 +1,17 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# other
-local/
-*zip
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-node_modules
-dist
-dist-ssr
+# Testing
+coverage/
+
+# Build artifacts
+dist/
+dist-ssr/
+build/
 *.local
 
 # Editor directories and files
@@ -27,34 +25,45 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Vite
+*.log
+
+# Environment files
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# Documentation with secrets
-docs/gh_refactor_todo.md
+# Supabase
+.env.local
 
-# AWS and OpenTofu files
-.terraform/
-*.tfstate
-*.tfstate.*
-.terraform.lock.hcl
-lambda-deployment.zip
-infrastructure/lambda-deployment.zip
-infrastructure/*-deployment.zip
-infrastructure/auth-lambda-deployment.zip
+# macOS
+.DS_Store
 
-# AWS credentials
-.aws/
+# Local settings
+.vscode/
 
-# Python
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Python specific lib directories only
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
+.Python
+python_lib/
+*/python_packages/lib/
+aws/lambda/lib/
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -62,62 +71,91 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Coverage reports
+# AWS
+.aws-sam/
+
+# Testing
 .coverage
+.pytest_cache/
 htmlcov/
-.tox/
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
 
-# Virtual environments
+# Environments
+.env
+.venv
+env/
 venv/
 ENV/
-env/
-.venv
+env.bak/
+venv.bak/
 
-# Scripts and generated content
-scripts/.wedding/
-scripts/example-users.json
-scripts/__pycache__/
-
-# Test artifacts
-tests/__pycache__/
-
-# AWS Lambda build artifacts
-aws/lambda/__pycache__/
-lambda-deployment.zip
-build/
-
-# Temporary files
-*.tmp
-*.temp
-.tmp/
-.temp/
-
-# IDE and editor files
-.vscode/
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Environment example files
-.env.example
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Secrets
+*.pem
+*.key
+secrets/
+
+# User uploads
+uploads/
+user-uploads/
+
+# Session data
+sessions/
+
+# Cache
+.cache/
+cache/
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Poetry
+poetry.lock
+
+# pip
+pip.conf
+
+# Scripts cache
+scripts/.wedding/
