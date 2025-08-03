@@ -3,13 +3,14 @@
 
 # Variables
 AWS_PROFILE := personal
-AWS_REGION := us-west-2
+AWS_REGION := us-east-1
 TABLE_NAME := heatherandwesley-users
 AUTH_TABLE_NAME := heatherandwesley-auth-users
 LEADERBOARD_TABLE_NAME := heatherandwesley-leaderboard
 LAMBDA_NAME := heatherandwesley-rsvp-handler
 AUTH_LAMBDA_NAME := heatherandwesley-auth-handler
 LEADERBOARD_LAMBDA_NAME := heatherandwesley-leaderboard-handler
+HEALTH_LAMBDA_NAME := heatherandwesley-health-handler
 API_NAME := heatherandwesley-api
 JWT_SECRET := your-secret-key-change-in-production
 
@@ -20,26 +21,14 @@ JWT_SECRET := your-secret-key-change-in-production
 help:
 	@echo "Wedding App AWS Infrastructure Management"
 	@echo ""
-	@echo "OpenTofu Infrastructure Operations:"
-	@echo "  make tofu-init          Initialize OpenTofu configuration"
-	@echo "  make tofu-plan          Show planned infrastructure changes"
-	@echo "  make tofu-apply         Apply infrastructure changes"
-	@echo "  make tofu-destroy       Destroy infrastructure (with confirmation)"
-	@echo "  make tofu-validate      Validate OpenTofu configuration"
-	@echo "  make tofu-fmt           Format OpenTofu configuration files"
-	@echo ""
 	@echo "DynamoDB Operations:"
-	@echo "  make create-table       Create DynamoDB table via OpenTofu"
-	@echo "  make update-table       Update table configuration via OpenTofu"
-	@echo "  make delete-table       Delete table (with confirmation)"
+	@echo "  make create-rsvp-table  Create RSVP DynamoDB table"
 	@echo "  make describe-table     Show table status and schema"
 	@echo "  make list-tables        List all DynamoDB tables"
 	@echo ""
 	@echo "Lambda Operations:"
-	@echo "  make deploy-lambda      Deploy Lambda function via OpenTofu"
 	@echo "  make update-lambda      Update Lambda function code"
 	@echo "  make test-lambda        Test Lambda function with sample data"
-	@echo "  make delete-lambda      Delete Lambda function"
 	@echo ""
 	@echo "Authentication Operations (CLI):"
 	@echo "  make create-auth-table  Create authentication DynamoDB table via CLI"
@@ -58,58 +47,43 @@ help:
 	@echo "  make test-leaderboard-api Test leaderboard API endpoints"
 	@echo ""
 	@echo "API Gateway Operations:"
-	@echo "  make deploy-api         Deploy API Gateway configuration via OpenTofu"
-	@echo "  make update-api         Update API Gateway settings"
 	@echo "  make test-api           Test API Gateway endpoints"
-	@echo "  make delete-api         Delete API Gateway"
 	@echo ""
 	@echo "Full Stack Operations:"
-	@echo "  make deploy-all         Deploy all infrastructure via OpenTofu"
 	@echo "  make test-all           Test complete integration chain"
-	@echo "  make cleanup-all        Delete all AWS resources via OpenTofu (with confirmation)"
+	@echo ""
+	@echo "Health Check & Migration Operations:"
+	@echo "  make deploy-health-lambda Deploy health check Lambda function"
+	@echo "  make test-health        Test health check endpoint"
+	@echo "  make verify-migration   Verify complete migration to us-east-1"
 	@echo ""
 	@echo "Schema Management:"
 	@echo "  make update-schemas     Update all API schemas and documentation"
 	@echo "  make test-api-consistency  Test field consistency across layers"
 
-# OpenTofu Infrastructure Operations
-tofu-init:
-	@echo "Initializing OpenTofu configuration..."
-	cd infrastructure && tofu init
-
-tofu-plan:
-	@echo "Planning infrastructure changes..."
-	cd infrastructure && ./tofu-wrapper.sh plan -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)"
-
-tofu-apply:
-	@echo "Applying infrastructure changes..."
-	cd infrastructure && ./tofu-wrapper.sh apply -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)" -auto-approve
-
-tofu-destroy:
-	@echo "WARNING: This will destroy all infrastructure!"
-	@read -p "Are you sure? [y/N] " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		cd infrastructure && ./tofu-wrapper.sh destroy -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)"; \
-	fi
-
-tofu-validate:
-	@echo "Validating OpenTofu configuration..."
-	cd infrastructure && tofu validate
-
-tofu-fmt:
-	@echo "Formatting OpenTofu configuration files..."
-	cd infrastructure && tofu fmt -recursive
+# DynamoDB Table Creation
+create-rsvp-table:
+	@echo "Creating RSVP DynamoDB table..."
+	@aws dynamodb create-table \
+		--table-name $(TABLE_NAME) \
+		--attribute-definitions \
+			AttributeName=id,AttributeType=S \
+			AttributeName=email,AttributeType=S \
+		--key-schema AttributeName=id,KeyType=HASH \
+		--global-secondary-indexes \
+			"IndexName=email-index,KeySchema=[{AttributeName=email,KeyType=HASH}],Projection={ProjectionType=ALL}" \
+		--billing-mode PAY_PER_REQUEST \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.'
+	@echo "Waiting for table to be active..."
+	@aws dynamodb wait table-exists \
+		--table-name $(TABLE_NAME) \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION)
+	@echo "RSVP table created successfully!"
 
 # DynamoDB Operations
-create-table: tofu-apply
-	@echo "DynamoDB table created via OpenTofu"
-
-update-table: tofu-apply
-	@echo "DynamoDB table updated via OpenTofu"
-
-delete-table: tofu-destroy
-	@echo "DynamoDB table deleted via OpenTofu"
 
 describe-table:
 	@echo "Describing DynamoDB table..."
@@ -127,9 +101,6 @@ list-tables:
 		--output table
 
 # Lambda Operations
-deploy-lambda: tofu-apply
-	@echo "Lambda function deployed via OpenTofu"
-
 update-lambda:
 	@echo "Updating Lambda function code..."
 	cd aws/lambda && zip -r ../../lambda-deployment.zip .
@@ -149,73 +120,43 @@ test-lambda:
 		--region $(AWS_REGION) \
 		response.json && cat response.json && rm response.json
 
-delete-lambda: tofu-destroy
-	@echo "Lambda function deleted via OpenTofu"
-
 # API Gateway Operations
-deploy-api: tofu-apply
-	@echo "API Gateway deployed via OpenTofu"
-
-update-api: tofu-apply
-	@echo "API Gateway updated via OpenTofu"
 
 test-api:
 	@echo "Testing API Gateway endpoints..."
-	@API_URL=$$(cd infrastructure && tofu output -raw api_gateway_url 2>/dev/null) && \
-	if [ -n "$$API_URL" ]; then \
+	@API_ID=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null | awk '{print $$NF}') && \
+	if [ -n "$$API_ID" ]; then \
+		API_URL="https://$$API_ID.execute-api.$(AWS_REGION).amazonaws.com/prod"; \
 		echo "Testing POST /rsvp endpoint at $$API_URL/rsvp"; \
 		curl -X POST $$API_URL/rsvp \
 			-H "Content-Type: application/json" \
 			-d '{"name":"Test Guest","email":"test@example.com","attendance":"yes"}'; \
 	else \
-		echo "API Gateway URL not found. Run 'make deploy-api' first."; \
+		echo "API Gateway not found."; \
 	fi
 
-delete-api: tofu-destroy
-	@echo "API Gateway deleted via OpenTofu"
-
 # Full Stack Operations
-deploy-all:
-	@echo "Deploying all infrastructure..."
-	$(MAKE) tofu-init
-	$(MAKE) tofu-apply
-	@echo "All infrastructure deployed successfully!"
 
 test-all:
-	@echo "Testing complete integration chain..."
-	$(MAKE) describe-table
-	$(MAKE) test-lambda
-	$(MAKE) test-api
-	@echo "All tests completed!"
+	@echo "Running comprehensive service tests..."
+	@chmod +x tmp/test-all-services.sh
+	@./tmp/test-all-services.sh
 
-cleanup-all:
-	@echo "WARNING: This will delete ALL AWS resources!"
-	@read -p "Are you absolutely sure? Type 'DELETE' to confirm: " -r; \
+deploy-all:
+	@echo "Deploying all resources to $(AWS_REGION)..."
+	@chmod +x tmp/deploy-resources.sh
+	@./tmp/deploy-resources.sh
+
+cleanup-west-2:
+	@echo "WARNING: This will delete all resources in us-west-2!"
+	@read -p "Are you sure? Type 'DELETE' to confirm: " -r; \
 	echo; \
 	if [[ $$REPLY == "DELETE" ]]; then \
-		$(MAKE) tofu-destroy; \
+		./tmp/cleanup-west-2.sh; \
 	else \
 		echo "Cleanup cancelled."; \
 	fi
 
-# Terraform fallback commands (use if OpenTofu has issues)
-tf-init:
-	@echo "Initializing Terraform configuration..."
-	cd infrastructure && terraform init
-
-tf-plan:
-	@echo "Planning infrastructure changes with Terraform..."
-	cd infrastructure && terraform plan -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)"
-
-tf-apply:
-	@echo "Applying infrastructure changes with Terraform..."
-	cd infrastructure && terraform apply -var="aws_profile=$(AWS_PROFILE)" -var="aws_region=$(AWS_REGION)" -auto-approve
-
-tf-deploy-all:
-	@echo "Deploying all infrastructure with Terraform..."
-	$(MAKE) tf-init
-	$(MAKE) tf-apply
-	@echo "All infrastructure deployed successfully!"
 
 # Schema Management Operations
 update-schemas: ## Update all API schemas
@@ -341,9 +282,9 @@ seed-users:
 
 test-auth:
 	@echo "Testing authentication endpoints..."
-	@API_URL=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null) && \
-	if [ -n "$$API_URL" ]; then \
-		API_BASE="https://$$API_URL.execute-api.$(AWS_REGION).amazonaws.com/prod"; \
+	@API_ID=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null | awk '{print $$NF}') && \
+	if [ -n "$$API_ID" ]; then \
+		API_BASE="https://$$API_ID.execute-api.$(AWS_REGION).amazonaws.com/prod"; \
 		echo "Testing login endpoint at $$API_BASE/auth/login"; \
 		curl -X POST $$API_BASE/auth/login \
 			-H "Content-Type: application/json" \
@@ -379,11 +320,11 @@ deploy-auth-all:
 	@echo "Authentication system deployed successfully!"
 	@echo ""
 	@echo "Available endpoints:"
-	@API_URL=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null) && \
-	if [ -n "$$API_URL" ]; then \
-		echo "  POST https://$$API_URL.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/login"; \
-		echo "  POST https://$$API_URL.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/verify"; \
-		echo "  POST https://$$API_URL.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/register"; \
+	@API_ID=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null | awk '{print $$NF}') && \
+	if [ -n "$$API_ID" ]; then \
+		echo "  POST https://$$API_ID.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/login"; \
+		echo "  POST https://$$API_ID.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/verify"; \
+		echo "  POST https://$$API_ID.execute-api.$(AWS_REGION).amazonaws.com/prod/auth/register"; \
 	fi
 	@echo ""
 	@echo "Test credentials:"
@@ -441,17 +382,82 @@ test-leaderboard-api:
 	@chmod +x scripts/test-leaderboard-endpoints.sh
 	@./scripts/test-leaderboard-endpoints.sh
 
+# Health Check & Migration Operations
+create-health-lambda-role:
+	@echo "Creating IAM role for health check Lambda..."
+	@aws iam create-role \
+		--role-name $(HEALTH_LAMBDA_NAME)-role \
+		--assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \
+		--profile $(AWS_PROFILE) || echo "Role may already exist"
+	@aws iam attach-role-policy \
+		--role-name $(HEALTH_LAMBDA_NAME)-role \
+		--policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole \
+		--profile $(AWS_PROFILE) || echo "Policy may already be attached"
+	@echo "Creating read-only access policy for health checks..."
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --profile $(AWS_PROFILE) --query Account --output text) && \
+	aws iam put-role-policy \
+		--role-name $(HEALTH_LAMBDA_NAME)-role \
+		--policy-name $(HEALTH_LAMBDA_NAME)-readonly-policy \
+		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["dynamodb:DescribeTable","lambda:GetFunction","lambda:ListFunctions","dynamodb:ListTables"],"Resource":"*"}]}' \
+		--profile $(AWS_PROFILE) || echo "Policy may already exist"
+
+deploy-health-lambda: create-health-lambda-role
+	@echo "Building health check Lambda deployment package..."
+	@rm -rf build/lambda-package && mkdir -p build/lambda-package
+	@cp aws/lambda/health-handler.py build/lambda-package/
+	@cd build/lambda-package && zip -r ../health-lambda-deployment.zip . -x "*.pyc" "__pycache__/*"
+	@echo "Deploying health check Lambda function..."
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --profile $(AWS_PROFILE) --query Account --output text) && \
+	aws lambda create-function \
+		--function-name $(HEALTH_LAMBDA_NAME) \
+		--runtime python3.11 \
+		--role arn:aws:iam::$$ACCOUNT_ID:role/$(HEALTH_LAMBDA_NAME)-role \
+		--handler health-handler.lambda_handler \
+		--zip-file fileb://build/health-lambda-deployment.zip \
+		--timeout 30 \
+		--memory-size 256 \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.' || \
+	aws lambda update-function-code \
+		--function-name $(HEALTH_LAMBDA_NAME) \
+		--zip-file fileb://build/health-lambda-deployment.zip \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION)
+	@echo "Health check Lambda deployed successfully!"
+
+test-health:
+	@echo "Testing health check endpoint..."
+	@API_ID=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null | awk '{print $$NF}') && \
+	if [ -n "$$API_ID" ]; then \
+		API_URL="https://$$API_ID.execute-api.$(AWS_REGION).amazonaws.com/prod"; \
+		echo "Testing health endpoint at $$API_URL/health"; \
+		curl -X GET $$API_URL/health \
+			-H "Content-Type: application/json" \
+			-w "\nHTTP Status: %{http_code}\n"; \
+	else \
+		echo "API Gateway not found. Testing Lambda directly..."; \
+		aws lambda invoke \
+			--function-name $(HEALTH_LAMBDA_NAME) \
+			--payload '{"httpMethod":"GET","path":"/health"}' \
+			--profile $(AWS_PROFILE) \
+			--region $(AWS_REGION) \
+			response.json && cat response.json && rm response.json; \
+	fi
+
+verify-migration:
+	@echo "Verifying complete migration to us-east-1..."
+	@chmod +x scripts/verify-migration.sh
+	@./scripts/verify-migration.sh
+
 # Development helpers
-.PHONY: help tofu-init tofu-plan tofu-apply tofu-destroy tofu-validate tofu-fmt \
-        create-table update-table delete-table describe-table list-tables \
-        deploy-lambda update-lambda test-lambda delete-lambda \
-        deploy-api update-api test-api delete-api \
-        deploy-all test-all cleanup-all \
-        tf-init tf-plan tf-apply tf-deploy-all \
+.PHONY: help create-rsvp-table describe-table list-tables \
+        update-lambda test-lambda test-api test-all deploy-all cleanup-west-2 \
         update-schemas test-api-consistency \
         create-auth-table describe-auth-table create-auth-lambda-role deploy-auth-lambda \
         deploy-auth-api seed-users test-auth deploy-auth-all delete-auth \
         test-unit-python test-unit-frontend test-integration-python \
         test-e2e-playwright test-e2e-smoke test-python test-frontend test-all-new \
         deploy-leaderboard-lambda test-leaderboard update-leaderboard-lambda \
-        deploy-leaderboard-api test-leaderboard-api
+        deploy-leaderboard-api test-leaderboard-api \
+        create-health-lambda-role deploy-health-lambda test-health verify-migration
