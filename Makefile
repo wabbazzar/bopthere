@@ -6,8 +6,10 @@ AWS_PROFILE := personal
 AWS_REGION := us-west-2
 TABLE_NAME := heatherandwesley-users
 AUTH_TABLE_NAME := heatherandwesley-auth-users
+LEADERBOARD_TABLE_NAME := heatherandwesley-leaderboard
 LAMBDA_NAME := heatherandwesley-rsvp-handler
 AUTH_LAMBDA_NAME := heatherandwesley-auth-handler
+LEADERBOARD_LAMBDA_NAME := heatherandwesley-leaderboard-handler
 API_NAME := heatherandwesley-api
 JWT_SECRET := your-secret-key-change-in-production
 
@@ -47,6 +49,11 @@ help:
 	@echo "  make test-auth          Test authentication endpoints"
 	@echo "  make deploy-auth-all    Deploy complete authentication system"
 	@echo "  make delete-auth        Delete authentication resources"
+	@echo ""
+	@echo "Leaderboard Operations (CLI):"
+	@echo "  make deploy-leaderboard-lambda Deploy leaderboard Lambda function"
+	@echo "  make test-leaderboard   Test leaderboard Lambda function"
+	@echo "  make update-leaderboard-lambda Update leaderboard Lambda code"
 	@echo ""
 	@echo "API Gateway Operations:"
 	@echo "  make deploy-api         Deploy API Gateway configuration via OpenTofu"
@@ -395,6 +402,33 @@ delete-auth:
 		echo "Authentication resources deleted!"; \
 	fi
 
+# Leaderboard Operations (CLI-based)
+deploy-leaderboard-lambda:
+	@echo "Deploying leaderboard Lambda function..."
+	@chmod +x scripts/deploy-leaderboard-lambda.sh
+	@./scripts/deploy-leaderboard-lambda.sh
+
+test-leaderboard:
+	@echo "Testing leaderboard Lambda function..."
+	@aws lambda invoke \
+		--function-name $(LEADERBOARD_LAMBDA_NAME) \
+		--payload '{"httpMethod":"GET","path":"/leaderboard/tetris"}' \
+		--profile $(AWS_PROFILE) \
+		response.json && cat response.json && rm response.json
+
+update-leaderboard-lambda:
+	@echo "Updating leaderboard Lambda function code..."
+	@rm -rf build/lambda-package && mkdir -p build/lambda-package
+	@cp aws/lambda/leaderboard-handler.py build/lambda-package/
+	@cd aws/lambda && pip install --index-url https://pypi.org/simple/ -r requirements.txt -t ../../build/lambda-package/ --quiet
+	@cd build/lambda-package && zip -r ../leaderboard-deployment.zip . -x "*.pyc" "__pycache__/*"
+	@aws lambda update-function-code \
+		--function-name $(LEADERBOARD_LAMBDA_NAME) \
+		--zip-file fileb://build/leaderboard-deployment.zip \
+		--profile $(AWS_PROFILE)
+	@rm -rf build/lambda-package build/leaderboard-deployment.zip
+	@echo "Leaderboard Lambda updated successfully!"
+
 # Development helpers
 .PHONY: help tofu-init tofu-plan tofu-apply tofu-destroy tofu-validate tofu-fmt \
         create-table update-table delete-table describe-table list-tables \
@@ -406,4 +440,5 @@ delete-auth:
         create-auth-table describe-auth-table create-auth-lambda-role deploy-auth-lambda \
         deploy-auth-api seed-users test-auth deploy-auth-all delete-auth \
         test-unit-python test-unit-frontend test-integration-python \
-        test-e2e-playwright test-e2e-smoke test-python test-frontend test-all-new
+        test-e2e-playwright test-e2e-smoke test-python test-frontend test-all-new \
+        deploy-leaderboard-lambda test-leaderboard update-leaderboard-lambda
