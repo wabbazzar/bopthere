@@ -1496,6 +1496,20 @@
             }
             console.log('Game Over! Final Score:', score, 'Level:', level);
             
+            // Post game over message to parent
+            if (parent !== window) {
+                try {
+                    parent.postMessage({
+                        type: 'TETRIS_GAME_OVER',
+                        score: score,
+                        level: level
+                    }, '*');
+                    console.log('Posted game over message to parent with score:', score);
+                } catch (e) {
+                    console.error('Failed to post game over message:', e);
+                }
+            }
+            
             // Show game over overlay with both score and level
             document.getElementById('finalScore').textContent = `Final Score: ${score}`;
             document.getElementById('finalLevel').textContent = `Level: ${level}`;
@@ -1511,6 +1525,18 @@
             totalLinesCleared = 0;
             updateScore();
             updateLevel();
+            
+            // Post game start message to parent
+            if (parent !== window) {
+                try {
+                    parent.postMessage({
+                        type: 'TETRIS_GAME_START'
+                    }, '*');
+                    console.log('Game started!');
+                } catch (e) {
+                    console.error('Failed to post game start message:', e);
+                }
+            }
             
             // Create first pieces
             currentPiece = createPiece();

@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Character, CharacterTheme, characterNames } from '@/types/character';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gamepad2, Loader2, AlertCircle, Maximize, RotateCcw } from 'lucide-react';
+import { Gamepad2, Loader2, AlertCircle, Maximize, RotateCcw, Trophy } from 'lucide-react';
+import { LeaderboardDisplay, ScoreSubmission } from '@/components/leaderboard';
+import { AuthService } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 interface TetrisGameProps {
   character: Character;
@@ -96,8 +99,12 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
   const [hasError, setHasError] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [puffySmileAnimation, setPuffySmileAnimation] = useState<{ show: boolean; rows: number } | null>(null);
+  const [currentScore, setCurrentScore] = useState<number | null>(null);
+  const [showScoreSubmission, setShowScoreSubmission] = useState(false);
+  const [leaderboardKey, setLeaderboardKey] = useState(0); // Force refresh
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const introduction = gameIntroductions[character];
   const themeStyles = getThemeStyles(theme);
@@ -113,7 +120,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
     setHasError(true);
   };
 
-  // Listen for Tetris game messages (Puffy smile animation)
+  // Listen for Tetris game messages (Puffy smile animation and game over)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // Only process messages from our iframe
@@ -121,12 +128,32 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
         if (event.data.type === 'TETRIS_ROWS_CLEARED' && event.data.rows >= 2 && character === 'puffy') {
           setPuffySmileAnimation({ show: true, rows: event.data.rows });
         }
+        
+        // Handle game over with score
+        if (event.data.type === 'TETRIS_GAME_OVER' && event.data.score) {
+          setCurrentScore(event.data.score);
+          setShowScoreSubmission(true);
+          
+          // Show toast if user is not authenticated
+          if (!AuthService.isAuthenticated()) {
+            toast({
+              title: "Great game!",
+              description: "Log in to save your score to the leaderboard.",
+            });
+          }
+        }
+        
+        // Handle new game started
+        if (event.data.type === 'TETRIS_GAME_START') {
+          setCurrentScore(null);
+          setShowScoreSubmission(false);
+        }
       }
     };
     
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [character]);
+  }, [character, toast]);
 
   // Handle fullscreen toggle
   const toggleFullscreen = async () => {
@@ -365,6 +392,60 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
           onComplete={() => setPuffySmileAnimation(null)}
         />
       )}
+      
+      {/* Score Submission Modal */}
+      {showScoreSubmission && currentScore && AuthService.isAuthenticated() && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card 
+            className="max-w-md w-full bg-white/95 backdrop-blur-sm"
+            style={{ borderColor: theme.primary }}
+          >
+            <CardHeader className="text-center">
+              <CardTitle style={{ fontFamily: 'Cinzel, serif', color: theme.primary }}>
+                Game Over!
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScoreSubmission
+                score={currentScore}
+                game="tetris"
+                character={character}
+                onSuccess={() => {
+                  setShowScoreSubmission(false);
+                  setLeaderboardKey(prev => prev + 1); // Refresh leaderboard
+                  toast({
+                    title: "Score submitted!",
+                    description: "Check the leaderboard to see your ranking.",
+                  });
+                }}
+                onError={() => {
+                  setShowScoreSubmission(false);
+                }}
+              />
+              <button
+                onClick={() => setShowScoreSubmission(false)}
+                className="mt-4 w-full text-center text-sm text-gray-600 hover:text-gray-800"
+              >
+                Skip for now
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      {/* Leaderboard Display */}
+      <Card 
+        key={leaderboardKey}
+        className="bg-white/90 backdrop-blur-sm border-2 shadow-lg"
+        style={themeStyles.container}
+      >
+        <CardContent className="p-6">
+          <LeaderboardDisplay
+            game="tetris"
+            character={character}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };

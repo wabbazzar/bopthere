@@ -277,8 +277,10 @@ def lambda_handler(event, context):
                     'body': json.dumps({'error': 'Score and character are required'})
                 }
             
-            # Submit the score
-            submit_score(game, user['username'], score, character)
+            # Submit the score with full name for display
+            # Use full_name if available, otherwise fall back to username
+            display_name = user.get('full_name', user.get('username', 'Anonymous'))
+            submit_score(game, display_name, score, character)
             
             # Get updated leaderboard
             result = get_top_scores(game)

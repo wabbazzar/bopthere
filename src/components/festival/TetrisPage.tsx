@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Character, CharacterTheme, characterNames } from '@/types/character';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, AlertCircle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, RotateCcw, Trophy } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { LeaderboardDisplay, ScoreSubmission } from '@/components/leaderboard';
+import { AuthService } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 interface TetrisPageProps {
   character: Character;
@@ -61,19 +65,45 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [puffySmileState, setPuffySmileState] = useState<{ show: boolean; rows: number } | null>(null);
+  const [currentScore, setCurrentScore] = useState<number | null>(null);
+  const [showScoreDialog, setShowScoreDialog] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardKey, setLeaderboardKey] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { toast } = useToast();
 
   // Message listener for Tetris game events
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'TETRIS_ROWS_CLEARED' && event.data.rows >= 2 && character === 'puffy') {
-        setPuffySmileState({ show: true, rows: event.data.rows });
+      if (event.source === iframeRef.current?.contentWindow) {
+        if (event.data.type === 'TETRIS_ROWS_CLEARED' && event.data.rows >= 2 && character === 'puffy') {
+          setPuffySmileState({ show: true, rows: event.data.rows });
+        }
+        
+        // Handle game over with score
+        if (event.data.type === 'TETRIS_GAME_OVER' && event.data.score) {
+          setCurrentScore(event.data.score);
+          if (AuthService.isAuthenticated()) {
+            setShowScoreDialog(true);
+          } else {
+            toast({
+              title: "Great game!",
+              description: "Log in to save your score to the leaderboard.",
+            });
+          }
+        }
+        
+        // Handle new game started
+        if (event.data.type === 'TETRIS_GAME_START') {
+          setCurrentScore(null);
+          setShowScoreDialog(false);
+        }
       }
     };
     
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [character]);
+  }, [character, toast]);
 
   // Handle iframe load events
   const handleIframeLoad = () => {
@@ -141,7 +171,15 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
             : 'Super Fun Tetris Party!'}
         </h1>
         
-        <div className="w-20"> {/* Spacer for centering */}</div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowLeaderboard(true)}
+          className="text-white hover:bg-white/20"
+        >
+          <Trophy className="w-5 h-5 mr-2" />
+          Leaderboard
+        </Button>
       </div>
 
       {/* Game Container */}
@@ -216,6 +254,51 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
           onComplete={() => setPuffySmileState(null)}
         />
       )}
+      
+      {/* Score Submission Dialog */}
+      <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle style={{ fontFamily: 'Cinzel, serif', color: theme.primary }}>
+              Game Over!
+            </DialogTitle>
+          </DialogHeader>
+          {currentScore && (
+            <ScoreSubmission
+              score={currentScore}
+              game="tetris"
+              character={character}
+              onSuccess={() => {
+                setShowScoreDialog(false);
+                setLeaderboardKey(prev => prev + 1);
+                toast({
+                  title: "Score submitted!",
+                  description: "Check the leaderboard to see your ranking.",
+                });
+              }}
+              onError={() => {
+                setShowScoreDialog(false);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Leaderboard Dialog */}
+      <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle style={{ fontFamily: 'Cinzel, serif', color: theme.primary }}>
+              Tetris Leaderboard
+            </DialogTitle>
+          </DialogHeader>
+          <LeaderboardDisplay
+            key={leaderboardKey}
+            game="tetris"
+            character={character}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

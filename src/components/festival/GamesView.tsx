@@ -3,8 +3,10 @@ import { useCharacter } from '@/contexts/CharacterContext';
 import { characterThemes } from '@/types/character';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gamepad, Trophy, Target, Star, Zap, Gift, Puzzle, Gamepad2, Play } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Gamepad, Trophy, Target, Star, Zap, Gift, Puzzle, Gamepad2, Play, Medal } from 'lucide-react';
 import { TetrisPage } from './TetrisPage';
+import { LeaderboardDisplay } from '@/components/leaderboard';
 
 const characterMessages = {
   wesley: {
@@ -27,6 +29,7 @@ const characterMessages = {
 export const GamesView: React.FC = () => {
   const { selectedCharacter } = useCharacter();
   const [currentView, setCurrentView] = useState<'dashboard' | 'tetris'>('dashboard');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   if (!selectedCharacter) return null;
 
@@ -78,7 +81,7 @@ export const GamesView: React.FC = () => {
       {/* Available Games */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Tetris Game Card */}
-        <Card className="bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group"
+        <Card className="bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full"
               onClick={() => setCurrentView('tetris')}>
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center mb-3">
@@ -111,9 +114,9 @@ export const GamesView: React.FC = () => {
               Classic block-stacking adventure
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center flex flex-col flex-grow">
             <p 
-              className="text-sm mb-4 leading-relaxed"
+              className="text-sm mb-4 leading-relaxed flex-grow"
               style={{ 
                 fontFamily: 'Crimson Text, serif',
                 color: currentTheme.dark
@@ -134,6 +137,67 @@ export const GamesView: React.FC = () => {
             >
               <Play className="w-4 h-4 mr-2" />
               Play Now
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Tournament Leaderboard Card */}
+        <Card className="bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full"
+              onClick={() => setShowLeaderboard(true)}>
+          <CardHeader className="text-center pb-4">
+            <div className="flex items-center justify-center mb-3">
+              <div 
+                className="p-4 rounded-full group-hover:scale-110 transition-transform duration-300"
+                style={{ backgroundColor: `${currentTheme.primary}20` }}
+              >
+                <Trophy 
+                  className="w-8 h-8"
+                  style={{ color: currentTheme.primary }}
+                />
+              </div>
+            </div>
+            <CardTitle 
+              className="text-xl font-bold"
+              style={{ 
+                fontFamily: 'Cinzel, serif',
+                color: currentTheme.primary
+              }}
+            >
+              Tournament Leaderboard
+            </CardTitle>
+            <CardDescription 
+              className="text-sm" 
+              style={{ 
+                fontFamily: 'Crimson Text, serif',
+                color: currentTheme.dark
+              }}
+            >
+              Top scores across all games
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center flex flex-col flex-grow">
+            <p 
+              className="text-sm mb-4 leading-relaxed flex-grow"
+              style={{ 
+                fontFamily: 'Crimson Text, serif',
+                color: currentTheme.dark
+              }}
+            >
+              {selectedCharacter === 'wesley' 
+                ? 'View the champions who have conquered our epic challenges!'
+                : selectedCharacter === 'heather'
+                ? 'See our talented players and their impressive achievements.'
+                : 'Check out all the amazing high scores from our super fun games!'}
+            </p>
+            <Button
+              className="w-full group-hover:scale-105 transition-transform duration-300"
+              style={{
+                backgroundColor: currentTheme.primary,
+                color: 'white'
+              }}
+            >
+              <Medal className="w-4 h-4 mr-2" />
+              View Leaderboard
             </Button>
           </CardContent>
         </Card>
@@ -266,6 +330,34 @@ export const GamesView: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Leaderboard Dialog */}
+      <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle 
+              className="text-2xl font-bold"
+              style={{ 
+                fontFamily: 'Cinzel, serif', 
+                color: currentTheme.primary 
+              }}
+            >
+              {selectedCharacter === 'wesley' 
+                ? 'Tournament Hall of Champions'
+                : selectedCharacter === 'heather'
+                ? 'Tournament Leaderboard'
+                : 'Super Amazing High Scores!'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <LeaderboardDisplay
+              game="tetris"
+              character={selectedCharacter}
+              className="border-0 shadow-none"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
