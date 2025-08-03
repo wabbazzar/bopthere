@@ -54,6 +54,8 @@ help:
 	@echo "  make deploy-leaderboard-lambda Deploy leaderboard Lambda function"
 	@echo "  make test-leaderboard   Test leaderboard Lambda function"
 	@echo "  make update-leaderboard-lambda Update leaderboard Lambda code"
+	@echo "  make deploy-leaderboard-api Deploy API Gateway for leaderboard"
+	@echo "  make test-leaderboard-api Test leaderboard API endpoints"
 	@echo ""
 	@echo "API Gateway Operations:"
 	@echo "  make deploy-api         Deploy API Gateway configuration via OpenTofu"
@@ -429,6 +431,16 @@ update-leaderboard-lambda:
 	@rm -rf build/lambda-package build/leaderboard-deployment.zip
 	@echo "Leaderboard Lambda updated successfully!"
 
+deploy-leaderboard-api:
+	@echo "Deploying API Gateway for leaderboard..."
+	@chmod +x scripts/deploy-leaderboard-api.sh
+	@./scripts/deploy-leaderboard-api.sh
+
+test-leaderboard-api:
+	@echo "Testing leaderboard API endpoints..."
+	@chmod +x scripts/test-leaderboard-endpoints.sh
+	@./scripts/test-leaderboard-endpoints.sh
+
 # Development helpers
 .PHONY: help tofu-init tofu-plan tofu-apply tofu-destroy tofu-validate tofu-fmt \
         create-table update-table delete-table describe-table list-tables \
@@ -441,4 +453,5 @@ update-leaderboard-lambda:
         deploy-auth-api seed-users test-auth deploy-auth-all delete-auth \
         test-unit-python test-unit-frontend test-integration-python \
         test-e2e-playwright test-e2e-smoke test-python test-frontend test-all-new \
-        deploy-leaderboard-lambda test-leaderboard update-leaderboard-lambda
+        deploy-leaderboard-lambda test-leaderboard update-leaderboard-lambda \
+        deploy-leaderboard-api test-leaderboard-api
