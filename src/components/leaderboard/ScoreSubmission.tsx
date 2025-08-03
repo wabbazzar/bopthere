@@ -53,8 +53,11 @@ export function ScoreSubmission({
   const text = LEADERBOARD_TEXT[character];
 
   const handleSubmit = async () => {
+    console.log('ScoreSubmission: Starting submission for score:', score, 'game:', game, 'character:', submissionCharacter || character);
+    
     // Check if user is authenticated
     if (!AuthService.isAuthenticated()) {
+      console.log('ScoreSubmission: User not authenticated');
       toast({
         title: "Authentication Required",
         description: "Please log in to submit your score",
@@ -70,11 +73,13 @@ export function ScoreSubmission({
     setError(null);
 
     try {
+      console.log('ScoreSubmission: Making API call to submit score');
       const response = await submitScore(game, {
         score,
         character: submissionCharacter || character,
       });
 
+      console.log('ScoreSubmission: Score submitted successfully:', response);
       setSubmitted(true);
       
       toast({
@@ -88,6 +93,7 @@ export function ScoreSubmission({
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit score';
+      console.error('ScoreSubmission: Failed to submit score:', err);
       setError(errorMessage);
       
       toast({

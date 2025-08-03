@@ -10,6 +10,7 @@ import json
 from typing import Dict, List
 
 
+@pytest.mark.smoke
 class TestMigrationVerification:
     """Test complete migration to us-east-1"""
     

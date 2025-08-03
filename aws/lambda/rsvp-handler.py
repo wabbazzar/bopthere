@@ -109,38 +109,68 @@ def lambda_handler(event, context):
             }
             
         elif http_method == 'GET':
-            # Get RSVP by ID (for admin purposes)
-            path_params = event.get('pathParameters', {})
-            rsvp_id = path_params.get('id')
+            # Get RSVP by ID or email
+            path_params = event.get('pathParameters', {}) or {}
+            query_params = event.get('queryStringParameters', {}) or {}
             
-            if not rsvp_id:
+            rsvp_id = path_params.get('id')
+            email = query_params.get('email')
+            
+            if rsvp_id:
+                # Get by ID
+                response = table.get_item(Key={'id': rsvp_id})
+                
+                if 'Item' not in response:
+                    return {
+                        'statusCode': 404,
+                        'headers': headers,
+                        'body': json.dumps({
+                            'error': 'RSVP not found'
+                        })
+                    }
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'data': decimal_to_float(response['Item'])
+                    })
+                }
+            elif email:
+                # Get by email using scan (since email is not the primary key)
+                response = table.scan(
+                    FilterExpression='email = :email',
+                    ExpressionAttributeValues={
+                        ':email': email
+                    }
+                )
+                
+                items = response.get('Items', [])
+                if not items:
+                    return {
+                        'statusCode': 404,
+                        'headers': headers,
+                        'body': json.dumps({
+                            'error': 'RSVP not found'
+                        })
+                    }
+                
+                # Return the first matching RSVP
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'data': decimal_to_float(items[0])
+                    })
+                }
+            else:
                 return {
                     'statusCode': 400,
                     'headers': headers,
                     'body': json.dumps({
-                        'error': 'Missing RSVP ID'
+                        'error': 'Missing RSVP ID or email parameter'
                     })
                 }
-            
-            # Get item from DynamoDB
-            response = table.get_item(Key={'id': rsvp_id})
-            
-            if 'Item' not in response:
-                return {
-                    'statusCode': 404,
-                    'headers': headers,
-                    'body': json.dumps({
-                        'error': 'RSVP not found'
-                    })
-                }
-            
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps({
-                    'data': decimal_to_float(response['Item'])
-                })
-            }
             
         else:
             return {

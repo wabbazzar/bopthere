@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class DynamoDBSchemaExtractor:
     """Extract and document DynamoDB table schemas"""
     
-    def __init__(self, profile_name: str = 'personal', region: str = 'us-west-2'):
+    def __init__(self, profile_name: str = 'personal', region: str = 'us-east-1'):
         """
         Initialize the schema extractor with AWS credentials
         
@@ -402,7 +402,7 @@ def main():
     """Main function to run the schema extraction"""
     try:
         # Initialize extractor
-        extractor = DynamoDBSchemaExtractor(profile_name='personal', region='us-west-2')
+        extractor = DynamoDBSchemaExtractor(profile_name='personal', region='us-east-1')
         
         # Extract schemas
         logger.info("Starting schema extraction...")

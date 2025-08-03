@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class APIGatewayExtractor:
     """Extract API Gateway routes and their integrations."""
     
-    def __init__(self, profile: str = 'personal', region: str = 'us-west-2'):
+    def __init__(self, profile: str = 'personal', region: str = 'us-east-1'):
         """Initialize the extractor with AWS credentials."""
         self.session = boto3.Session(profile_name=profile, region_name=region)
         self.api_gateway = self.session.client('apigateway')
@@ -246,7 +246,7 @@ class APIGatewayExtractor:
 
 def main():
     """Main function to extract API Gateway routes."""
-    extractor = APIGatewayExtractor(profile='personal', region='us-west-2')
+    extractor = APIGatewayExtractor(profile='personal', region='us-east-1')
     
     # Extract routes
     route_data = extractor.extract_routes('heatherandwesley')

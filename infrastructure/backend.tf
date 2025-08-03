@@ -13,7 +13,7 @@ terraform {
 #   backend "s3" {
 #     bucket         = "heatherandwesley-terraform-state"
 #     key            = "infrastructure/terraform.tfstate"
-#     region         = "us-west-2"
+#     region         = "us-east-1"
 #     profile        = "personal"
 #     dynamodb_table = "heatherandwesley-terraform-locks"
 #     encrypt        = true

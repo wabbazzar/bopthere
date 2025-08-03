@@ -123,23 +123,36 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
   // Listen for Tetris game messages (Puffy smile animation and game over)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      console.log('TetrisGame: Received postMessage:', event.data, 'from origin:', event.origin);
+      
       // Only process messages from our iframe
       if (event.source === iframeRef.current?.contentWindow) {
+        console.log('TetrisGame: Message confirmed from our iframe');
+        
+        // Handle test messages
+        if (event.data.type === 'TETRIS_TEST_MESSAGE') {
+          console.log('TetrisGame: Received test message at timestamp:', event.data.timestamp);
+        }
+        
         if (event.data.type === 'TETRIS_ROWS_CLEARED' && event.data.rows >= 2 && character === 'puffy') {
           setPuffySmileAnimation({ show: true, rows: event.data.rows });
         }
         
         // Handle game over with score
-        if (event.data.type === 'TETRIS_GAME_OVER' && event.data.score) {
+        if (event.data.type === 'TETRIS_GAME_OVER' && typeof event.data.score === 'number') {
+          console.log('TetrisGame: Received TETRIS_GAME_OVER message with score:', event.data.score);
           setCurrentScore(event.data.score);
           setShowScoreSubmission(true);
           
           // Show toast if user is not authenticated
           if (!AuthService.isAuthenticated()) {
+            console.log('TetrisGame: User not authenticated, showing login prompt');
             toast({
               title: "Great game!",
               description: "Log in to save your score to the leaderboard.",
             });
+          } else {
+            console.log('TetrisGame: User authenticated, showing score submission');
           }
         }
         

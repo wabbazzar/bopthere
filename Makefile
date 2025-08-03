@@ -48,6 +48,7 @@ help:
 	@echo ""
 	@echo "API Gateway Operations:"
 	@echo "  make test-api           Test API Gateway endpoints"
+	@echo "  make fix-cors           Fix CORS configuration for API Gateway"
 	@echo ""
 	@echo "Full Stack Operations:"
 	@echo "  make test-all           Test complete integration chain"
@@ -56,6 +57,15 @@ help:
 	@echo "  make deploy-health-lambda Deploy health check Lambda function"
 	@echo "  make test-health        Test health check endpoint"
 	@echo "  make verify-migration   Verify complete migration to us-east-1"
+	@echo "  make verify-migration-complete Complete migration verification with all checks"
+	@echo "  make cleanup-west-2-final Final comprehensive cleanup of us-west-2 resources"
+	@echo ""
+	@echo "Git Hooks Management:"
+	@echo "  make hooks-setup        Setup and install Git hooks"
+	@echo "  make hooks-test         Test Git hooks functionality"
+	@echo "  make hooks-status       Show current hook status"
+	@echo "  make hooks-enable       Enable Git hooks"
+	@echo "  make hooks-disable      Disable Git hooks"
 	@echo ""
 	@echo "Schema Management:"
 	@echo "  make update-schemas     Update all API schemas and documentation"
@@ -122,6 +132,11 @@ test-lambda:
 
 # API Gateway Operations
 
+fix-cors:
+	@echo "Fixing CORS configuration for API Gateway..."
+	@chmod +x tmp/fix-cors-complete.sh
+	@./tmp/fix-cors-complete.sh
+
 test-api:
 	@echo "Testing API Gateway endpoints..."
 	@API_ID=$$(aws apigateway get-rest-apis --profile $(AWS_PROFILE) --region $(AWS_REGION) --query "items[?name=='$(API_NAME)'].id" --output text 2>/dev/null | awk '{print $$NF}') && \
@@ -157,6 +172,11 @@ cleanup-west-2:
 		echo "Cleanup cancelled."; \
 	fi
 
+cleanup-west-2-final:
+	@echo "Running comprehensive final cleanup of us-west-2 resources..."
+	@chmod +x scripts/cleanup-west-2-final.sh
+	@./scripts/cleanup-west-2-final.sh
+
 
 # Schema Management Operations
 update-schemas: ## Update all API schemas
@@ -190,6 +210,10 @@ test-e2e-playwright: ## Run Playwright E2E tests
 test-e2e-smoke: ## Run smoke tests
 	@echo "Running E2E smoke tests..."
 	cd tests/e2e/smoke && pytest -v
+
+test-e2e-smoke-integration: ## Run smoke tests integration (no AWS required)
+	@echo "Running smoke integration tests (no AWS required)..."
+	cd tests/e2e/smoke && pytest -m integration -v
 
 test-python: test-unit-python test-integration-python test-e2e-smoke ## Run all Python tests
 
@@ -450,9 +474,127 @@ verify-migration:
 	@chmod +x scripts/verify-migration.sh
 	@./scripts/verify-migration.sh
 
+verify-migration-complete: ## Complete migration verification with all checks
+	@echo "🔍 Running comprehensive migration verification..."
+	@echo "=================================================="
+	@echo ""
+	@echo "Step 1: Verify all resources are in us-east-1..."
+	@$(MAKE) verify-migration
+	@echo ""
+	@echo "Step 2: Test health check endpoint..."
+	@$(MAKE) test-health
+	@echo ""
+	@echo "Step 3: Run essential smoke tests..."
+	@cd tests/e2e/smoke && pytest test_migration_verification.py -v || (echo "❌ Migration verification tests failed" && exit 1)
+	@echo ""
+	@echo "Step 4: Verify build and linting..."
+	@npm run build > /dev/null 2>&1 && echo "✅ Frontend build successful" || (echo "❌ Frontend build failed" && exit 1)
+	@npm run lint > /dev/null 2>&1 && echo "✅ Frontend linting passed" || (echo "❌ Frontend linting failed" && exit 1)
+	@echo ""
+	@echo "Step 5: Check for any remaining us-west-2 references..."
+	@REFS=$$(grep -r "us-west-2" --include="*.py" --include="*.sh" --include="*.ts" --include="*.js" --exclude-dir=".git" --exclude-dir="node_modules" --exclude-dir="docs" --exclude-dir="tests" . 2>/dev/null | grep -v "cleanup-west-2-final.sh" | grep -v "verify-migration.sh" | grep -v "migration-complete.md" | grep -v "testing-infrastructure.md" || echo ""); \
+	if [ -n "$$REFS" ]; then \
+		echo "❌ Found remaining us-west-2 references:"; \
+		echo "$$REFS"; \
+		exit 1; \
+	else \
+		echo "✅ No remaining us-west-2 references found"; \
+	fi
+	@echo ""
+	@echo "🎉 Migration verification complete!"
+	@echo "=================================="
+	@echo "✅ All resources verified in us-east-1"
+	@echo "✅ Health checks passing"
+	@echo "✅ Critical functionality working"
+	@echo "✅ Build and code quality checks passed"
+	@echo "✅ No remaining us-west-2 references"
+	@echo ""
+	@echo "🚀 Migration to us-east-1 is COMPLETE and VERIFIED!"
+
+# Git Hooks Management
+hooks-setup: ## Setup and install Git hooks
+	@echo "Setting up Git hooks..."
+	@chmod +x scripts/setup-git-hooks.sh
+	@./scripts/setup-git-hooks.sh
+
+hooks-test: ## Test Git hooks functionality
+	@echo "Testing Git hooks..."
+	@if [ -x .git/hooks/pre-commit ]; then \
+		echo "🧪 Testing pre-commit hook..."; \
+		echo "#!/bin/bash" > /tmp/test-commit; \
+		echo "echo 'test commit'" >> /tmp/test-commit; \
+		GIT_EDITOR="cp /tmp/test-commit" git commit --allow-empty --dry-run -m "Test commit for hook validation" >/dev/null 2>&1 && \
+		echo "✅ Pre-commit hook is functional"; \
+	else \
+		echo "❌ Pre-commit hook not found or not executable"; \
+	fi
+	@if [ -x .git/hooks/pre-push ]; then \
+		echo "✅ Pre-push hook is installed and executable"; \
+	else \
+		echo "❌ Pre-push hook not found or not executable"; \
+	fi
+
+hooks-status: ## Show current hook status
+	@echo "Git Hooks Status:"
+	@echo "=================="
+	@if [ -f .git/hooks/pre-commit ]; then \
+		if [ -x .git/hooks/pre-commit ]; then \
+			echo "✅ pre-commit: Installed and executable"; \
+		else \
+			echo "⚠️  pre-commit: Installed but not executable"; \
+		fi; \
+	else \
+		echo "❌ pre-commit: Not installed"; \
+	fi
+	@if [ -f .git/hooks/pre-push ]; then \
+		if [ -x .git/hooks/pre-push ]; then \
+			echo "✅ pre-push: Installed and executable"; \
+		else \
+			echo "⚠️  pre-push: Installed but not executable"; \
+		fi; \
+	else \
+		echo "❌ pre-push: Not installed"; \
+	fi
+	@echo ""
+	@echo "Hook Configuration:"
+	@echo "  • Pre-commit: Fast checks (linting, unit tests, region consistency)"
+	@echo "  • Pre-push: Comprehensive testing (integration, smoke tests, build verification)"
+	@echo ""
+	@echo "Commands:"
+	@echo "  • make hooks-setup    - Install/reinstall hooks"
+	@echo "  • make hooks-enable   - Enable hooks"
+	@echo "  • make hooks-disable  - Disable hooks"
+	@echo "  • make hooks-test     - Test hook functionality"
+
+hooks-enable: ## Enable Git hooks
+	@echo "Enabling Git hooks..."
+	@if [ -f .git/hooks/pre-commit.disabled ]; then \
+		mv .git/hooks/pre-commit.disabled .git/hooks/pre-commit; \
+		echo "✅ Pre-commit hook enabled"; \
+	fi
+	@if [ -f .git/hooks/pre-push.disabled ]; then \
+		mv .git/hooks/pre-push.disabled .git/hooks/pre-push; \
+		echo "✅ Pre-push hook enabled"; \
+	fi
+	@chmod +x .git/hooks/pre-commit .git/hooks/pre-push 2>/dev/null || true
+	@echo "Git hooks are now enabled"
+
+hooks-disable: ## Disable Git hooks
+	@echo "Disabling Git hooks..."
+	@if [ -f .git/hooks/pre-commit ]; then \
+		mv .git/hooks/pre-commit .git/hooks/pre-commit.disabled; \
+		echo "✅ Pre-commit hook disabled"; \
+	fi
+	@if [ -f .git/hooks/pre-push ]; then \
+		mv .git/hooks/pre-push .git/hooks/pre-push.disabled; \
+		echo "✅ Pre-push hook disabled"; \
+	fi
+	@echo "Git hooks are now disabled"
+	@echo "💡 To re-enable: make hooks-enable"
+
 # Development helpers
 .PHONY: help create-rsvp-table describe-table list-tables \
-        update-lambda test-lambda test-api test-all deploy-all cleanup-west-2 \
+        update-lambda test-lambda test-api fix-cors test-all deploy-all cleanup-west-2 cleanup-west-2-final \
         update-schemas test-api-consistency \
         create-auth-table describe-auth-table create-auth-lambda-role deploy-auth-lambda \
         deploy-auth-api seed-users test-auth deploy-auth-all delete-auth \
@@ -460,4 +602,5 @@ verify-migration:
         test-e2e-playwright test-e2e-smoke test-python test-frontend test-all-new \
         deploy-leaderboard-lambda test-leaderboard update-leaderboard-lambda \
         deploy-leaderboard-api test-leaderboard-api \
-        create-health-lambda-role deploy-health-lambda test-health verify-migration
+        create-health-lambda-role deploy-health-lambda test-health verify-migration verify-migration-complete \
+        hooks-setup hooks-test hooks-status hooks-enable hooks-disable

@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class UserSeeder:
     """Seed test users in DynamoDB table"""
     
-    def __init__(self, profile_name: str = 'personal', region: str = 'us-west-2'):
+    def __init__(self, profile_name: str = 'personal', region: str = 'us-east-1'):
         """
         Initialize the user seeder with AWS credentials
         
@@ -530,8 +530,8 @@ Supported Roles:
     
     parser.add_argument(
         '--region',
-        default='us-west-2',
-        help='AWS region (default: us-west-2)'
+        default='us-east-1',
+        help='AWS region (default: us-east-1)'
     )
     
     # Seeding options

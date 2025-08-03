@@ -7,7 +7,7 @@ HANDLER="auth-handler.lambda_handler"
 RUNTIME="python3.9"
 TIMEOUT=30
 MEMORY=256
-REGION="us-west-2"
+REGION="us-east-1"
 
 # Colors for output
 GREEN='\033[0;32m'

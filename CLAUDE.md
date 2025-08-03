@@ -308,10 +308,11 @@ npm run dev
 ```
 
 ### AWS Deployment Standards
-- **NO Terraform/OpenTofu for new resources** - Use AWS CLI and Makefile
-- **Always use `--profile personal`** for all AWS commands
+- **NO Terraform/OpenTofu** - Use AWS CLI and Makefile only
+- **Always use `--profile personal --region us-east-1`** for all AWS commands
 - **Use PyPI (not CodeArtifact)** for Python dependencies
 - **Create Makefile targets** for all deployment operations
+- **All resources must be in us-east-1 region**
 
 #### Lambda Deployment Pattern:
 ```bash
@@ -330,7 +331,8 @@ aws dynamodb create-table \
   --attribute-definitions AttributeName=id,AttributeType=S \
   --key-schema AttributeName=id,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
-  --profile personal
+  --profile personal \
+  --region us-east-1
 ```
 
 #### E2E Smoke Tests:
@@ -427,21 +429,25 @@ docs(wedding): Update ticket generation rules for character system
 
 ## 13. AWS Configuration
 
-**IMPORTANT**: Always use the `personal` profile for AWS operations:
-- All AWS CLI commands must include `--profile personal`
-- All boto3 sessions must specify `profile_name='personal'`
-- Infrastructure deployment with OpenTofu uses the `personal` profile by default
+**🚨 CRITICAL: ALL AWS RESOURCES MUST BE IN US-EAST-1 (N. VIRGINIA) 🚨**
+
+**IMPORTANT**: Always use the `personal` profile AND `us-east-1` region for AWS operations:
+- All AWS CLI commands must include `--profile personal --region us-east-1`
+- All boto3 sessions must specify `profile_name='personal', region_name='us-east-1'`
+- Infrastructure is deployed manually using AWS CLI (no OpenTofu/Terraform)
 
 Examples:
 ```bash
-# AWS CLI commands
-aws dynamodb describe-table --table-name heatherandwesley-users --profile personal
-aws lambda get-function --function-name heatherandwesley-auth-handler --profile personal
+# AWS CLI commands - ALWAYS INCLUDE --region us-east-1
+aws dynamodb describe-table --table-name heatherandwesley-users --profile personal --region us-east-1
+aws lambda get-function --function-name heatherandwesley-auth-handler --profile personal --region us-east-1
 
-# Python boto3 usage
-session = boto3.Session(profile_name='personal')
+# Python boto3 usage - ALWAYS SPECIFY region_name='us-east-1'
+session = boto3.Session(profile_name='personal', region_name='us-east-1')
 dynamodb = session.resource('dynamodb')
 ```
+
+**⚠️ NEVER CREATE RESOURCES IN ANY OTHER REGION! ALL INFRASTRUCTURE IS IN US-EAST-1! ⚠️**
 
 ## 13a. Python Package Management
 

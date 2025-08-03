@@ -2,7 +2,7 @@
 # Check deployment status of AWS resources
 
 PROFILE="personal"
-REGION="us-west-2"
+REGION="us-east-1"
 
 echo "=== Checking AWS Deployment Status ==="
 echo ""

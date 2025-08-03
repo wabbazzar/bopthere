@@ -1497,8 +1497,13 @@
             console.log('Game Over! Final Score:', score, 'Level:', level);
             
             // Post game over message to parent
+            console.log('gameOver: parent === window?', parent === window);
+            console.log('gameOver: typeof parent:', typeof parent);
+            console.log('gameOver: typeof window:', typeof window);
+            
             if (parent !== window) {
                 try {
+                    console.log('gameOver: Attempting to post message to parent with score:', score);
                     parent.postMessage({
                         type: 'TETRIS_GAME_OVER',
                         score: score,
@@ -1508,6 +1513,8 @@
                 } catch (e) {
                     console.error('Failed to post game over message:', e);
                 }
+            } else {
+                console.log('gameOver: Not posting message because parent === window (not in iframe)');
             }
             
             // Show game over overlay with both score and level
@@ -1527,15 +1534,20 @@
             updateLevel();
             
             // Post game start message to parent
+            console.log('startGame: parent === window?', parent === window);
+            
             if (parent !== window) {
                 try {
+                    console.log('startGame: Posting TETRIS_GAME_START message to parent');
                     parent.postMessage({
                         type: 'TETRIS_GAME_START'
                     }, '*');
-                    console.log('Game started!');
+                    console.log('Posted game start message to parent');
                 } catch (e) {
                     console.error('Failed to post game start message:', e);
                 }
+            } else {
+                console.log('startGame: Not posting message because parent === window (not in iframe)');
             }
             
             // Create first pieces
@@ -2044,6 +2056,40 @@
             deferredPrompt = null;
         });
         
+        // Debug function to test parent communication
+        function testParentCommunication() {
+            console.log('=== TESTING PARENT COMMUNICATION ===');
+            console.log('window === parent?', window === parent);
+            console.log('typeof window:', typeof window);
+            console.log('typeof parent:', typeof parent);
+            console.log('window.location.href:', window.location.href);
+            console.log('parent.location.href (if accessible):', 
+                (() => {
+                    try {
+                        return parent.location.href;
+                    } catch (e) {
+                        return 'Cannot access parent location (probably in iframe): ' + e.message;
+                    }
+                })()
+            );
+            
+            if (parent !== window) {
+                try {
+                    console.log('Testing postMessage to parent...');
+                    parent.postMessage({
+                        type: 'TETRIS_TEST_MESSAGE',
+                        timestamp: Date.now()
+                    }, '*');
+                    console.log('Test message sent successfully');
+                } catch (e) {
+                    console.error('Failed to send test message:', e);
+                }
+            } else {
+                console.log('Not in iframe - parent === window');
+            }
+            console.log('=== END TEST ===');
+        }
+
         // Initialize the game when page loads
         window.addEventListener('load', function() {
             // Register service worker first
@@ -2052,6 +2098,9 @@
             initializeBoard();
             setupMobileControls();
             console.log('Game initialized successfully');
+            
+            // Test parent communication
+            testParentCommunication();
             
             // Add start button functionality
             document.getElementById('startButton').addEventListener('click', function() {

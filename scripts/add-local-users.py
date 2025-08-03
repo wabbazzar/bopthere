@@ -80,8 +80,8 @@ Note: This script reads from local/users.json which should contain:
     
     parser.add_argument(
         '--region',
-        default='us-west-2',
-        help='AWS region (default: us-west-2)'
+        default='us-east-1',
+        help='AWS region (default: us-east-1)'
     )
     
     # Options

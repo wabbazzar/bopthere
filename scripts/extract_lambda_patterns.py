@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class LambdaPatternExtractor:
     """Extract request/response patterns from Lambda functions."""
     
-    def __init__(self, profile: str = 'personal', region: str = 'us-west-2'):
+    def __init__(self, profile: str = 'personal', region: str = 'us-east-1'):
         """Initialize the extractor with AWS credentials."""
         self.session = boto3.Session(profile_name=profile, region_name=region)
         self.lambda_client = self.session.client('lambda')
@@ -674,7 +674,7 @@ class LambdaPatternExtractor:
 
 def main():
     """Main function."""
-    extractor = LambdaPatternExtractor(profile='personal', region='us-west-2')
+    extractor = LambdaPatternExtractor(profile='personal', region='us-east-1')
     extractor.extract('heatherandwesley-rsvp-handler')
 
 

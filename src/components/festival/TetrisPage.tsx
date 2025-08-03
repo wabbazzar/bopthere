@@ -75,17 +75,29 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
   // Message listener for Tetris game events
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      console.log('TetrisPage: Received postMessage:', event.data, 'from origin:', event.origin);
+      
       if (event.source === iframeRef.current?.contentWindow) {
+        console.log('TetrisPage: Message confirmed from our iframe');
+        
+        // Handle test messages
+        if (event.data.type === 'TETRIS_TEST_MESSAGE') {
+          console.log('TetrisPage: Received test message at timestamp:', event.data.timestamp);
+        }
+        
         if (event.data.type === 'TETRIS_ROWS_CLEARED' && event.data.rows >= 2 && character === 'puffy') {
           setPuffySmileState({ show: true, rows: event.data.rows });
         }
         
         // Handle game over with score
-        if (event.data.type === 'TETRIS_GAME_OVER' && event.data.score) {
+        if (event.data.type === 'TETRIS_GAME_OVER' && typeof event.data.score === 'number') {
+          console.log('TetrisPage: Received TETRIS_GAME_OVER message with score:', event.data.score);
           setCurrentScore(event.data.score);
           if (AuthService.isAuthenticated()) {
+            console.log('TetrisPage: User authenticated, showing score dialog');
             setShowScoreDialog(true);
           } else {
+            console.log('TetrisPage: User not authenticated, showing login prompt');
             toast({
               title: "Great game!",
               description: "Log in to save your score to the leaderboard.",

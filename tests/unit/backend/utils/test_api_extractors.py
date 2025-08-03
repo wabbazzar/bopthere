@@ -58,8 +58,8 @@ class TestAPIGatewayExtractor:
         extractor = APIGatewayExtractor()
         
         # Verify defaults
-        mock_session.assert_called_once_with(profile_name='personal', region_name='us-west-2')
-        assert extractor.region == 'us-west-2'
+        mock_session.assert_called_once_with(profile_name='personal', region_name='us-east-1')
+        assert extractor.region == 'us-east-1'
     
     def test_find_api_by_name_success(self, mock_boto3_session):
         """Test successfully finding an API by name"""
@@ -420,7 +420,7 @@ class TestAPIGatewayExtractor:
             main()
         
         # Verify workflow
-        mock_extractor_class.assert_called_once_with(profile='personal', region='us-west-2')
+        mock_extractor_class.assert_called_once_with(profile='personal', region='us-east-1')
         mock_extractor.extract_routes.assert_called_once_with('heatherandwesley')
         mock_extractor.save_to_file.assert_called_once()
         
@@ -876,7 +876,7 @@ class TestLambdaPatternExtractor:
         main()
         
         # Verify workflow
-        mock_extractor_class.assert_called_once_with(profile='personal', region='us-west-2')
+        mock_extractor_class.assert_called_once_with(profile='personal', region='us-east-1')
         mock_extractor.extract.assert_called_once_with('heatherandwesley-rsvp-handler')
 
 

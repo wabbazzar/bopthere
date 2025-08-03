@@ -7,7 +7,7 @@ set -e
 
 # Configuration
 AWS_PROFILE="personal"
-AWS_REGION="us-west-2"
+AWS_REGION="us-east-1"
 API_ID="m1wocluixd"
 AUTH_LAMBDA_NAME="heatherandwesley-auth-handler"
 

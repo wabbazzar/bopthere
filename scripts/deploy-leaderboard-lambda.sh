@@ -8,6 +8,7 @@ RUNTIME="python3.9"
 TIMEOUT=30
 MEMORY=256
 PROFILE="personal"
+REGION="us-east-1"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -45,7 +46,7 @@ cd ..
 rm -rf package
 
 # Get AWS account ID
-ACCOUNT_ID=$(aws sts get-caller-identity --profile $PROFILE --query Account --output text)
+ACCOUNT_ID=$(aws sts get-caller-identity --profile $PROFILE --region $REGION --query Account --output text)
 
 if [ -z "$ACCOUNT_ID" ]; then
     echo -e "${RED}✗ Failed to get AWS account ID${NC}"
@@ -56,20 +57,22 @@ fi
 ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/heatherandwesley-lambda-role"
 
 # Check if function exists
-if aws lambda get-function --function-name $FUNCTION_NAME --profile $PROFILE >/dev/null 2>&1; then
+if aws lambda get-function --function-name $FUNCTION_NAME --profile $PROFILE --region $REGION >/dev/null 2>&1; then
     echo "Updating existing function..."
     aws lambda update-function-code \
         --function-name $FUNCTION_NAME \
         --zip-file fileb://leaderboard-deployment.zip \
-        --profile $PROFILE
+        --profile $PROFILE \
+        --region $REGION
     
     # Update configuration
     aws lambda update-function-configuration \
         --function-name $FUNCTION_NAME \
         --timeout $TIMEOUT \
         --memory-size $MEMORY \
-        --environment Variables="{TABLE_NAME=heatherandwesley-leaderboard,AUTH_LAMBDA_NAME=heatherandwesley-auth-handler,ALLOWED_ORIGINS=\"https://heatherandwesley.com,http://localhost:5173\"}" \
-        --profile $PROFILE
+        --environment Variables="{TABLE_NAME=heatherandwesley-leaderboard,AUTH_LAMBDA_NAME=heatherandwesley-auth-handler,ALLOWED_ORIGINS=\"https://heatherandwesley.com,http://localhost:5173,http://localhost:8080,http://localhost:8081\"}" \
+        --profile $PROFILE \
+        --region $REGION
 else
     echo "Creating new function..."
     # Create IAM role if it doesn't exist
@@ -142,8 +145,9 @@ else
         --timeout $TIMEOUT \
         --memory-size $MEMORY \
         --zip-file fileb://leaderboard-deployment.zip \
-        --environment Variables="{TABLE_NAME=heatherandwesley-leaderboard,AUTH_LAMBDA_NAME=heatherandwesley-auth-handler,ALLOWED_ORIGINS=\"https://heatherandwesley.com,http://localhost:5173\"}" \
-        --profile $PROFILE
+        --environment Variables="{TABLE_NAME=heatherandwesley-leaderboard,AUTH_LAMBDA_NAME=heatherandwesley-auth-handler,ALLOWED_ORIGINS=\"https://heatherandwesley.com,http://localhost:5173,http://localhost:8080,http://localhost:8081\"}" \
+        --profile $PROFILE \
+        --region $REGION
 fi
 
 # Clean up deployment package

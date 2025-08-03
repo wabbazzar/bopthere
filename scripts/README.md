@@ -59,7 +59,7 @@ python scripts/seed-users.py --users-file custom_users.json --create-table
 
 The script uses these AWS settings by default:
 - Profile: `personal`
-- Region: `us-west-2`
+- Region: `us-east-1`
 - Table: `heatherandwesley-auth-users`
 
 Override with command line options:

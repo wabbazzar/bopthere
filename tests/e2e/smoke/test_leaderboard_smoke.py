@@ -12,19 +12,21 @@ import os
 
 # Test configuration
 AWS_PROFILE = 'personal'
+AWS_REGION = 'us-east-1'
 LAMBDA_NAME = 'heatherandwesley-leaderboard-handler'
 AUTH_LAMBDA_NAME = 'heatherandwesley-auth-handler'
 TABLE_NAME = 'heatherandwesley-leaderboard'
 JWT_SECRET = os.environ.get('JWT_SECRET', 'development-secret-key-change-in-production')
 
 
+@pytest.mark.smoke
 class TestLeaderboardSmoke:
     """E2E smoke tests for leaderboard functionality"""
     
     @classmethod
     def setup_class(cls):
         """Set up test environment"""
-        session = boto3.Session(profile_name=AWS_PROFILE)
+        session = boto3.Session(profile_name=AWS_PROFILE, region_name=AWS_REGION)
         cls.lambda_client = session.client('lambda')
         cls.dynamodb = session.resource('dynamodb')
         cls.table = cls.dynamodb.Table(TABLE_NAME)

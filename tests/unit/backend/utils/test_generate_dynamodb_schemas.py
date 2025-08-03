@@ -559,7 +559,7 @@ class TestDynamoDBSchemaExtractor:
         main()
         
         # Verify workflow
-        mock_extractor_class.assert_called_once_with(profile_name='personal', region='us-west-2')
+        mock_extractor_class.assert_called_once_with(profile_name='personal', region='us-east-1')
         mock_extractor.extract_all_schemas.assert_called_once()
         mock_extractor.save_outputs.assert_called_once_with({'table1': {'data': 'test'}})
     

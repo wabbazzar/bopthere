@@ -3,7 +3,7 @@
 # Fix CORS configuration for auth endpoints
 API_ID="m1wocluixd"
 AWS_PROFILE="personal"
-AWS_REGION="us-west-2"
+AWS_REGION="us-east-1"
 
 # Auth endpoint resource IDs
 LOGIN_ID="fclu8x"

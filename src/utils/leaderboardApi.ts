@@ -50,30 +50,37 @@ export async function submitScore(
     throw new Error('Authentication required to submit scores');
   }
 
+  const url = `${LEADERBOARD_API.baseUrl}${LEADERBOARD_API.endpoints.submitScore(game)}`;
+  console.log('leaderboardApi: Submitting score to:', url);
+  console.log('leaderboardApi: Submission data:', submission);
+
   try {
-    const response = await fetch(
-      `${LEADERBOARD_API.baseUrl}${LEADERBOARD_API.endpoints.submitScore(game)}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(submission),
-      }
-    );
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(submission),
+    });
+
+    console.log('leaderboardApi: Response status:', response.status, response.statusText);
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('leaderboardApi: Error response:', errorText);
+      
       if (response.status === 401) {
         throw new Error('Authentication failed. Please log in again.');
       }
-      throw new Error(`Failed to submit score: ${response.statusText}`);
+      throw new Error(`Failed to submit score: ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('leaderboardApi: Success response:', data);
     return data as ScoreSubmissionResponse;
   } catch (error) {
-    console.error('Error submitting score:', error);
+    console.error('leaderboardApi: Error submitting score:', error);
     throw error;
   }
 }

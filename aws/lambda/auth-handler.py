@@ -82,11 +82,17 @@ def hash_password(password):
     return f"{salt}:{password_hash}"
 
 def verify_password(password, stored_hash):
-    """Verify password against stored hash"""
+    """Verify password against stored hash (supports both legacy and salted formats)"""
     try:
-        salt, password_hash = stored_hash.split(':')
-        return hashlib.sha256((password + salt).encode()).hexdigest() == password_hash
-    except ValueError:
+        if ':' in stored_hash:
+            # New salted format: salt:hash
+            salt, password_hash = stored_hash.split(':')
+            return hashlib.sha256((password + salt).encode()).hexdigest() == password_hash
+        else:
+            # Legacy format: plain SHA256 hash
+            password_hash = hashlib.sha256(password.encode()).hexdigest()
+            return password_hash == stored_hash
+    except Exception:
         return False
 
 def lambda_handler(event, context):

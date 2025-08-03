@@ -28,18 +28,21 @@ from typing import Dict, Any, Optional
 import os
 
 # Configuration
-API_GATEWAY_URL = os.getenv('VITE_API_GATEWAY_URL', 'https://your-api-gateway-url.execute-api.region.amazonaws.com/prod')
+API_GATEWAY_URL = os.getenv('VITE_API_GATEWAY_URL', 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod')
 AWS_PROFILE = 'personal'
+AWS_REGION = 'us-east-1'
 DYNAMODB_TABLE = 'heatherandwesley-users'
 LAMBDA_FUNCTION = 'heatherandwesley-auth-handler'
 
+
+@pytest.mark.smoke
 class TestAuthenticationE2E:
     """End-to-end authentication flow tests"""
     
     @classmethod
     def setup_class(cls):
         """Set up AWS clients and test data"""
-        session = boto3.Session(profile_name=AWS_PROFILE)
+        session = boto3.Session(profile_name=AWS_PROFILE, region_name=AWS_REGION)
         cls.dynamodb = session.resource('dynamodb')
         cls.lambda_client = session.client('lambda')
         cls.table = cls.dynamodb.Table(DYNAMODB_TABLE)
@@ -91,22 +94,30 @@ class TestAuthenticationE2E:
             pytest.skip("API Gateway not accessible - check VITE_API_GATEWAY_URL")
     
     def test_lambda_function_exists(self):
-        """Test Lambda function is deployed and accessible"""
+        """Test Lambda function is deployed and accessible in us-east-1"""
         try:
             response = self.lambda_client.get_function(FunctionName=LAMBDA_FUNCTION)
             assert response['Configuration']['FunctionName'] == LAMBDA_FUNCTION
             assert response['Configuration']['State'] == 'Active'
+            
+            # Verify function is in correct region
+            assert 'us-east-1' in response['Configuration']['FunctionArn'], \
+                f"Lambda function not in us-east-1: {response['Configuration']['FunctionArn']}"
         except self.lambda_client.exceptions.ResourceNotFoundException:
-            pytest.fail(f"Lambda function {LAMBDA_FUNCTION} not found")
+            pytest.fail(f"Lambda function {LAMBDA_FUNCTION} not found in us-east-1")
     
     def test_dynamodb_table_exists(self):
-        """Test DynamoDB table exists and is accessible"""
+        """Test DynamoDB table exists and is accessible in us-east-1"""
         try:
             response = self.table.describe()
             assert response['Table']['TableName'] == DYNAMODB_TABLE
             assert response['Table']['TableStatus'] == 'ACTIVE'
+            
+            # Verify table is in correct region
+            table_arn = response['Table']['TableArn']
+            assert 'us-east-1' in table_arn, f"DynamoDB table not in us-east-1: {table_arn}"
         except Exception as e:
-            pytest.fail(f"DynamoDB table {DYNAMODB_TABLE} not accessible: {e}")
+            pytest.fail(f"DynamoDB table {DYNAMODB_TABLE} not accessible in us-east-1: {e}")
     
     def test_user_login_success(self):
         """Test successful user login through complete stack"""
@@ -424,6 +435,66 @@ class TestAuthenticationE2E:
         updated_dt = datetime.fromisoformat(updated_last_login.replace('Z', '+00:00'))
         
         assert updated_dt > initial_dt, "Updated last_login should be later than initial"
+    
+    def test_user_registration_flow(self):
+        """Test user registration endpoint if available"""
+        # Generate unique registration data
+        reg_user_id = f"reg-user-{uuid.uuid4().hex[:8]}"
+        reg_username = f"reguser_{uuid.uuid4().hex[:8]}"
+        reg_email = f"reg_{uuid.uuid4().hex[:8]}@example.com"
+        
+        registration_data = {
+            'username': reg_username,
+            'email': reg_email,
+            'password': 'RegPass123!',
+            'full_name': 'Registration Test User',
+            'role': 'guest'
+        }
+        
+        try:
+            response = requests.post(
+                f"{API_GATEWAY_URL}/auth/register",
+                json=registration_data,
+                headers={'Content-Type': 'application/json'},
+                timeout=30
+            )
+            
+            # If register endpoint exists and works
+            if response.status_code in [200, 201]:
+                data = response.json()
+                
+                # Validate response structure
+                assert 'user' in data or 'id' in data, "Registration response missing user info"
+                
+                # Clean up - try to find and delete the created user
+                try:
+                    if 'user' in data and 'id' in data['user']:
+                        user_id = data['user']['id']
+                    elif 'id' in data:
+                        user_id = data['id']
+                    else:
+                        # Try to find by username/email
+                        # This is a fallback - implementation depends on DynamoDB schema
+                        pass
+                    
+                    if 'user_id' in locals():
+                        self.table.delete_item(Key={'id': user_id})
+                        
+                except Exception as cleanup_error:
+                    print(f"Warning: Failed to cleanup registered user: {cleanup_error}")
+                    
+            elif response.status_code == 404:
+                # Register endpoint not implemented - this is acceptable
+                pytest.skip("Register endpoint not implemented")
+            elif response.status_code in [400, 422]:
+                # Validation errors are acceptable for this test
+                print(f"Registration validation error (expected): {response.text}")
+            else:
+                pytest.fail(f"Unexpected registration response: {response.status_code}: {response.text}")
+                
+        except requests.exceptions.RequestException:
+            # Network errors indicate endpoint might not exist
+            pytest.skip("Register endpoint not accessible")
 
 
 @pytest.mark.integration
