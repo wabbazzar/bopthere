@@ -308,7 +308,6 @@ def smoke_helpers():
 
 
 # Pytest markers for smoke tests
-pytest_plugins = []
 
 def pytest_configure(config):
     """Configure pytest markers"""
