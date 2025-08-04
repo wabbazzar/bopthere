@@ -49,8 +49,7 @@ npm run dev
 ### Prerequisites
 
 1. AWS CLI installed and configured with `--profile personal`
-2. OpenTofu (or Terraform) installed for infrastructure management
-3. Appropriate AWS permissions for DynamoDB, Lambda, and API Gateway
+2. Appropriate AWS permissions for DynamoDB, Lambda, and API Gateway in us-east-1 region
 
 ### Infrastructure Deployment
 
