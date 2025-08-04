@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Character, CharacterTheme, characterNames } from '@/types/character';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, AlertCircle, RotateCcw, Trophy } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { LeaderboardDisplay, ScoreSubmission } from '@/components/leaderboard';
 import { AuthService } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -274,6 +274,9 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
             <DialogTitle style={{ fontFamily: 'Cinzel, serif', color: theme.primary }}>
               Game Over!
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Submit your Tetris score to the leaderboard
+            </DialogDescription>
           </DialogHeader>
           {currentScore && (
             <ScoreSubmission
@@ -303,6 +306,9 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
             <DialogTitle style={{ fontFamily: 'Cinzel, serif', color: theme.primary }}>
               Tetris Leaderboard
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              View high scores and rankings for Tetris
+            </DialogDescription>
           </DialogHeader>
           <LeaderboardDisplay
             key={leaderboardKey}

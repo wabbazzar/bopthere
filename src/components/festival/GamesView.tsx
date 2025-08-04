@@ -3,7 +3,7 @@ import { useCharacter } from '@/contexts/CharacterContext';
 import { characterThemes } from '@/types/character';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Gamepad, Trophy, Target, Star, Zap, Gift, Puzzle, Gamepad2, Play, Medal } from 'lucide-react';
 import { TetrisPage } from './TetrisPage';
 import { LeaderboardDisplay } from '@/components/leaderboard';
@@ -348,6 +348,9 @@ export const GamesView: React.FC = () => {
                 ? 'Tournament Leaderboard'
                 : 'Super Amazing High Scores!'}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              View tournament leaderboard and high scores
+            </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
             <LeaderboardDisplay

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -75,6 +75,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           >
             Epic Quest Login
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Login form to access your personalized wedding festival experience
+          </DialogDescription>
         </DialogHeader>
         
         <Card className="border-2" style={{ borderColor: theme.secondary }}>
