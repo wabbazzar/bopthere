@@ -26,7 +26,7 @@ class TestAPIFieldConsistency:
     @pytest.fixture
     def project_root(self):
         """Get the project root directory"""
-        return Path(__file__).parent.parent
+        return Path(__file__).parent.parent.parent.parent
     
     @pytest.fixture
     def dynamodb_schema(self, project_root):

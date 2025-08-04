@@ -257,7 +257,7 @@ if (typeof window !== 'undefined') {
   }
   
   // Add helper function to inspect blockers
-  (navDebugger as any).showBlockers = () => {
+  (navDebugger as unknown as { showBlockers: () => unknown }).showBlockers = () => {
     const potentialBlockers = document.querySelectorAll('.fixed.inset-0, [data-radix-dialog-overlay], [role="dialog"]');
     const blockers = Array.from(potentialBlockers).map(el => {
       const computed = window.getComputedStyle(el);

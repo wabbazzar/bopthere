@@ -13,7 +13,7 @@ import os
 import sys
 
 # Add the scripts directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../../scripts'))
 
 from generate_dynamodb_schemas import DynamoDBSchemaExtractor
 
