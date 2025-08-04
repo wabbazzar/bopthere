@@ -50,6 +50,7 @@ npm run dev
 
 1. AWS CLI installed and configured with `--profile personal`
 2. Appropriate AWS permissions for DynamoDB, Lambda, and API Gateway in us-east-1 region
+3. Updated API Gateway endpoint configured with proper CORS headers
 
 ### Infrastructure Deployment
 
