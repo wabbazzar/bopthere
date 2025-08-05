@@ -368,11 +368,11 @@ class TestAPIFieldConsistency:
 
         # Expected defaults based on schema
         expected_defaults = {
-            "phone": "''",  # empty string
+            "phone": '""',  # empty string
             "notifications": "False",  # boolean false
-            "dietary_restrictions": "''",
-            "song_request": "''",
-            "message_for_couple": "''",
+            "dietary_restrictions": '""',
+            "song_request": '""',
+            "message_for_couple": '""',
         }
 
         for field, default in expected_defaults.items():
