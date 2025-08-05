@@ -1,0 +1,2237 @@
+[
+  {
+    "endpoint": "/auth/login",
+    "origin": "http://localhost:8080",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:38 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "c0ee4298-d99e-4c09-b9b5-09e0b12d86d8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9nTGk-IAMEn5w=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 46ce16e67140c68c88717b73361bda0c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "4fZ1h3pePs-F0AVQEfaHqPmtzHTYzPE0apJEtYPRZU5Nu4DNNsnHbA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login",
+      "origin": "http://localhost:8080"
+    }
+  },
+  {
+    "endpoint": "/auth/login",
+    "origin": "http://localhost:8080",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "47",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:38 GMT",
+        "X-Amzn-Trace-Id": "Root=1-6891762e-01335e27450ae45b7d75c085;Parent=0b3aebc006a0d29a;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "69e9a827-4e1d-4e5c-bc8f-0755f3750e25",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9nUGvPIAMEqgA=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 37bad45581ee2b4b4bc9ea274d2d53d6.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "mIKPYQKivVjee3FazwIopIFtG8--Vc8eJ0EA0ShPKJNWmsTNVOj9Qg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login",
+      "origin": "http://localhost:8080",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/login",
+    "origin": "http://localhost:5173",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:38 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "a92f33b4-c074-44fe-99ec-e43bebfe2524",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9nXHMUoAMERFg=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 bc8e5c047a8fd805aae1cab25efe2af8.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "E9q1SRapilKijS_ollJIRCWkDqO9keyrWz19qbMZsBWFFGQTBAAWNA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login",
+      "origin": "http://localhost:5173"
+    }
+  },
+  {
+    "endpoint": "/auth/login",
+    "origin": "http://localhost:5173",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "47",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:38 GMT",
+        "X-Amzn-Trace-Id": "Root=1-6891762e-15415aa562df13b50299a9a9;Parent=177b65736e027754;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "6861a349-a795-4d81-ad74-f9e16862be31",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9nZEyRoAMETJw=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 71ac84ce28b8e737049ed30fbe9a65dc.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "QTvKba4WTlDK7Q7dh5IuCH4ayGqmUjIHKCfgTlvHhJa2Kr4wYmzgbA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login",
+      "origin": "http://localhost:5173",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/login",
+    "origin": "http://localhost:5174",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:39 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "51f08af6-4107-4713-8640-fcf38042fe33",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9nbEPVIAMEPeA=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 e6552b5b0ecd114591ab94e378fc89f8.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "4tuVWAK8ZNr-Gi0eUroxSR_D8bkTWV8ysEFsdlrSXY2es7dE7SWZ-A=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login",
+      "origin": "http://localhost:5174"
+    }
+  },
+  {
+    "endpoint": "/auth/login",
+    "origin": "http://localhost:5174",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "47",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:39 GMT",
+        "X-Amzn-Trace-Id": "Root=1-6891762f-77f6b95b476679ae52942044;Parent=3148caab6573cb37;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "1ce3f3d5-b8c0-4a0c-8e44-6ce0654116c7",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9neEJGoAMECpg=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 b29008e2ba64e70ff0c9f2392d222b40.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "GF4W9Z8qcONV-8N-obGrHzes8O4wcTe18842rtugCbTD5JFG6joEIw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login",
+      "origin": "http://localhost:5174",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/login",
+    "origin": "https://heatherandwesley.com",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:39 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "a734834f-3972-47c9-bff0-4cd364ab05b9",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9nfFI1IAMEh9A=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 e6552b5b0ecd114591ab94e378fc89f8.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "szts2oX12QgfG6LEHN3EkkjAaP5fWAC5Yc9bysiK4eukutzlec3kQA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login",
+      "origin": "https://heatherandwesley.com"
+    }
+  },
+  {
+    "endpoint": "/auth/login",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "47",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:39 GMT",
+        "X-Amzn-Trace-Id": "Root=1-6891762f-6bedb6a82641b15271e3e312;Parent=18087b6dacf560eb;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "fb1450f5-6b9f-4ffe-88ff-9f02ff534d68",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9nhE01oAMEF0A=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 9989b80323450ea59d9fff734d266c62.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "w7cHMdDNc0JfzeGuIcpDQCV2KIVDMWozLSQfMFqgeUbZ44A8p1WrBw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login",
+      "origin": "https://heatherandwesley.com",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/register",
+    "origin": "http://localhost:8080",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:39 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "2d19148e-34e6-4e4f-937c-e88051b7193f",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9njFypIAMErVA=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 a5c7e4d4a78e8979df75640774711a60.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "-zI288qVMviRpnAS65LL5kqyM7Z6dRJ5nZEiSURtXFSYQ4OMxdlg6w=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/register",
+      "origin": "http://localhost:8080"
+    }
+  },
+  {
+    "endpoint": "/auth/register",
+    "origin": "http://localhost:8080",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "45",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:40 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917630-229425a05b13efc74edf2b6d;Parent=5c7b4116f3179a01;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "70f5bc5c-c9de-4b42-8fdf-1a33b2fba6a6",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9nlFK5IAMEccw=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 430a5c7d468e3c5a94e3cb6e4a5ab50e.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "pJsyAcWnnZhiH8mmeilsIpv6_ylmYp5LOzEMaPCeZBxUGqrHliszlQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/register",
+      "origin": "http://localhost:8080",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/register",
+    "origin": "http://localhost:5173",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:40 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "c31a6a81-79e5-4576-9673-365c4901067a",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9nnHwqoAMEYUg=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 afd102780059267a882ab641a00a66d6.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "MPvNnwbGOBRWEvqroKm0vWqgtiHU8cb_J2KTexG9USHBXdSzTyk4fw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/register",
+      "origin": "http://localhost:5173"
+    }
+  },
+  {
+    "endpoint": "/auth/register",
+    "origin": "http://localhost:5173",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "45",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:40 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917630-368f57dd500fa4e17f6ed8a0;Parent=3ab97a0abfd92770;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "9da85ce4-81cb-47c3-b053-db5b198ed293",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9noGi2oAMEmoQ=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 37bad45581ee2b4b4bc9ea274d2d53d6.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "pFtkdOxmjCxVxmJnL1u3AKTzXc5JR8Lmmy8yc2KwkZDAH0ganr8H_w=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/register",
+      "origin": "http://localhost:5173",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/register",
+    "origin": "http://localhost:5174",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:40 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "87501608-2eb1-4d85-a393-97ec052bd270",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9nrHYqIAMEVNQ=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 a4eb0da982a8f808542a4531fe5a6df0.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "KfJTihS3ynoR28FHCv7UiqXvPblKja0YE7cd_ODjFm1UurXVsLhbHw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/register",
+      "origin": "http://localhost:5174"
+    }
+  },
+  {
+    "endpoint": "/auth/register",
+    "origin": "http://localhost:5174",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "45",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:40 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917630-1276ed35281c8e731797daf8;Parent=741b9783e547bc26;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "86920e8f-8cfd-4c27-92a1-9ce5bf22df7c",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9nsHSdoAMEvJw=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 5662177dc017141e01340308cc0d4734.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "ViKdcYmTS7LcmC_bALdYytDBkc_H04wvqd9377TOT2XHyYF9lELl4A=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/register",
+      "origin": "http://localhost:5174",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/register",
+    "origin": "https://heatherandwesley.com",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:41 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "2a5e147a-bdec-4b06-b2d6-0dc098b11e33",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9nuGaYoAMEDEw=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 4e5957bb5ae6faf93b269753f180710a.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "XdUtCNQ0q664e_Y0vLI6uLg06CVqRGHQOqgayllhazjr2MJ9amIOqA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/register",
+      "origin": "https://heatherandwesley.com"
+    }
+  },
+  {
+    "endpoint": "/auth/register",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "45",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:41 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917631-36fd45a634f3030261152cb8;Parent=2c28bed0789ce90b;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "83931b99-bc31-47b4-8ff2-6aeb9234ed75",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9nwE9RIAMEF0A=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 75231c5a168948d989833b2143eb0dcc.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "1UBRhPtAmDGvO_EoSO5eavxxk4h5hr05xDfjmnefXnSW3IbiQgnaqA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/register",
+      "origin": "https://heatherandwesley.com",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/verify",
+    "origin": "http://localhost:8080",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:41 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "b52368fb-5f78-4b62-941b-b030895f48e3",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9nyGLRIAMEfMA=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 bf7702d3cf05b203b6034c7c1d6f783c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "iAilIe7h4eOGytGf0wwjGCzmUaXtAP6dxwe5ailhzDf0MdDw0aNDyA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/verify",
+      "origin": "http://localhost:8080"
+    }
+  },
+  {
+    "endpoint": "/auth/verify",
+    "origin": "http://localhost:8080",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "30",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:41 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917631-29c2bc8a6e6e41b726b885bb;Parent=67fe9c5c71396744;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "141c63da-2201-4463-a934-e8618b08a569",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9n0GM3IAMEZFg=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 37bad45581ee2b4b4bc9ea274d2d53d6.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "n2T9COkEfsRJvoYTLzj94b3H8UWl8F5TuSp6Q428FtsazpWykVvGJg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/verify",
+      "origin": "http://localhost:8080",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/verify",
+    "origin": "http://localhost:5173",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:41 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "dba05d45-c475-487c-b4f6-088c85db9b33",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9n2FJdoAMEfVA=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 ee1081c43ae751e8b5da74ead3c2cb90.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "F-NXUZ-mbTl-OGqfpSbCJACP0vOoSGOwET0ma9ZuSSgxINdcgIhtHQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/verify",
+      "origin": "http://localhost:5173"
+    }
+  },
+  {
+    "endpoint": "/auth/verify",
+    "origin": "http://localhost:5173",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "30",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:42 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917632-74cff8bb76d39ac858025ed7;Parent=62178165128ac5c4;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "6363bb81-02db-463d-aba3-a43a89e17c99",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9n4ETKoAMEQ5Q=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 bf7702d3cf05b203b6034c7c1d6f783c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "VskBKYUN1FvuyRpZ-pJ3msKaN6s66RgSwR-KDzjdX-cV33RLvKI9uQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/verify",
+      "origin": "http://localhost:5173",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/verify",
+    "origin": "http://localhost:5174",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:42 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "01c63528-29de-4b57-b415-e5e9748c0230",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9n6G1gIAMEJmg=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 ac72c6dfa21a23a34396bec16bd466a6.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "pYm4xqw9zB2YlLSVXGaJcSQYfe3xBfTPx-OGALAM3KJCaZxrzeMlsA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/verify",
+      "origin": "http://localhost:5174"
+    }
+  },
+  {
+    "endpoint": "/auth/verify",
+    "origin": "http://localhost:5174",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "30",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:42 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917632-3486494e3ff54dca433ed574;Parent=7d6363c3a0d2866a;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "6e9bcfc5-bd18-4c67-aad4-3ab40e1e4e0d",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9n8FRFIAMEiMA=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 bc8e5c047a8fd805aae1cab25efe2af8.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "BM5jKLYTPZ9clZRifPHFP-vST9shKflykQf7JrOadGOZ1qM94vGMnA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/verify",
+      "origin": "http://localhost:5174",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/auth/verify",
+    "origin": "https://heatherandwesley.com",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:42 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "e274f6e7-4492-4a29-a80e-ad9ea31d75c6",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9n-FaDIAMEuGA=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 9989b80323450ea59d9fff734d266c62.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "mBz_0us-Sv9GDXu6ccmHycdrsq1zcWBVJoELXvAvW2iQvDqGmPOi4g=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/verify",
+      "origin": "https://heatherandwesley.com"
+    }
+  },
+  {
+    "endpoint": "/auth/verify",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "30",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:42 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917632-45464e6565d22b064a011273;Parent=6597d896e6d9e740;Sampled=0;Lineage=1:b99aaf26:0",
+        "x-amzn-RequestId": "cf569a26-ed5b-4228-8147-ebc9e9bdf94d",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "x-amz-apigw-id": "Oz9oAH-cIAMEYUg=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 1c83639f573443e1a73326154327e822.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "NsEEhkQjZ8OQAZIzt9q2pm3HciDnJaIxz6Cekm7mLl8wL6Nux2JMVw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/verify",
+      "origin": "https://heatherandwesley.com",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:8080",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:43 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "11cdad51-6470-4174-9c50-811740160ca7",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9oCHRSoAMEZwA=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 49ebf453d90a4d7fa51513af32906a5c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "bM8Yg1B4x3cNRBcHymLhNcH2W2kIcNRMT9cwgCXDHuQLU8ez4pHkEg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:8080"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:8080",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "47",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:43 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917633-1613ca82264526835b567a7c;Parent=5700ea1a9065f5c6;Sampled=0;Lineage=1:013abd4f:0",
+        "x-amzn-RequestId": "20cecb8e-c787-4cf8-ae23-db6549e419ac",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "x-amz-apigw-id": "Oz9oEFOEIAMEBSw=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 1e55614427beb2c9a53afc5f91022b80.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "RpxaauntPDOgtGa9mBH7jW67ED1ArPgz6Chuby-Euc17a2OYCM3qbg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:8080",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:8080",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "41",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:43 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917633-300c927c44d1e9d8178ec752;Parent=06377c866e1568cd;Sampled=0;Lineage=1:013abd4f:0",
+        "x-amzn-RequestId": "22765422-a905-4ac1-964c-47b18e8f40d4",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "x-amz-apigw-id": "Oz9oFEXaIAMEM9Q=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 9989b80323450ea59d9fff734d266c62.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "_Qyr3dRSgj7aF0vma6oR58vBvq7N5gqR6Q2UK1KF3rSDnW-AO6didA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:8080",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:5173",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:43 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "8cd02313-9c0a-4ee7-b8f2-14a7b1e66e9f",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9oIEnLoAMEC-Q=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 1d3b5a5e79fa0550177ed0e5789848f4.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "CuaPDQWLdNRVeK0eoKLJaYOFKi8AO82QeTNSFmeYfYXr65TTROf47g=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:5173"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:5173",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "47",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:43 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917633-7a6d1e7a502b0d692064ca79;Parent=3e1a3f6fb8447156;Sampled=0;Lineage=1:013abd4f:0",
+        "x-amzn-RequestId": "43082917-89b9-4bb0-9d0b-a6dc8d4477a9",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "x-amz-apigw-id": "Oz9oKFEYIAMEgcQ=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 4097c6671c40a723b8caf18e64db324e.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "ezkNmHTl98GyPSlYidQPZDNLqhq2fYdZA1YfrNJ7yAlGdzD-Y_SjfA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:5173",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:5173",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "41",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:44 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917633-07edc073447298ae20b3a730;Parent=7b875fac3e4f8e73;Sampled=0;Lineage=1:013abd4f:0",
+        "x-amzn-RequestId": "dec7e00a-cd96-4290-9e3c-ceb938f7ee91",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "x-amz-apigw-id": "Oz9oLE3RoAMEFOA=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 75231c5a168948d989833b2143eb0dcc.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "BMO4aVW7XLpk_xv_9b9Mf8lDXT7oXxIMor-7rvrw969J9poVozqyXA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:5173",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:5174",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:44 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "32b187a2-5948-43a6-b891-d85e5a30cee4",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9oNEmGIAMEU5w=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 6dc94dcc095d58b0737002f5b7335518.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "l9yQuSj6nBHTgNTDvXG94CA4ZAAVew_gvEJCH3uoUcgyI2ACap203w=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:5174"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:5174",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "47",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:44 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917634-2c28489835f7c86324349250;Parent=211efb7c2792a82e;Sampled=0;Lineage=1:013abd4f:0",
+        "x-amzn-RequestId": "9c62de85-8045-44f5-9196-4ad8c2313cb8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "x-amz-apigw-id": "Oz9oPFxzoAMETPA=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 25d43b47e466be886c392b383c59812c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "5aUWJAE731Jy7Y2dh99sy15OaaFhaO0-rq1_VqiZlAhHdoKvdpJF-Q=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:5174",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "http://localhost:5174",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "41",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:44 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917634-17cd05461406a3367fb88396;Parent=323cbf1d121f9b6b;Sampled=0;Lineage=1:013abd4f:0",
+        "x-amzn-RequestId": "384afc91-7993-489f-92d7-1d6fbfd028b9",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "x-amz-apigw-id": "Oz9oRHl8IAMEhbg=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 71ac84ce28b8e737049ed30fbe9a65dc.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "0KrjRbf9QwCk23aAyAdZhUw2Dncocflz4uWfYdjjkxotJhohkjREdQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "http://localhost:5174",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "https://heatherandwesley.com",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:44 GMT",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "x-amzn-RequestId": "b038a174-2039-4dca-bd7c-81a73d736a01",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+        "x-amz-apigw-id": "Oz9oSHRLoAMEFVg=",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 e6552b5b0ecd114591ab94e378fc89f8.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "di52uGNLnBU8Z8fwZ7DFnGs8VrVDgmFJ0dOt9U5BNEPIQTzH5t0raw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "https://heatherandwesley.com"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "47",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:44 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917634-4228dab65be8e5e3348cee9d;Parent=2c909990a16d40fb;Sampled=0;Lineage=1:013abd4f:0",
+        "x-amzn-RequestId": "2087f1cb-e19b-43dd-ac3d-c05034bbb36f",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "x-amz-apigw-id": "Oz9oUGwDIAMEY8A=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 afd102780059267a882ab641a00a66d6.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "i_tmEl9MsU5FMCdmJm__FfzzQnlZJg_Ssxv9UMM9zreAe1rLTS7jwg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "https://heatherandwesley.com",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/rsvp",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 400,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "41",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:45 GMT",
+        "X-Amzn-Trace-Id": "Root=1-68917635-6cb989503d4c695c36c00e40;Parent=267a33dad3b82786;Sampled=0;Lineage=1:013abd4f:0",
+        "x-amzn-RequestId": "d410daf2-00be-4066-8c69-c144b6741b4d",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "x-amz-apigw-id": "Oz9oWFnMoAMEh9A=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 bf7702d3cf05b203b6034c7c1d6f783c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "ee1rlPExb1bZS8-XK0ZFzXjfMiwRtwH45iQ18CiSlsZmfneKdc7QlA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp",
+      "origin": "https://heatherandwesley.com",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:8080",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:45 GMT",
+        "x-amz-apigw-id": "Oz9oYEdxIAMER2Q=",
+        "x-amzn-RequestId": "867a2776-1d35-4bb2-a4b1-477f31d69175",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 1e55614427beb2c9a53afc5f91022b80.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "1_InnhGfNNgTdWuSPu65qnscyKxva8zUn10QCBspQo1h3VH6Ql22IQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:8080"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:8080",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:45 GMT",
+        "x-amz-apigw-id": "Oz9oZGgjoAMEZzQ=",
+        "x-amzn-RequestId": "f8fd525c-55e8-4cdc-885a-5f39dd26b048",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 b29008e2ba64e70ff0c9f2392d222b40.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "ugtpQEKv5R5SdIwGBdtRJ-MNMpKVE484Os6J01OwfUcDdTmgAJMvDA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:8080",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:8080",
+    "type": "actual_PUT",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:45 GMT",
+        "x-amz-apigw-id": "Oz9obHIfIAMEmVQ=",
+        "x-amzn-RequestId": "89511ef1-5c18-4ba3-800e-31994c57d185",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 49ebf453d90a4d7fa51513af32906a5c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "veLooie_1ALPQbbgAidyqaMgDoTEW_xK_cIa4hKWwymI6suoBDQh4Q=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:8080",
+      "method": "PUT"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:8080",
+    "type": "actual_DELETE",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:45 GMT",
+        "x-amz-apigw-id": "Oz9ocEtPIAMEWVA=",
+        "x-amzn-RequestId": "ecb395d3-38f6-4dc5-93fc-5ec5648d59f8",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 c16ce93675afb47d8d8a79f34b72a906.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "U_nOnXfEfpO4XUrGkfiuETUmu9z37ZZ_iCoH6Y7iujDNGdLIx2f7Gg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:8080",
+      "method": "DELETE"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:5173",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:45 GMT",
+        "x-amz-apigw-id": "Oz9oeEyFoAMEFBg=",
+        "x-amzn-RequestId": "9267831c-64e1-4693-882b-f027ccf2eda1",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 25d43b47e466be886c392b383c59812c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "fGZ-xdn488liG2cSKjNctOVBQiEiPm16ckTirtf8FahdHnR7U6tA1g=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:5173"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:5173",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:46 GMT",
+        "x-amz-apigw-id": "Oz9ogFj_IAMEauA=",
+        "x-amzn-RequestId": "52a2edad-7f55-480c-bedc-2b81b2c34ed3",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 1d3b5a5e79fa0550177ed0e5789848f4.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "ZXZpiJa3ReECw7c8l0AgzcZ8kfeSboNpzo12nY88VjCjTirh1bWZ2Q=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:5173",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:5173",
+    "type": "actual_PUT",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:46 GMT",
+        "x-amz-apigw-id": "Oz9ohF9PoAMEb7Q=",
+        "x-amzn-RequestId": "6b5070b9-4272-4725-9337-7b66cb263d28",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 eecf79fe9c5011808ca537306474cf76.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "nERIjUjJ0iZdUc6B6t-oq_4Kce42XBpqtwG0jWmzGZ8GIxD8bffWKQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:5173",
+      "method": "PUT"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:5173",
+    "type": "actual_DELETE",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:46 GMT",
+        "x-amz-apigw-id": "Oz9ojHZFoAMEq5g=",
+        "x-amzn-RequestId": "95f03a53-5adb-4a43-8860-f925792466e4",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 a5c7e4d4a78e8979df75640774711a60.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "cndOy9l77fH7v0faLUYfyZgWQTiXh7O05AY4gMssqXa3lUeGuQSs0w=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:5173",
+      "method": "DELETE"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:5174",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:46 GMT",
+        "x-amz-apigw-id": "Oz9olHB2IAMEgZQ=",
+        "x-amzn-RequestId": "1de4e3d8-a9b8-4d35-bb08-6b9506f84d73",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 b29008e2ba64e70ff0c9f2392d222b40.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "tf_CyPs34hAOMbviYmUiasF312Efge-3-UxMUFUl3IEBMLtMPQBk-g=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:5174"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:5174",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:46 GMT",
+        "x-amz-apigw-id": "Oz9onG7EoAMEDEw=",
+        "x-amzn-RequestId": "5b596583-43ac-44a6-ba5e-f9698f88f8aa",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 e474fa753e7e530faa5c82db12f758ee.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "_QO3H5yg24rjkNiCiDKOzxyyMT9m4nIcSYhQ1pI-6H7frT4CrGCMoA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:5174",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:5174",
+    "type": "actual_PUT",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:46 GMT",
+        "x-amz-apigw-id": "Oz9opH6MoAMERFg=",
+        "x-amzn-RequestId": "15768eb6-8df4-4738-be7b-c69f360d2402",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 71ac84ce28b8e737049ed30fbe9a65dc.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "SJCr1rXoBKt4vR91dpQTS6p-wIHGaKyNxSVwrQr2SOEA9sQC9uFDuA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:5174",
+      "method": "PUT"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "http://localhost:5174",
+    "type": "actual_DELETE",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:47 GMT",
+        "x-amz-apigw-id": "Oz9orHaLIAMElXQ=",
+        "x-amzn-RequestId": "7784dff3-15af-42b3-802a-e5055ac814f6",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 25d43b47e466be886c392b383c59812c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "uk16gIl9IBVFS7ucryLu47gfEYDzVmyOanUrXu8VBuYJ2f7xupcCmA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "http://localhost:5174",
+      "method": "DELETE"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "https://heatherandwesley.com",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:47 GMT",
+        "x-amz-apigw-id": "Oz9osEtNoAMEM9Q=",
+        "x-amzn-RequestId": "dfeeb084-8ec6-4dea-937f-39e163cac7b1",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 c16ce93675afb47d8d8a79f34b72a906.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "k1IV7pWpGYsVEKR2dLjfIrXxuXJn2KXxPoXWHS73oFMjUgqh3Y3xUQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "https://heatherandwesley.com"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:47 GMT",
+        "x-amz-apigw-id": "Oz9ouEb7oAMENJw=",
+        "x-amzn-RequestId": "a85587ec-9cc8-46e1-ab51-cef0678cf056",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 c16ce93675afb47d8d8a79f34b72a906.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "ARk2Kj28vvjiwG8FsDRsZ8uGvHZsRhfhgUtHzIo-OTiUd2UG06FDoQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "https://heatherandwesley.com",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_PUT",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:47 GMT",
+        "x-amz-apigw-id": "Oz9owH_oIAMEu7Q=",
+        "x-amzn-RequestId": "2edbc659-abec-45c8-ab41-31a19a954f7b",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 9989b80323450ea59d9fff734d266c62.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "5tmKBM6Rto8QoEaiPV-CBNnGOAB-dzrsG5zoiM85le9NCQk9xZdY5A=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "https://heatherandwesley.com",
+      "method": "PUT"
+    }
+  },
+  {
+    "endpoint": "/rsvp/test-id",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_DELETE",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:47 GMT",
+        "x-amz-apigw-id": "Oz9oxF1LoAMEccw=",
+        "x-amzn-RequestId": "799c096c-00a7-4a37-b220-a351614b36c2",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 5dde81b9b4f1dc5e5c2508f051d7d378.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "0Wd086wnoC1pbsGas6SbWyk_YNx2m8ll1ojcsGjDHz4FJ2POC18sRw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/rsvp/test-id",
+      "origin": "https://heatherandwesley.com",
+      "method": "DELETE"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:8080",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:47 GMT",
+        "x-amz-apigw-id": "Oz9ozGfMIAMErVA=",
+        "x-amzn-RequestId": "8dc92a3e-3b36-4e5a-a039-4cf7d627ad96",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 bf7702d3cf05b203b6034c7c1d6f783c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "isp3t_MMPFTtqKhYKAorjfcx-tMirWm-3DeczGjZeqE1buyfGkffag=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:8080"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:8080",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "402",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:48 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "ae7ccada-04c7-4a98-9d55-6da42210a5cb",
+        "Access-Control-Allow-Origin": "http://localhost:8080",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9o1F5joAMEirQ=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-68917638-295bf1076954d9777cb34dbc;Parent=45cc2961eccc46ca;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 a5c7e4d4a78e8979df75640774711a60.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "bk3w2RX9tt3PIEt2AXCGvOaA6y3pF6wJwox0WxxjIORq2zVTC1lEwA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:8080",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:8080",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 401,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "35",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:48 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "00ef5064-9aa4-44a0-bf8a-ab5eaee85ad0",
+        "Access-Control-Allow-Origin": "http://localhost:8080",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9o3EKaIAMEsZg=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-68917638-437b9e5e744256bf310d2219;Parent=3d946864e0d327af;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 01210a547d76342111c5032dbab64de4.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "GSCiyh39BCuE4nOQpXdLo2leIWx76bnKsMZUR9uTL0jsJfuMR7Od-A=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:8080",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:5173",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:48 GMT",
+        "x-amz-apigw-id": "Oz9o5F47oAMEDBg=",
+        "x-amzn-RequestId": "f9933c0e-c01f-4ecd-a27f-40a8c07c99cf",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 430a5c7d468e3c5a94e3cb6e4a5ab50e.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "uGNtFjxmASTDScAi6ZSZQj3gK_nmSy8j7IqMRcP-yiSsatPN4z3pnA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:5173"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:5173",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "402",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:48 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "5e445e93-24f1-443a-bc3a-921083d410e6",
+        "Access-Control-Allow-Origin": "http://localhost:5173",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9o6HHXoAMEPMw=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-68917638-3edbdd695dd56d4a27e9bc87;Parent=53119b3f0a0030ea;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 a4eb0da982a8f808542a4531fe5a6df0.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "FEJQVtuVxe-zdzj2W_QzwSErDcObwzH3BVOqX2mJUkyRZC0OnMvSwQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:5173",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:5173",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 401,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "35",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:48 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "f9c4947d-233a-48fa-881d-f00b45552af6",
+        "Access-Control-Allow-Origin": "http://localhost:5173",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9o9FOaoAMEclA=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-68917638-2d956aa81b883506128d3630;Parent=0d6d8604e748bb7a;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 b47da3ec0e7532d35176d3affb527e34.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "Ikmt3tTrRn0JiF61ROaMd4l2VnuOV4oofzSigqgKIWJKpSFY_WnteA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:5173",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:5174",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:49 GMT",
+        "Access-Control-Max-Age": "86400",
+        "x-amzn-RequestId": "68d62a0b-e48d-4d6e-b988-c84cb38996b6",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Requested-With",
+        "x-amz-apigw-id": "Oz9o-HGdoAMEIIg=",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 eecf79fe9c5011808ca537306474cf76.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "hzxMpmPz1NLuWCW5q6ZB4n6AqIgoQkQisFgm6ItzZeRoq_IwW7sSRw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:5174"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:5174",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "issues": [
+        "Origin mismatch: expected http://localhost:5174, got https://heatherandwesley.com"
+      ],
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "402",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:49 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "17e770bd-5430-4fa5-8bc2-5f9be3db69b0",
+        "Access-Control-Allow-Origin": "https://heatherandwesley.com",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9pBG9vIAMElFw=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-68917639-074b0a944ee239c6651e0875;Parent=69ee64b9424568b0;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 b47da3ec0e7532d35176d3affb527e34.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "QQ_KFPRYk25-9HwL5vgNtSXfhsn7lY_oQF-ZsSItvXv0DyqoZQ9hSA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:5174",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "http://localhost:5174",
+    "type": "actual_POST",
+    "success": false,
+    "details": {
+      "issues": [
+        "Origin mismatch: expected http://localhost:5174, got https://heatherandwesley.com"
+      ],
+      "status_code": 401,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "35",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:49 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "7a15ab1e-c3b3-49ed-b28e-894443f4b6ef",
+        "Access-Control-Allow-Origin": "https://heatherandwesley.com",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9pDFVOoAMEWbQ=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-68917639-2f5c34490e98de883aadb22f;Parent=51aaa5f222da256a;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 5dde81b9b4f1dc5e5c2508f051d7d378.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "2GRvh04Itr94XBcytql0H9A_vIS-EpMGBoAwJRvKoElr3CvMt2upQg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "http://localhost:5174",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "https://heatherandwesley.com",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:49 GMT",
+        "x-amz-apigw-id": "Oz9pFF6FIAMEiMA=",
+        "x-amzn-RequestId": "7169ef51-db02-4711-9a2a-270440f8fbcb",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 01210a547d76342111c5032dbab64de4.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "SyQEq4J4cAW_7aIcA6DplBCYdPE123tMrPFdusoIfeDrk6PfUCG7_g=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "https://heatherandwesley.com"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "402",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:49 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "cfa695ee-9dbc-4e09-998c-fc3ed4af6d4f",
+        "Access-Control-Allow-Origin": "https://heatherandwesley.com",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9pHE7koAMEMrA=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-68917639-136ac71b16668ea073305ff3;Parent=13471ae4fb0d7b19;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 f8df83e33edb75c89c800ed6ea90c362.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "1yMGhaQ68JlHu59uV_KYgKXag2--WLui90m9TMcd7uRrkBQ--_AaHQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "https://heatherandwesley.com",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/tetris",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 401,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "35",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:50 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "e0a59a9b-e7fa-42e5-bcf9-d6c2b3321a55",
+        "Access-Control-Allow-Origin": "https://heatherandwesley.com",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9pJHuxIAMEqgA=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-6891763a-519063ed32a82b774916e45c;Parent=2699640bb583c15b;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 1d3b5a5e79fa0550177ed0e5789848f4.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "pLTScOyFZphenap9DudC4Fx1LxBxo3PB3IbN8lZqemkuOCrkPRqoyA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/tetris",
+      "origin": "https://heatherandwesley.com",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:8080",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:50 GMT",
+        "x-amz-apigw-id": "Oz9pLFIWIAMEC3g=",
+        "x-amzn-RequestId": "d7728e24-9418-45d0-aa1b-3c0f26dadd40",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 1d3b5a5e79fa0550177ed0e5789848f4.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "sqTTJp4ZrDDI-IPhAivMBUHiyZpwO2GS_f4286x3Q5Ri9B3dEPsyuA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:8080"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:8080",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "51",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:50 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "4e9e9450-83b2-4363-91db-e9d84d60b67f",
+        "Access-Control-Allow-Origin": "http://localhost:8080",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9pMFNJoAMEacQ=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-6891763a-1745fc124842f2ba1c1c7ce4;Parent=66119702e9e219f2;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 3652ac23a584d2dc9bfe56d6c049e266.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "9xIZOgNpd1EWTcnSibJZfIUuFANrwIetOkzXDNIiIQEJ3_btm7W5JA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:8080",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:8080",
+    "type": "actual_POST",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:50 GMT",
+        "x-amz-apigw-id": "Oz9pOHcNIAMEmoQ=",
+        "x-amzn-RequestId": "06e9e4ce-b364-4c4a-8f8f-ea1afe73364f",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 25d43b47e466be886c392b383c59812c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "2MDhsXrWm4Chcc5VeTmvUO1w4hPhfstOrVYoQ1b9lB0JUyDzAfOmfQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:8080",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:5173",
+    "type": "preflight",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:50 GMT",
+        "Access-Control-Max-Age": "86400",
+        "x-amzn-RequestId": "bc17d954-d764-4061-887e-1ebc7daa86e8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Requested-With",
+        "x-amz-apigw-id": "Oz9pQFNCoAMEU1A=",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 71ac84ce28b8e737049ed30fbe9a65dc.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "q9EZbM5s-OwVcl9UYFWjJMUKK64U4aPCdF9hfmppaG45eaYvzbJNIA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:5173"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:5173",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:51 GMT",
+        "x-amz-apigw-id": "Oz9pSHzkoAMEeWA=",
+        "x-amzn-RequestId": "d1b57eac-b924-4e83-a2a4-8e5520852ce0",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 3652ac23a584d2dc9bfe56d6c049e266.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "35EcH4Npl2tlpATvK1Y7sIQluykF43_jTT5yZ-ink0gQYeWW2WL3XQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:5173",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:5173",
+    "type": "actual_POST",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:51 GMT",
+        "x-amz-apigw-id": "Oz9pTFvLIAMEN4A=",
+        "x-amzn-RequestId": "cff83bb9-85f7-4593-866d-064f70431cb3",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 71ac84ce28b8e737049ed30fbe9a65dc.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "Cl9zTA8D9X-u5ioLiyrGnnk8Eq9WsatopUxoYkhE8FSTDd44EydqDw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:5173",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:5174",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:51 GMT",
+        "x-amz-apigw-id": "Oz9pVGW7IAMER9w=",
+        "x-amzn-RequestId": "a2b0996e-2cf9-40e9-b7f0-f16707eadd40",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 1c83639f573443e1a73326154327e822.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "uGZ469KKeZN3vJhUQRdcTZ1CfIsl76Sx_KEBDRo7lgScIBQvCqKNWQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:5174"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:5174",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "issues": [
+        "Origin mismatch: expected http://localhost:5174, got https://heatherandwesley.com"
+      ],
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "51",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:51 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "9d4873a0-ea73-472c-8c8e-c7646bd3312a",
+        "Access-Control-Allow-Origin": "https://heatherandwesley.com",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9pWFx4oAMED3Q=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-6891763b-25a56f9e37a8a5511e6b08b9;Parent=41b84dfc92ab5cbc;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 e6552b5b0ecd114591ab94e378fc89f8.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "WmW9mNEWp89DEgjSZ4XG3fEO95-ca8DH3f2U6SNrBvF7d1XOBsHQug=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:5174",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "http://localhost:5174",
+    "type": "actual_POST",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:51 GMT",
+        "x-amz-apigw-id": "Oz9pYHAHoAMElAA=",
+        "x-amzn-RequestId": "61877163-6a07-4586-a9e3-27c0ba6b7b98",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 71ac84ce28b8e737049ed30fbe9a65dc.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "w9nXMWi2X8PSO_yTZO55znPIBi_RklTi7VsYC9mOJcDKcEqMvqxRHw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "http://localhost:5174",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "https://heatherandwesley.com",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:51 GMT",
+        "x-amz-apigw-id": "Oz9paFCMIAMER2Q=",
+        "x-amzn-RequestId": "5ea1d4cb-d872-421a-b4eb-dbbab12f521a",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 c16ce93675afb47d8d8a79f34b72a906.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "4-MfOftaVDK8TnP6_lOk5Z3vJzDDpv96NRpZORhHHrVXK48OAVRXEg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "https://heatherandwesley.com"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_GET",
+    "success": true,
+    "details": {
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "51",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:52 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "9680b604-8698-4ceb-9a5a-30d52853fb76",
+        "Access-Control-Allow-Origin": "https://heatherandwesley.com",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9pcGoHIAMERdQ=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-6891763c-2344defd16e344054c76e425;Parent=61a9917f59a669a0;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Miss from cloudfront",
+        "Via": "1.1 c16ce93675afb47d8d8a79f34b72a906.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "8k76UIiKpNGZNwkY9jqwn0TkvN6I5w5fBdlVma-lNYNQ4-87WA-kQA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "https://heatherandwesley.com",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/leaderboard/snake",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_POST",
+    "success": true,
+    "details": {
+      "status_code": 401,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "35",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:52 GMT",
+        "Access-Control-Allow-Credentials": "true",
+        "x-amzn-RequestId": "4bd6acc4-dfed-46f0-b056-ad695242d300",
+        "Access-Control-Allow-Origin": "https://heatherandwesley.com",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "x-amz-apigw-id": "Oz9peGTtIAMEfWg=",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-6891763c-1b14fafc7af1546740b089c4;Parent=209354d660425552;Sampled=0;Lineage=1:4377e9ef:0",
+        "Access-Control-Max-Age": "86400",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 4097c6671c40a723b8caf18e64db324e.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "ZInPrUlA7ijn5FWDJqb7dsN9pPDY_QSBg0ov_5n88Iha6cPL2wxDvA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/leaderboard/snake",
+      "origin": "https://heatherandwesley.com",
+      "method": "POST"
+    }
+  },
+  {
+    "endpoint": "/health",
+    "origin": "http://localhost:8080",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:52 GMT",
+        "x-amz-apigw-id": "Oz9pgHrlIAMEX0w=",
+        "x-amzn-RequestId": "d354ff64-d45c-4f8d-a475-11c137c89312",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 46ce16e67140c68c88717b73361bda0c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "YAHozAdqX1_j3dzDJKFlIa8pWuIacnwTuheN-1nlzfgTgIFMZAA2hA=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/health",
+      "origin": "http://localhost:8080"
+    }
+  },
+  {
+    "endpoint": "/health",
+    "origin": "http://localhost:8080",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:52 GMT",
+        "x-amz-apigw-id": "Oz9piFDmIAMEaLw=",
+        "x-amzn-RequestId": "59852dba-83b1-4b99-acf5-7969f96648d2",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 f8df83e33edb75c89c800ed6ea90c362.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "PikbUoSvw9n1gQipdAL3Pu6e0EH8LYQ_s2TyjVwlk_p_vlvVQ5H1tQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/health",
+      "origin": "http://localhost:8080",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/health",
+    "origin": "http://localhost:5173",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:52 GMT",
+        "x-amz-apigw-id": "Oz9pkEAZIAMEe5A=",
+        "x-amzn-RequestId": "cc9225f3-fd34-4b71-a7e9-c409ce4f81a1",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 c16ce93675afb47d8d8a79f34b72a906.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "O8ZgFC11A4AG_O3xIHI7DfkLwXY0_vFSmNnC-ulQRGbeqB_4ksFmEQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/health",
+      "origin": "http://localhost:5173"
+    }
+  },
+  {
+    "endpoint": "/health",
+    "origin": "http://localhost:5173",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:53 GMT",
+        "x-amz-apigw-id": "Oz9pmHZroAMEMsg=",
+        "x-amzn-RequestId": "f0a3d8cb-6c07-4374-9689-03ffa38d0578",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 a5c7e4d4a78e8979df75640774711a60.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "c5qiPDJ7iN8xTcLgE3GtUSGpymLGx9ijhSYGE0q-TEBVL1t0wOGGBQ=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/health",
+      "origin": "http://localhost:5173",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/health",
+    "origin": "http://localhost:5174",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:53 GMT",
+        "x-amz-apigw-id": "Oz9pnHedoAMEIIg=",
+        "x-amzn-RequestId": "4c2d3381-2305-4104-a9dc-b08d7654584b",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 46ce16e67140c68c88717b73361bda0c.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "uhTHEPUfo7QRzlEDFjwPuqjHo_A1wRdW3d87tjpXHe3cAJWaZUL2Mw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/health",
+      "origin": "http://localhost:5174"
+    }
+  },
+  {
+    "endpoint": "/health",
+    "origin": "http://localhost:5174",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:53 GMT",
+        "x-amz-apigw-id": "Oz9ppFRZoAMEQ5Q=",
+        "x-amzn-RequestId": "4ff34f9c-c23d-4b0d-82a6-ebd43e4cd6ad",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 37bad45581ee2b4b4bc9ea274d2d53d6.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "PvqAmFhi584ui9LxKMukZ3iM55R4iw-EUKNlrSoBz1IJr4GeDofpEg=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/health",
+      "origin": "http://localhost:5174",
+      "method": "GET"
+    }
+  },
+  {
+    "endpoint": "/health",
+    "origin": "https://heatherandwesley.com",
+    "type": "preflight",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:53 GMT",
+        "x-amz-apigw-id": "Oz9prGTvoAMEsgg=",
+        "x-amzn-RequestId": "04c9ada2-7f63-474a-a29f-96a0a9a34526",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 1e55614427beb2c9a53afc5f91022b80.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "0B7whrUPAcMWzp_-xmZUGUkK5qkimbWnpEIie1X-K_xVEzXgvCOuQw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/health",
+      "origin": "https://heatherandwesley.com"
+    }
+  },
+  {
+    "endpoint": "/health",
+    "origin": "https://heatherandwesley.com",
+    "type": "actual_GET",
+    "success": false,
+    "details": {
+      "status_code": 403,
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "42",
+        "Connection": "keep-alive",
+        "Date": "Tue, 05 Aug 2025 03:10:53 GMT",
+        "x-amz-apigw-id": "Oz9psGsFoAMEhFQ=",
+        "x-amzn-RequestId": "4c5d9dca-f701-4d9d-aaa0-20189f7b9949",
+        "x-amzn-ErrorType": "MissingAuthenticationTokenException",
+        "X-Cache": "Error from cloudfront",
+        "Via": "1.1 5dde81b9b4f1dc5e5c2508f051d7d378.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Pop": "DFW56-P5",
+        "X-Amz-Cf-Id": "2t4EllgdYkKJ8ur0gMdvfFoms_sQX9wjaWse6ATm2JTGHq07doJ9pw=="
+      },
+      "url": "https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/health",
+      "origin": "https://heatherandwesley.com",
+      "method": "GET"
+    }
+  }
+]

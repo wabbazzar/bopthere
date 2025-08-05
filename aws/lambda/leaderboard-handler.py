@@ -22,7 +22,7 @@ lambda_client = boto3.client("lambda")
 
 # CORS configuration
 ALLOWED_ORIGINS = os.environ.get(
-    "ALLOWED_ORIGINS", "https://heatherandwesley.com,http://localhost:5173"
+    "ALLOWED_ORIGINS", "https://heatherandwesley.com,http://localhost:5173,http://localhost:8080,http://localhost:5174"
 ).split(",")
 
 
