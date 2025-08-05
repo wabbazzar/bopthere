@@ -176,9 +176,20 @@ class TestAPIFieldConsistency:
                 analysis["field_defaults"][field] = default_match.group(1).strip()
 
         # Find item dictionary construction (DynamoDB fields)
-        item_pattern = r"'(\w+)':\s*(?:body\[|body\.get\(|current_time|rsvp_id)"
+        # Look for field assignments in item dictionary
+        item_pattern = r'"(\w+)":\s*(?:body\[|body\.get\(|current_time|rsvp_id|str\(uuid\.uuid4\(\)\))'
         for match in re.findall(item_pattern, code):
             analysis["dynamodb_fields"].add(match)
+        
+        # Also look for literal field names in item construction
+        item_block_pattern = r'item\s*=\s*\{([^}]+)\}'
+        item_match = re.search(item_block_pattern, code, re.DOTALL)
+        if item_match:
+            item_content = item_match.group(1)
+            # Extract field names from the item dictionary
+            field_pattern = r'"(\w+)":'
+            for field_match in re.findall(field_pattern, item_content):
+                analysis["dynamodb_fields"].add(field_match)
 
         # Find response fields
         response_pattern = (

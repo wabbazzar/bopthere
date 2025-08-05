@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class DynamoDBSchemaExtractor:
     """Extract and document DynamoDB table schemas"""
 
-    def __init__(self, profile_name: str = "personal", region: str = "us-east-1"):
+    def __init__(self, profile_name: str = None, region: str = "us-east-1"):
         """
         Initialize the schema extractor with AWS credentials
 
@@ -35,7 +35,11 @@ class DynamoDBSchemaExtractor:
         """
         try:
             # Initialize boto3 session with profile
-            session = boto3.Session(profile_name=profile_name, region_name=region)
+            if profile_name:
+                session = boto3.Session(profile_name=profile_name, region_name=region)
+            else:
+                # Use environment credentials (e.g., in GitHub Actions)
+                session = boto3.Session(region_name=region)
             self.dynamodb = session.resource("dynamodb")
             self.dynamodb_client = session.client("dynamodb")
             self.type_deserializer = TypeDeserializer()
@@ -435,7 +439,9 @@ def main():
     """Main function to run the schema extraction"""
     try:
         # Initialize extractor
-        extractor = DynamoDBSchemaExtractor(profile_name="personal", region="us-east-1")
+        # Use profile in local environment, environment credentials in CI
+        profile_name = "personal" if os.path.exists(os.path.expanduser("~/.aws/credentials")) else None
+        extractor = DynamoDBSchemaExtractor(profile_name=profile_name, region="us-east-1")
 
         # Extract schemas
         logger.info("Starting schema extraction...")
