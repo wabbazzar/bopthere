@@ -54,11 +54,13 @@ jobs:
           -H "Access-Control-Request-Method: POST" \
           -H "Access-Control-Request-Headers: Content-Type" || echo "FAILED")
         
-        if echo "$RESPONSE" | grep -q "Access-Control-Allow-Origin"; then
+        if echo "$RESPONSE" | grep -qi "Access-Control-Allow-Origin"; then
           echo "✅ CORS headers present"
+          echo "Response headers:"
+          echo "$RESPONSE" | grep -i "access-control"
         else
           echo "❌ CORS headers missing!"
-          echo "Response:"
+          echo "Full response:"
           echo "$RESPONSE"
           exit 1
         fi
