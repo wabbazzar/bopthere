@@ -160,20 +160,21 @@ class TestAPIFieldConsistency:
         match = re.search(required_pattern, code)
         if match:
             fields_str = match.group(1)
-            field_names = re.findall(r"'(\w+)'", fields_str)
+            # Handle both single and double quotes
+            field_names = re.findall(r"['\"](\w+)['\"]", fields_str)
             analysis["required_validation"].update(field_names)
 
-        # Find body field access (request fields)
-        body_pattern = r"body\['(\w+)'\]|body\.get\('(\w+)'[^)]*\)"
+        # Find body field access (request fields) - handle both quote types
+        body_pattern = r"body\[['\"](\w+)['\"]\]|body\.get\(['\"](\w+)['\"][^)]*\)"
         for match in re.findall(body_pattern, code):
             field = match[0] or match[1]
             analysis["request_fields"].add(field)
 
-            # Check for default values
-            default_pattern = rf"body\.get\('{field}',\s*([^)]+)\)"
+            # Check for default values - handle both quote types
+            default_pattern = rf"body\.get\(['\"]({field})['\"],\s*([^)]+)\)"
             default_match = re.search(default_pattern, code)
             if default_match:
-                analysis["field_defaults"][field] = default_match.group(1).strip()
+                analysis["field_defaults"][field] = default_match.group(2).strip()
 
         # Find item dictionary construction (DynamoDB fields)
         # Look for field assignments in item dictionary
