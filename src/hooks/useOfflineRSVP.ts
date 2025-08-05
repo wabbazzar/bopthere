@@ -24,7 +24,10 @@ interface UseOfflineRSVPReturn {
 
 export const useOfflineRSVP = (): UseOfflineRSVPReturn => {
   const [pendingSubmissions, setPendingSubmissions] = useState<PendingRSVP[]>([]);
-  const [storageStats, setStorageStats] = useState<{ pendingCount: number; cacheSize: number } | null>(null);
+  const [storageStats, setStorageStats] = useState<{
+    pendingCount: number;
+    cacheSize: number;
+  } | null>(null);
   const { selectedCharacter } = useCharacter();
   const { isOffline } = usePWA();
 
@@ -32,7 +35,7 @@ export const useOfflineRSVP = (): UseOfflineRSVPReturn => {
     try {
       const pending = await offlineStorage.getPendingRSVPs();
       setPendingSubmissions(pending);
-      
+
       const stats = await offlineStorage.getStorageStats();
       setStorageStats(stats);
     } catch (error) {
@@ -44,66 +47,72 @@ export const useOfflineRSVP = (): UseOfflineRSVPReturn => {
     loadPendingSubmissions();
   }, [loadPendingSubmissions]);
 
-  const submitRSVPOnline = async (data: RSVPData): Promise<boolean> => {
-    try {
-      // This would be your actual API endpoint
-      const response = await fetch('/api/rsvp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          character: selectedCharacter,
-          timestamp: new Date().toISOString(),
-        }),
-      });
+  const submitRSVPOnline = useCallback(
+    async (data: RSVPData): Promise<boolean> => {
+      try {
+        // This would be your actual API endpoint
+        const response = await fetch('/api/rsvp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...data,
+            character: selectedCharacter,
+            timestamp: new Date().toISOString(),
+          }),
+        });
 
-      return response.ok;
-    } catch (error) {
-      console.error('Online RSVP submission failed:', error);
-      return false;
-    }
-  };
-
-  const submitRSVP = useCallback(async (data: RSVPData): Promise<{ success: boolean; offline?: boolean; id?: string }> => {
-    // Try online submission first
-    if (!isOffline) {
-      const success = await submitRSVPOnline(data);
-      if (success) {
-        return { success: true };
+        return response.ok;
+      } catch (error) {
+        console.error('Online RSVP submission failed:', error);
+        return false;
       }
-    }
+    },
+    [selectedCharacter]
+  );
 
-    // Fall back to offline storage
-    try {
-      const id = await offlineStorage.addPendingRSVP(data, selectedCharacter);
-      await loadPendingSubmissions();
-
-      // Register for background sync if available
-      if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-        const registration = await navigator.serviceWorker.ready;
-        try {
-          await registration.sync.register('sync-rsvp');
-        } catch (syncError) {
-          console.warn('Background sync registration failed:', syncError);
+  const submitRSVP = useCallback(
+    async (data: RSVPData): Promise<{ success: boolean; offline?: boolean; id?: string }> => {
+      // Try online submission first
+      if (!isOffline) {
+        const success = await submitRSVPOnline(data);
+        if (success) {
+          return { success: true };
         }
       }
 
-      return { success: true, offline: true, id };
-    } catch (error) {
-      console.error('Offline RSVP storage failed:', error);
-      return { success: false };
-    }
-  }, [isOffline, selectedCharacter, loadPendingSubmissions, submitRSVPOnline]);
+      // Fall back to offline storage
+      try {
+        const id = await offlineStorage.addPendingRSVP(data, selectedCharacter);
+        await loadPendingSubmissions();
+
+        // Register for background sync if available
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+          const registration = await navigator.serviceWorker.ready;
+          try {
+            await registration.sync.register('sync-rsvp');
+          } catch (syncError) {
+            console.warn('Background sync registration failed:', syncError);
+          }
+        }
+
+        return { success: true, offline: true, id };
+      } catch (error) {
+        console.error('Offline RSVP storage failed:', error);
+        return { success: false };
+      }
+    },
+    [isOffline, selectedCharacter, loadPendingSubmissions, submitRSVPOnline]
+  );
 
   const syncPending = useCallback(async () => {
     const pending = await offlineStorage.getPendingRSVPs();
-    
+
     for (const submission of pending) {
       try {
         const success = await submitRSVPOnline(submission.payload as RSVPData);
-        
+
         if (success) {
           await offlineStorage.removePendingRSVP(submission.id);
         } else {
@@ -121,7 +130,7 @@ export const useOfflineRSVP = (): UseOfflineRSVPReturn => {
 
   const clearPending = useCallback(async () => {
     const pending = await offlineStorage.getPendingRSVPs();
-    
+
     for (const submission of pending) {
       await offlineStorage.removePendingRSVP(submission.id);
     }

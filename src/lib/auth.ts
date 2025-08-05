@@ -29,7 +29,7 @@ export class AuthService {
   static getUser(): User | null {
     const userData = localStorage.getItem(USER_KEY);
     if (!userData) return null;
-    
+
     try {
       return JSON.parse(userData);
     } catch {
@@ -53,22 +53,22 @@ export class AuthService {
     const token = this.getToken();
     const user = this.getUser();
     const loginTimestamp = localStorage.getItem(LOGIN_TIMESTAMP_KEY);
-    
+
     if (!token || !user || !loginTimestamp) {
       return false;
     }
-    
+
     // Check if login is older than 30 days
     const loginTime = parseInt(loginTimestamp, 10);
     const currentTime = Date.now();
     const timeDifference = currentTime - loginTime;
-    
+
     if (timeDifference > THIRTY_DAYS_MS) {
       // Login expired, clear auth data
       this.clearAuthData();
       return false;
     }
-    
+
     return true;
   }
 
@@ -84,7 +84,7 @@ export class AuthService {
 
       // Store auth data locally
       this.setAuthData(response.token, response.user);
-      
+
       return response;
     } catch (error) {
       if (error instanceof APIError) {
@@ -99,7 +99,7 @@ export class AuthService {
    */
   static async verifyToken(): Promise<User> {
     const token = this.getToken();
-    
+
     if (!token) {
       throw new APIError('No authentication token found', 401);
     }
@@ -108,18 +108,18 @@ export class AuthService {
       const response = await apiRequest<{ user: User }>('/auth/verify', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       // Update user data in case it changed
       this.setAuthData(token, response.user);
-      
+
       return response.user;
     } catch (error) {
       // If token verification fails, clear local auth data
       this.clearAuthData();
-      
+
       if (error instanceof APIError) {
         throw error;
       }
@@ -139,13 +139,13 @@ export class AuthService {
    */
   static getAuthHeaders(): Record<string, string> {
     const token = this.getToken();
-    
+
     if (!token) {
       return {};
     }
 
     return {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     };
   }
 }

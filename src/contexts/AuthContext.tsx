@@ -10,7 +10,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
-      
+
     case 'LOGIN_SUCCESS':
       return {
         ...state,
@@ -18,7 +18,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         token: action.payload.token,
         isLoading: false,
       };
-      
+
     case 'LOGIN_FAILURE':
       return {
         ...state,
@@ -26,7 +26,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         token: null,
         isLoading: false,
       };
-      
+
     case 'LOGOUT':
       return {
         ...state,
@@ -34,14 +34,14 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         token: null,
         isLoading: false,
       };
-      
+
     case 'VERIFY_SUCCESS':
       return {
         ...state,
         user: action.payload,
         isLoading: false,
       };
-      
+
     case 'VERIFY_FAILURE':
       return {
         ...state,
@@ -49,7 +49,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         token: null,
         isLoading: false,
       };
-      
+
     default:
       return state;
   }
@@ -109,7 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       const response = await AuthService.login({ username, password });
-      
+
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: { user: response.user, token: response.token },
@@ -122,15 +122,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // });
     } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
-      
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Login failed - please try again';
-        
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Login failed - please try again';
+
       toast({
-        title: "Login Failed",
+        title: 'Login Failed',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
 
       throw error;
@@ -140,7 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = (): void => {
     AuthService.logout();
     dispatch({ type: 'LOGOUT' });
-    
+
     // Disabled logout toast
     // toast({
     //   title: "Logged Out",
@@ -167,9 +166,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     verifyToken,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

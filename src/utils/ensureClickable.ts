@@ -6,10 +6,10 @@
 export function ensureUIClickable() {
   // Only remove truly orphaned dialog overlays
   const dialogOverlays = document.querySelectorAll('[data-radix-dialog-overlay]');
-  dialogOverlays.forEach(el => {
+  dialogOverlays.forEach((el) => {
     const dialogState = el.getAttribute('data-state');
     const isClosing = dialogState === 'closed';
-    
+
     // Only remove if dialog is in closed state
     if (isClosing) {
       setTimeout(() => {
@@ -48,12 +48,13 @@ export function setupClickabilityMonitor() {
 
   // Only observe dialog-specific changes
   const observer = new MutationObserver((mutations) => {
-    const hasDialogChange = mutations.some(m => 
-      m.target instanceof Element && 
-      m.target.hasAttribute('data-radix-dialog-overlay') &&
-      m.attributeName === 'data-state'
+    const hasDialogChange = mutations.some(
+      (m) =>
+        m.target instanceof Element &&
+        m.target.hasAttribute('data-radix-dialog-overlay') &&
+        m.attributeName === 'data-state'
     );
-    
+
     if (hasDialogChange) {
       setTimeout(ensureUIClickable, 600);
     }
@@ -64,7 +65,7 @@ export function setupClickabilityMonitor() {
     childList: false,
     subtree: true,
     attributes: true,
-    attributeFilter: ['data-state']
+    attributeFilter: ['data-state'],
   });
 
   // Reduce frequency of periodic cleanup

@@ -24,24 +24,30 @@ interface Accommodation {
 
 const characterMessages = {
   wesley: {
-    title: "Noble Quarters of the Quest",
-    subtitle: "Rest well, brave adventurers",
-    message: "Behold the carefully selected lodgings for our fellowship! Each accommodation has been chosen to provide comfort worthy of noble quest participants during our epic celebration in Maui."
+    title: 'Noble Quarters of the Quest',
+    subtitle: 'Rest well, brave adventurers',
+    message:
+      'Behold the carefully selected lodgings for our fellowship! Each accommodation has been chosen to provide comfort worthy of noble quest participants during our epic celebration in Maui.',
   },
   heather: {
-    title: "Elegant Wedding Retreats", 
-    subtitle: "Beautiful spaces for our celebration",
-    message: "Our lovely accommodations have been thoughtfully arranged for all our wedding guests. Each space offers a peaceful retreat where you can rest and refresh between our festive celebrations."
+    title: 'Elegant Wedding Retreats',
+    subtitle: 'Beautiful spaces for our celebration',
+    message:
+      'Our lovely accommodations have been thoughtfully arranged for all our wedding guests. Each space offers a peaceful retreat where you can rest and refresh between our festive celebrations.',
   },
   puffy: {
-    title: "The Coziest Nap Spots Ever!",
-    subtitle: "Perfect places for the best sleeps!",
-    message: "I've personally inspected every single bed and can confirm - these are absolutely the most comfortable, coziest sleeping spots! Perfect for the best naps between all our fun party activities!"
-  }
+    title: 'The Coziest Nap Spots Ever!',
+    subtitle: 'Perfect places for the best sleeps!',
+    message:
+      "I've personally inspected every single bed and can confirm - these are absolutely the most comfortable, coziest sleeping spots! Perfect for the best naps between all our fun party activities!",
+  },
 };
 
 // BedAssignment component
-const BedAssignment: React.FC<{ bed: Bed; currentTheme: CharacterTheme }> = ({ bed, currentTheme }) => {
+const BedAssignment: React.FC<{ bed: Bed; currentTheme: CharacterTheme }> = ({
+  bed,
+  currentTheme,
+}) => {
   return (
     <div className="p-3 bg-white/60 rounded-lg border border-gray-200">
       <div className="flex items-center justify-between mb-2">
@@ -65,47 +71,48 @@ const BedAssignment: React.FC<{ bed: Bed; currentTheme: CharacterTheme }> = ({ b
           </div>
         ))}
       </div>
-      {bed.notes && (
-        <div className="text-xs text-amber-600 mt-2 italic">
-          {bed.notes}
-        </div>
-      )}
+      {bed.notes && <div className="text-xs text-amber-600 mt-2 italic">{bed.notes}</div>}
     </div>
   );
 };
 
 // AccommodationCard component
-const AccommodationCard: React.FC<{ accommodation: Accommodation; currentTheme: CharacterTheme }> = ({ accommodation, currentTheme }) => {
+const AccommodationCard: React.FC<{
+  accommodation: Accommodation;
+  currentTheme: CharacterTheme;
+}> = ({ accommodation, currentTheme }) => {
   const totalGuests = accommodation.beds.reduce((sum, bed) => sum + bed.guests.length, 0);
   const totalBeds = accommodation.beds.length;
-  const hasNotes = accommodation.beds.some(bed => bed.notes);
+  const hasNotes = accommodation.beds.some((bed) => bed.notes);
 
   return (
     <Card className="bg-white/90 backdrop-blur-sm border-2 shadow-lg h-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle 
+          <CardTitle
             className="text-lg font-bold flex items-center gap-2"
-            style={{ 
+            style={{
               fontFamily: 'Cinzel, serif',
-              color: currentTheme.primary
+              color: currentTheme.primary,
             }}
           >
             <Home className="w-5 h-5" />
             {accommodation.accommodation_type}
           </CardTitle>
-          {hasNotes && (
-            <AlertCircle className="w-5 h-5 text-amber-500" />
-          )}
+          {hasNotes && <AlertCircle className="w-5 h-5 text-amber-500" />}
         </div>
         <div className="flex items-center gap-4 text-sm" style={{ color: currentTheme.dark }}>
           <div className="flex items-center gap-1">
             <Bed className="w-4 h-4" />
-            <span>{totalBeds} bed{totalBeds !== 1 ? 's' : ''}</span>
+            <span>
+              {totalBeds} bed{totalBeds !== 1 ? 's' : ''}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <Users className="w-4 h-4" />
-            <span>{totalGuests} guest{totalGuests !== 1 ? 's' : ''}</span>
+            <span>
+              {totalGuests} guest{totalGuests !== 1 ? 's' : ''}
+            </span>
           </div>
         </div>
       </CardHeader>
@@ -133,7 +140,7 @@ export const SleepingView: React.FC = () => {
   // Process accommodations data
   const accommodationEntries = Object.entries(accommodations).map(([key, accommodation]) => ({
     key,
-    ...accommodation
+    ...accommodation,
   }));
 
   return (
@@ -142,30 +149,27 @@ export const SleepingView: React.FC = () => {
       <Card className="bg-white/90 backdrop-blur-sm border-2 shadow-lg">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <div 
+            <div
               className="p-3 rounded-full"
               style={{ backgroundColor: `${currentTheme.primary}20` }}
             >
-              <Crown 
-                className="w-8 h-8"
-                style={{ color: currentTheme.primary }}
-              />
+              <Crown className="w-8 h-8" style={{ color: currentTheme.primary }} />
             </div>
           </div>
-          <CardTitle 
+          <CardTitle
             className="text-3xl font-bold"
-            style={{ 
+            style={{
               fontFamily: 'Cinzel, serif',
-              color: currentTheme.primary
+              color: currentTheme.primary,
             }}
           >
             {content.title}
           </CardTitle>
-          <CardDescription 
-            className="text-lg mt-2" 
-            style={{ 
+          <CardDescription
+            className="text-lg mt-2"
+            style={{
               fontFamily: 'Crimson Text, serif',
-              color: currentTheme.dark
+              color: currentTheme.dark,
             }}
           >
             {content.subtitle}
@@ -177,11 +181,11 @@ export const SleepingView: React.FC = () => {
       <Card className="bg-white/95 backdrop-blur-sm border-2 shadow-lg">
         <CardContent className="p-6">
           <div className="text-center mb-4">
-            <p 
+            <p
               className="text-lg leading-relaxed"
-              style={{ 
+              style={{
                 fontFamily: 'Crimson Text, serif',
-                color: currentTheme.dark
+                color: currentTheme.dark,
               }}
             >
               {content.message}
@@ -220,9 +224,7 @@ export const SleepingView: React.FC = () => {
               <div className="text-2xl font-bold text-amber-600">
                 {summary.pending_confirmations}
               </div>
-              <div className="text-sm text-amber-600">
-                Pending
-              </div>
+              <div className="text-sm text-amber-600">Pending</div>
             </div>
           </div>
         </CardContent>
@@ -231,7 +233,7 @@ export const SleepingView: React.FC = () => {
       {/* Accommodations Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {accommodationEntries.map((accommodation) => (
-          <AccommodationCard 
+          <AccommodationCard
             key={accommodation.key}
             accommodation={accommodation}
             currentTheme={currentTheme}
@@ -245,20 +247,20 @@ export const SleepingView: React.FC = () => {
           <div className="flex items-center justify-center mb-3">
             <MapPin className="w-6 h-6" style={{ color: currentTheme.primary }} />
           </div>
-          <h3 
+          <h3
             className="text-xl font-bold mb-2"
-            style={{ 
+            style={{
               fontFamily: 'Cinzel, serif',
-              color: currentTheme.primary
+              color: currentTheme.primary,
             }}
           >
             Resort Location
           </h3>
-          <p 
+          <p
             className="text-base"
-            style={{ 
+            style={{
               fontFamily: 'Crimson Text, serif',
-              color: currentTheme.dark
+              color: currentTheme.dark,
             }}
           >
             {sleepingData.metadata.location}

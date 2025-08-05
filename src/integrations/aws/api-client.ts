@@ -11,16 +11,13 @@ export class APIError extends Error {
   }
 }
 
-export async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+export async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   if (!API_GATEWAY_URL) {
     throw new APIError('API Gateway URL not configured');
   }
 
   const url = `${API_GATEWAY_URL}${endpoint}`;
-  
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -45,11 +42,11 @@ export async function apiRequest<T>(
     if (error instanceof APIError) {
       throw error;
     }
-    
+
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new APIError('Network error - please check your connection');
     }
-    
+
     throw new APIError('An unexpected error occurred');
   }
 }

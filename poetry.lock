@@ -208,6 +208,22 @@ files = [
 ]
 
 [[package]]
+name = "isort"
+version = "6.0.1"
+description = "A Python utility / library to sort Python imports."
+optional = false
+python-versions = ">=3.9.0"
+groups = ["dev"]
+files = [
+    {file = "isort-6.0.1-py3-none-any.whl", hash = "sha256:2dc5d7f65c9678d94c88dfc29161a320eec67328bc97aad576874cb4be1e9615"},
+    {file = "isort-6.0.1.tar.gz", hash = "sha256:1cb5df28dfbc742e490c5e41bad6da41b805b0a8be7bc93cd0fb2a8a890ac450"},
+]
+
+[package.extras]
+colors = ["colorama"]
+plugins = ["setuptools"]
+
+[[package]]
 name = "jmespath"
 version = "1.0.1"
 description = "JSON Matching Expressions"
@@ -501,4 +517,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "d977c78c3474546a748506baba24e52dfa3bfef6d801b78fb7aa593089da6611"
+content-hash = "2b1d0895fa3dbe32d22b58b9b3a9ade607616f842d732977746612cd5c88ce7a"

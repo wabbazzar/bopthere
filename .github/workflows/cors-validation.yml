@@ -1,0 +1,99 @@
+name: CORS and Auth Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'aws/**'
+      - '.env*'
+      - 'infrastructure/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'aws/**'
+      - '.env*'
+      - 'infrastructure/**'
+
+jobs:
+  cors-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check API Gateway Configuration
+      run: |
+        echo "Checking for correct API Gateway configuration..."
+        
+        # Check .env file
+        if grep -q "4q7jj56io8" .env 2>/dev/null; then
+          echo "❌ ERROR: .env contains wrong API Gateway ID (4q7jj56io8)"
+          echo "Auth endpoints are on emwkjk2c9d"
+          exit 1
+        fi
+        
+        # Check source files for hardcoded wrong gateway
+        if grep -r "4q7jj56io8" src/ --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null; then
+          echo "❌ ERROR: Source files contain wrong API Gateway ID"
+          echo "Found references to 4q7jj56io8, but auth endpoints are on emwkjk2c9d"
+          exit 1
+        fi
+        
+        echo "✅ API Gateway configuration looks correct"
+    
+    - name: Test CORS Configuration
+      run: |
+        # Use the correct API Gateway
+        API_URL="https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod"
+        
+        echo "Testing CORS preflight request..."
+        RESPONSE=$(curl -s -I -X OPTIONS "$API_URL/auth/login" \
+          -H "Origin: http://localhost:8080" \
+          -H "Access-Control-Request-Method: POST" \
+          -H "Access-Control-Request-Headers: Content-Type" || echo "FAILED")
+        
+        if echo "$RESPONSE" | grep -q "Access-Control-Allow-Origin"; then
+          echo "✅ CORS headers present"
+        else
+          echo "❌ CORS headers missing!"
+          echo "Response:"
+          echo "$RESPONSE"
+          exit 1
+        fi
+    
+    - name: Test Auth Endpoints
+      run: |
+        API_URL="https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod"
+        
+        # Test login endpoint exists
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL/auth/login" \
+          -H "Content-Type: application/json" \
+          -d '{"username":"test","password":"test"}')
+        
+        if [ "$STATUS" = "404" ]; then
+          echo "❌ Auth login endpoint not found!"
+          exit 1
+        else
+          echo "✅ Auth login endpoint accessible (status: $STATUS)"
+        fi
+        
+        # Test verify endpoint exists
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL/auth/verify" \
+          -H "Content-Type: application/json" \
+          -d '{}')
+        
+        if [ "$STATUS" = "404" ]; then
+          echo "❌ Auth verify endpoint not found!"
+          exit 1
+        else
+          echo "✅ Auth verify endpoint accessible (status: $STATUS)"
+        fi
+    
+    - name: Validate Frontend Build
+      run: |
+        # This would normally build the frontend to ensure no CORS issues at build time
+        echo "Frontend build validation would run here"
+        # npm ci
+        # npm run build

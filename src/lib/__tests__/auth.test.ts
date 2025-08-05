@@ -6,7 +6,10 @@ import type { LoginCredentials, LoginResponse, User } from '@/types/auth';
 jest.mock('@/integrations/aws/api-client', () => ({
   apiRequest: jest.fn(),
   APIError: class APIError extends Error {
-    constructor(message: string, public statusCode?: number) {
+    constructor(
+      message: string,
+      public statusCode?: number
+    ) {
       super(message);
       this.name = 'APIError';
     }
@@ -23,7 +26,8 @@ describe('AuthService', () => {
     last_login: '2025-01-01T00:00:00Z',
   };
 
-  const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+  const mockToken =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
   const mockLoginResponse: LoginResponse = {
     token: mockToken,
@@ -43,7 +47,10 @@ describe('AuthService', () => {
         AuthService.setAuthData(mockToken, mockUser);
 
         expect(localStorage.setItem).toHaveBeenCalledWith('wedding-auth-token', mockToken);
-        expect(localStorage.setItem).toHaveBeenCalledWith('wedding-auth-user', JSON.stringify(mockUser));
+        expect(localStorage.setItem).toHaveBeenCalledWith(
+          'wedding-auth-user',
+          JSON.stringify(mockUser)
+        );
       });
     });
 
@@ -171,7 +178,10 @@ describe('AuthService', () => {
         });
 
         expect(localStorage.setItem).toHaveBeenCalledWith('wedding-auth-token', mockToken);
-        expect(localStorage.setItem).toHaveBeenCalledWith('wedding-auth-user', JSON.stringify(mockUser));
+        expect(localStorage.setItem).toHaveBeenCalledWith(
+          'wedding-auth-user',
+          JSON.stringify(mockUser)
+        );
         expect(result).toEqual(mockLoginResponse);
       });
 
@@ -188,7 +198,9 @@ describe('AuthService', () => {
         const networkError = new Error('Network failure');
         (apiRequest as jest.Mock).mockRejectedValue(networkError);
 
-        await expect(AuthService.login(mockCredentials)).rejects.toThrow('Login failed - please try again');
+        await expect(AuthService.login(mockCredentials)).rejects.toThrow(
+          'Login failed - please try again'
+        );
 
         expect(localStorage.setItem).not.toHaveBeenCalled();
       });
@@ -224,12 +236,15 @@ describe('AuthService', () => {
         expect(apiRequest).toHaveBeenCalledWith('/auth/verify', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${mockToken}`,
+            Authorization: `Bearer ${mockToken}`,
           },
         });
 
         expect(localStorage.setItem).toHaveBeenCalledWith('wedding-auth-token', mockToken);
-        expect(localStorage.setItem).toHaveBeenCalledWith('wedding-auth-user', JSON.stringify(mockUser));
+        expect(localStorage.setItem).toHaveBeenCalledWith(
+          'wedding-auth-user',
+          JSON.stringify(mockUser)
+        );
         expect(result).toEqual(mockUser);
       });
 
@@ -293,7 +308,7 @@ describe('AuthService', () => {
         const result = AuthService.getAuthHeaders();
 
         expect(result).toEqual({
-          'Authorization': `Bearer ${mockToken}`,
+          Authorization: `Bearer ${mockToken}`,
         });
       });
 
@@ -354,7 +369,7 @@ describe('AuthService', () => {
       const results = await Promise.all(promises);
 
       // All should succeed
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result).toEqual(mockLoginResponse);
       });
 
@@ -375,7 +390,10 @@ describe('AuthService', () => {
       const result = await AuthService.verifyToken();
 
       expect(result).toEqual(updatedUser);
-      expect(localStorage.setItem).toHaveBeenCalledWith('wedding-auth-user', JSON.stringify(updatedUser));
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        'wedding-auth-user',
+        JSON.stringify(updatedUser)
+      );
     });
   });
 
@@ -412,7 +430,7 @@ describe('AuthService', () => {
       const result = AuthService.getAuthHeaders();
 
       expect(result).toEqual({
-        'Authorization': 'Bearer javascript:alert(1)',
+        Authorization: 'Bearer javascript:alert(1)',
       });
     });
   });

@@ -7,21 +7,18 @@ import { motion } from 'framer-motion';
 import { Loader2, Trophy, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AuthService } from '@/lib/auth';
-import { 
-  ScoreSubmissionProps,
-  LEADERBOARD_TEXT 
-} from '@/types/leaderboard';
+import { ScoreSubmissionProps, LEADERBOARD_TEXT } from '@/types/leaderboard';
 import { submitScore, formatScore } from '@/utils/leaderboardApi';
 import { useCharacter } from '@/contexts/CharacterContext';
 import { characterThemes } from '@/types/character';
 import { cn } from '@/lib/utils';
 
-export function ScoreSubmission({ 
-  score, 
-  game, 
+export function ScoreSubmission({
+  score,
+  game,
   character: submissionCharacter,
   onSuccess,
-  onError 
+  onError,
 }: ScoreSubmissionProps) {
   const { selectedCharacter } = useCharacter();
   const { toast } = useToast();
@@ -32,7 +29,7 @@ export function ScoreSubmission({
   // Get theme from characterThemes
   const character = selectedCharacter || submissionCharacter || 'wesley';
   const characterTheme = characterThemes[character];
-  
+
   // Create theme object with expected structure
   const theme = {
     colors: {
@@ -42,29 +39,36 @@ export function ScoreSubmission({
       text: characterTheme.dark,
       border: `${characterTheme.secondary}40`,
       background: '#ffffff',
-      primaryText: '#ffffff'
+      primaryText: '#ffffff',
     },
     fonts: {
       heading: 'Cinzel, serif',
-      body: 'Crimson Text, serif'
-    }
+      body: 'Crimson Text, serif',
+    },
   };
-  
+
   const text = LEADERBOARD_TEXT[character];
 
   const handleSubmit = async () => {
-    console.log('ScoreSubmission: Starting submission for score:', score, 'game:', game, 'character:', submissionCharacter || character);
-    
+    console.log(
+      'ScoreSubmission: Starting submission for score:',
+      score,
+      'game:',
+      game,
+      'character:',
+      submissionCharacter || character
+    );
+
     // Check if user is authenticated
     if (!AuthService.isAuthenticated()) {
       console.log('ScoreSubmission: User not authenticated');
       toast({
-        title: "Authentication Required",
-        description: "Please log in to submit your score",
-        variant: "destructive",
+        title: 'Authentication Required',
+        description: 'Please log in to submit your score',
+        variant: 'destructive',
       });
       if (onError) {
-        onError("Authentication required");
+        onError('Authentication required');
       }
       return;
     }
@@ -81,9 +85,9 @@ export function ScoreSubmission({
 
       console.log('ScoreSubmission: Score submitted successfully:', response);
       setSubmitted(true);
-      
+
       toast({
-        title: "Score Submitted!",
+        title: 'Score Submitted!',
         description: `Your score of ${formatScore(score)} has been added to the leaderboard`,
         duration: 5000,
       });
@@ -95,11 +99,11 @@ export function ScoreSubmission({
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit score';
       console.error('ScoreSubmission: Failed to submit score:', err);
       setError(errorMessage);
-      
+
       toast({
-        title: "Submission Failed",
+        title: 'Submission Failed',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
 
       if (onError) {
@@ -140,12 +144,8 @@ export function ScoreSubmission({
         <div className="flex items-center gap-3 p-4 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700">
           <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
           <div className="flex-1">
-            <p className="font-medium text-red-800 dark:text-red-200">
-              Submission failed
-            </p>
-            <p className="text-sm text-red-600 dark:text-red-400">
-              {error}
-            </p>
+            <p className="font-medium text-red-800 dark:text-red-200">Submission failed</p>
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         </div>
         <motion.button
@@ -165,24 +165,17 @@ export function ScoreSubmission({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-4"
-    >
-      <div 
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+      <div
         className="text-center p-6 rounded-lg border-2 border-dashed"
         style={{ borderColor: theme.colors.border }}
       >
-        <Trophy 
-          className="w-12 h-12 mx-auto mb-3"
-          style={{ color: theme.colors.accent }}
-        />
-        <h3 
+        <Trophy className="w-12 h-12 mx-auto mb-3" style={{ color: theme.colors.accent }} />
+        <h3
           className="text-xl font-bold mb-2"
-          style={{ 
+          style={{
             fontFamily: theme.fonts.heading,
-            color: theme.colors.primary 
+            color: theme.colors.primary,
           }}
         >
           Great Score!
@@ -193,16 +186,16 @@ export function ScoreSubmission({
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           Ready to add your score to the leaderboard?
         </p>
-        
+
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleSubmit}
           disabled={submitting}
           className={cn(
-            "px-6 py-3 rounded-lg font-medium transition-all",
-            "flex items-center gap-2 mx-auto",
-            submitting && "opacity-50 cursor-not-allowed"
+            'px-6 py-3 rounded-lg font-medium transition-all',
+            'flex items-center gap-2 mx-auto',
+            submitting && 'opacity-50 cursor-not-allowed'
           )}
           style={{
             backgroundColor: theme.colors.primary,

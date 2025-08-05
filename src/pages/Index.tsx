@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CharacterProvider, useCharacter } from '@/contexts/CharacterContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,7 +30,7 @@ const IndexContent: React.FC = () => {
       const timer = setTimeout(() => {
         setShowInstallPrompt(true);
       }, 3000); // Show after 3 seconds
-      
+
       return () => clearTimeout(timer);
     }
   }, [selectedCharacter, canInstall, showCharacterSelector]);
@@ -42,13 +41,15 @@ const IndexContent: React.FC = () => {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen relative"
       style={{
-        backgroundImage: !selectedCharacter ? `url(/app-uploads/30a58018-bcb5-4eef-9456-61020c703a8d.png)` : undefined,
+        backgroundImage: !selectedCharacter
+          ? `url(/app-uploads/30a58018-bcb5-4eef-9456-61020c703a8d.png)`
+          : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
       }}
     >
       {/* Background overlay for initial load */}
@@ -58,9 +59,9 @@ const IndexContent: React.FC = () => {
           <div className="absolute inset-0 bg-black bg-opacity-40" />
         </>
       )}
-      
-      <CharacterSelector 
-        open={showCharacterSelector} 
+
+      <CharacterSelector
+        open={showCharacterSelector}
         onOpenChange={(open) => {
           // Ensure dialog state is properly managed
           setShowCharacterSelector(open);
@@ -68,14 +69,14 @@ const IndexContent: React.FC = () => {
             // Extra cleanup when dialog closes
             setTimeout(() => {
               const dialogOverlays = document.querySelectorAll('[data-radix-dialog-overlay]');
-              dialogOverlays.forEach(el => el.remove());
+              dialogOverlays.forEach((el) => el.remove());
             }, 300);
           }
-        }} 
+        }}
       />
-      
+
       <CharacterSwitcher showCharacterSelector={showCharacterSelector} />
-      
+
       {selectedCharacter && (
         <>
           <HeroSection />
@@ -86,10 +87,8 @@ const IndexContent: React.FC = () => {
 
       {/* PWA Components */}
       <OfflineStatus />
-      
-      {showInstallPrompt && (
-        <InstallPrompt onClose={() => setShowInstallPrompt(false)} />
-      )}
+
+      {showInstallPrompt && <InstallPrompt onClose={() => setShowInstallPrompt(false)} />}
     </div>
   );
 };

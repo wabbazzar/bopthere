@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Character } from '@/types/character';
 
@@ -9,7 +8,7 @@ interface CharacterContextType {
 
 export const CharacterContext = createContext<CharacterContextType>({
   selectedCharacter: null,
-  setSelectedCharacter: () => {}
+  setSelectedCharacter: () => {},
 });
 
 export const useCharacter = () => {

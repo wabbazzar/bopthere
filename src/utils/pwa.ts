@@ -27,65 +27,65 @@ interface CharacterManifest {
 
 const characterManifests: Record<CharacterType, CharacterManifest> = {
   wesley: {
-    name: "Heather & Wesley",
-    short_name: "Heather & Wesley",
-    theme_color: "#0088CC",
-    background_color: "#001F3F",
+    name: 'Heather & Wesley',
+    short_name: 'Heather & Wesley',
+    theme_color: '#0088CC',
+    background_color: '#001F3F',
     icons: [
       {
-        src: "/app-uploads/hwapp.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "any maskable"
+        src: '/app-uploads/hwapp.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any maskable',
       },
       {
-        src: "/app-uploads/hwapp.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any maskable"
-      }
-    ]
+        src: '/app-uploads/hwapp.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable',
+      },
+    ],
   },
   heather: {
-    name: "Heather & Wesley",
-    short_name: "Heather & Wesley",
-    theme_color: "#FFB6C1",
-    background_color: "#2C1810",
+    name: 'Heather & Wesley',
+    short_name: 'Heather & Wesley',
+    theme_color: '#FFB6C1',
+    background_color: '#2C1810',
     icons: [
       {
-        src: "/app-uploads/hwapp.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "any maskable"
+        src: '/app-uploads/hwapp.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any maskable',
       },
       {
-        src: "/app-uploads/hwapp.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any maskable"
-      }
-    ]
+        src: '/app-uploads/hwapp.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable',
+      },
+    ],
   },
   puffy: {
-    name: "Heather & Wesley",
-    short_name: "Heather & Wesley",
-    theme_color: "#9370DB",
-    background_color: "#1E0033",
+    name: 'Heather & Wesley',
+    short_name: 'Heather & Wesley',
+    theme_color: '#9370DB',
+    background_color: '#1E0033',
     icons: [
       {
-        src: "/app-uploads/hwapp.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "any maskable"
+        src: '/app-uploads/hwapp.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any maskable',
       },
       {
-        src: "/app-uploads/hwapp.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any maskable"
-      }
-    ]
-  }
+        src: '/app-uploads/hwapp.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable',
+      },
+    ],
+  },
 };
 
 export class PWAManager {
@@ -93,7 +93,7 @@ export class PWAManager {
     isInstallable: false,
     isInstalled: false,
     isOffline: !navigator.onLine,
-    deferredPrompt: null
+    deferredPrompt: null,
   };
 
   private listeners: Array<(state: PWAState) => void> = [];
@@ -141,7 +141,7 @@ export class PWAManager {
       try {
         const registration = await navigator.serviceWorker.register('/service-worker.js');
         console.log('Service Worker registered:', registration.scope);
-        
+
         // Check for updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
@@ -177,7 +177,7 @@ export class PWAManager {
       const characterData = characterManifests[character];
       const updatedManifest = {
         ...baseManifest,
-        ...characterData
+        ...characterData,
       };
 
       // Create blob URL for updated manifest
@@ -205,7 +205,7 @@ export class PWAManager {
     try {
       await this.state.deferredPrompt.prompt();
       const { outcome } = await this.state.deferredPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
         console.log('User accepted the install prompt');
         return true;
@@ -237,7 +237,7 @@ export class PWAManager {
   }
 
   private notifyListeners() {
-    this.listeners.forEach(listener => listener(this.state));
+    this.listeners.forEach((listener) => listener(this.state));
   }
 
   private notifyUpdateAvailable() {

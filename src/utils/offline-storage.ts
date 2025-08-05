@@ -42,7 +42,10 @@ class OfflineStorageManager {
     });
   }
 
-  async addPendingRSVP(payload: Record<string, unknown>, characterContext?: string): Promise<string> {
+  async addPendingRSVP(
+    payload: Record<string, unknown>,
+    characterContext?: string
+  ): Promise<string> {
     if (!this.db) await this.init();
 
     const id = `rsvp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -51,7 +54,7 @@ class OfflineStorageManager {
       payload,
       timestamp: Date.now(),
       retryCount: 0,
-      characterContext
+      characterContext,
     };
 
     return new Promise((resolve, reject) => {
@@ -145,7 +148,7 @@ class OfflineStorageManager {
 
   async clearExpiredData(maxAge: number = 7 * 24 * 60 * 60 * 1000): Promise<void> {
     const cutoff = Date.now() - maxAge;
-    
+
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
@@ -173,7 +176,7 @@ class OfflineStorageManager {
     if (!this.db) await this.init();
 
     const pendingRSVPs = await this.getPendingRSVPs();
-    
+
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(['cached-data'], 'readonly');
       const store = transaction.objectStore('cached-data');
@@ -182,7 +185,7 @@ class OfflineStorageManager {
       request.onsuccess = () => {
         resolve({
           pendingCount: pendingRSVPs.length,
-          cacheSize: request.result.length
+          cacheSize: request.result.length,
         });
       };
       request.onerror = () => reject(request.error);

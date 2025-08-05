@@ -15,7 +15,7 @@ export const InstallButton: React.FC<InstallButtonProps> = ({
   variant = 'default',
   size = 'md',
   showIcon = true,
-  className = ''
+  className = '',
 }) => {
   const [isInstalling, setIsInstalling] = useState(false);
   const { canInstall, promptInstall } = usePWA();
@@ -77,25 +77,25 @@ export const OfflineIndicator: React.FC = () => {
         return {
           text: 'Quest Mode: Offline',
           icon: '⚔️',
-          description: 'Your adventure continues offline!'
+          description: 'Your adventure continues offline!',
         };
       case 'heather':
         return {
           text: 'Offline Mode',
           icon: '💕',
-          description: 'Still connected to our love'
+          description: 'Still connected to our love',
         };
       case 'puffy':
         return {
           text: 'Party Offline!',
           icon: '🎉',
-          description: 'The party never stops!'
+          description: 'The party never stops!',
         };
       default:
         return {
           text: 'Offline',
           icon: '📱',
-          description: 'No internet connection'
+          description: 'No internet connection',
         };
     }
   };

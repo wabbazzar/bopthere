@@ -70,6 +70,17 @@ help:
 	@echo "Schema Management:"
 	@echo "  make update-schemas     Update all API schemas and documentation"
 	@echo "  make test-api-consistency  Test field consistency across layers"
+	@echo ""
+	@echo "Code Quality Operations:"
+	@echo "  make format             Format all code with pre-commit tools"
+	@echo "  make format-check       Check code formatting without changes"
+	@echo "  make lint-python        Run Python linters (flake8, mypy)"
+	@echo "  make lint-frontend      Run frontend linters (ESLint)"
+	@echo "  make test-format        Alias for format-check"
+	@echo ""
+	@echo "Test Cleanup Operations:"
+	@echo "  make test-clean         Clean up test data from DynamoDB"
+	@echo "  make test-all-clean     Clean test data then run all tests"
 
 # DynamoDB Table Creation
 create-rsvp-table:
@@ -152,10 +163,10 @@ test-api:
 
 # Full Stack Operations
 
-test-all:
+test-all: ## Run all API tests
 	@echo "Running comprehensive service tests..."
-	@chmod +x tmp/test-all-services.sh
-	@./tmp/test-all-services.sh
+	@chmod +x scripts/test-all-api.sh
+	@./scripts/test-all-api.sh
 
 deploy-all:
 	@echo "Deploying all resources to $(AWS_REGION)..."
@@ -592,6 +603,68 @@ hooks-disable: ## Disable Git hooks
 	@echo "Git hooks are now disabled"
 	@echo "💡 To re-enable: make hooks-enable"
 
+# Code Quality Operations
+format: ## Format all code with pre-commit tools
+	@echo "🎨 Running code formatters..."
+	@echo ""
+	@echo "📦 Frontend (TypeScript/React):"
+	@npx prettier --write "src/**/*.{ts,tsx,js,jsx,json,css,md}" || echo "⚠️  Prettier failed"
+	@npm run lint -- --fix || echo "⚠️  ESLint autofix failed"
+	@echo "✅ Frontend formatting complete"
+	@echo ""
+	@echo "🐍 Backend (Python):"
+	@poetry run black aws/ scripts/ tests/ || echo "⚠️  Black failed"
+	@poetry run isort aws/ scripts/ tests/ || echo "⚠️  isort failed"
+	@echo "✅ Backend formatting complete"
+	@echo ""
+	@echo "✨ All formatting complete!"
+
+format-check: ## Check code formatting without changes
+	@echo "🔍 Checking code formatting..."
+	@echo ""
+	@echo "📦 Frontend (TypeScript/React):"
+	@npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}" || (echo "❌ Prettier check failed" && exit 1)
+	@npm run lint || (echo "❌ ESLint check failed" && exit 1)
+	@echo "✅ Frontend formatting OK"
+	@echo ""
+	@echo "🐍 Backend (Python):"
+	@poetry run black --check aws/ scripts/ tests/ || (echo "❌ Black check failed" && exit 1)
+	@poetry run isort --check-only aws/ scripts/ tests/ || (echo "❌ isort check failed" && exit 1)
+	@poetry run flake8 || (echo "❌ flake8 check failed" && exit 1)
+	@echo "✅ Backend formatting OK"
+	@echo ""
+	@echo "✅ All formatting checks passed!"
+
+lint-python: ## Run Python linters
+	@echo "🐍 Running Python linters..."
+	@poetry run flake8
+	@poetry run mypy aws/ scripts/ tests/ --ignore-missing-imports || echo "⚠️  mypy found type issues"
+
+lint-frontend: ## Run frontend linters
+	@echo "📦 Running frontend linters..."
+	@npm run lint
+
+test-format: format-check ## Alias for format-check
+
+test-clean: ## Clean up test data from DynamoDB
+	@echo "🧹 Cleaning up test data..."
+	@poetry run python scripts/cleanup-test-data.py --profile $(AWS_PROFILE) --region $(AWS_REGION)
+	@echo "✅ Test data cleaned up"
+
+test-all-clean: test-clean test-all ## Clean test data then run all tests
+
+test-auth-quick: ## Quick auth connectivity test
+	@chmod +x scripts/test-auth-quick.sh
+	@./scripts/test-auth-quick.sh
+
+test-auth-cors: ## Detailed CORS validation for auth endpoints
+	@chmod +x scripts/test-auth-cors-detailed.sh
+	@./scripts/test-auth-cors-detailed.sh
+
+test-auth-integration: ## Run auth integration tests
+	@echo "🧪 Testing auth integration..."
+	@npm test -- tests/integration/frontend/auth-api-integration.test.tsx
+
 # Development helpers
 .PHONY: help create-rsvp-table describe-table list-tables \
         update-lambda test-lambda test-api fix-cors test-all deploy-all cleanup-west-2 cleanup-west-2-final \
@@ -603,4 +676,6 @@ hooks-disable: ## Disable Git hooks
         deploy-leaderboard-lambda test-leaderboard update-leaderboard-lambda \
         deploy-leaderboard-api test-leaderboard-api \
         create-health-lambda-role deploy-health-lambda test-health verify-migration verify-migration-complete \
-        hooks-setup hooks-test hooks-status hooks-enable hooks-disable
+        hooks-setup hooks-test hooks-status hooks-enable hooks-disable \
+        format format-check lint-python lint-frontend test-format test-clean test-all-clean \
+        test-auth-quick test-auth-cors test-auth-integration

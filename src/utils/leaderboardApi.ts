@@ -2,11 +2,11 @@
  * API utility functions for leaderboard operations
  */
 
-import { 
-  LeaderboardResponse, 
-  ScoreSubmission, 
+import {
+  LeaderboardResponse,
+  ScoreSubmission,
   ScoreSubmissionResponse,
-  LEADERBOARD_API 
+  LEADERBOARD_API,
 } from '@/types/leaderboard';
 import { AuthService } from '@/lib/auth';
 
@@ -41,11 +41,11 @@ export async function fetchLeaderboard(game: string): Promise<LeaderboardRespons
  * Submit a score to the leaderboard
  */
 export async function submitScore(
-  game: string, 
+  game: string,
   submission: ScoreSubmission
 ): Promise<ScoreSubmissionResponse> {
   const token = AuthService.getToken();
-  
+
   if (!token) {
     throw new Error('Authentication required to submit scores');
   }
@@ -59,7 +59,7 @@ export async function submitScore(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(submission),
     });
@@ -69,7 +69,7 @@ export async function submitScore(
     if (!response.ok) {
       const errorText = await response.text();
       console.error('leaderboardApi: Error response:', errorText);
-      
+
       if (response.status === 401) {
         throw new Error('Authentication failed. Please log in again.');
       }
@@ -107,7 +107,7 @@ export function formatTimestamp(timestamp: string): string {
   if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-  
+
   return date.toLocaleDateString();
 }
 

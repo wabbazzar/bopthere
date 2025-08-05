@@ -31,6 +31,6 @@ export const usePWA = () => {
     promptInstall,
     skipWaiting,
     canInstall: pwaState?.isInstallable && !pwaState?.isInstalled,
-    needsUpdate: false // This would be set by service worker update detection
+    needsUpdate: false, // This would be set by service worker update detection
   };
 };

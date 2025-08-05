@@ -33,7 +33,7 @@ export interface AuthState {
   isLoading: boolean;
 }
 
-export type AuthAction = 
+export type AuthAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'LOGIN_SUCCESS'; payload: { user: User; token: string } }
   | { type: 'LOGIN_FAILURE' }

@@ -19,30 +19,33 @@ interface PuffySmileAnimationProps {
 // Character-specific game introductions
 const gameIntroductions = {
   wesley: {
-    title: "Epic Tetris Quest",
-    subtitle: "Master the falling blocks, brave adventurer!",
-    description: "Channel your strategic mind and lightning reflexes in this legendary puzzle challenge. Stack the mystical blocks with precision and clear lines to achieve victory in the ancient game of Tetris!"
+    title: 'Epic Tetris Quest',
+    subtitle: 'Master the falling blocks, brave adventurer!',
+    description:
+      'Channel your strategic mind and lightning reflexes in this legendary puzzle challenge. Stack the mystical blocks with precision and clear lines to achieve victory in the ancient game of Tetris!',
   },
   heather: {
-    title: "Elegant Tetris Puzzle",
-    subtitle: "A timeless classic for refined entertainment",
-    description: "Enjoy this beautifully crafted puzzle experience. Arrange the graceful falling pieces with care and create perfect lines in this sophisticated and relaxing gameplay."
+    title: 'Elegant Tetris Puzzle',
+    subtitle: 'A timeless classic for refined entertainment',
+    description:
+      'Enjoy this beautifully crafted puzzle experience. Arrange the graceful falling pieces with care and create perfect lines in this sophisticated and relaxing gameplay.',
   },
   puffy: {
-    title: "Super Fun Tetris Party!",
-    subtitle: "The most exciting block-stacking adventure ever!",
-    description: "Get ready for the most amazing Tetris experience! Watch the colorful blocks fall and create awesome line clears. This game is absolutely perfect for our epic party weekend!"
-  }
+    title: 'Super Fun Tetris Party!',
+    subtitle: 'The most exciting block-stacking adventure ever!',
+    description:
+      'Get ready for the most amazing Tetris experience! Watch the colorful blocks fall and create awesome line clears. This game is absolutely perfect for our epic party weekend!',
+  },
 };
 
 // Puffy smile animation component
 const PuffySmileAnimation: React.FC<PuffySmileAnimationProps> = ({ rowsCleared, onComplete }) => {
   const [isVisible, setIsVisible] = useState(true);
-  
+
   // Scale and duration based on rows cleared
   const scale = rowsCleared === 2 ? 0.8 : rowsCleared === 3 ? 1 : 1.2;
   const duration = rowsCleared === 2 ? 1500 : rowsCleared === 3 ? 2000 : 2500;
-  
+
   // Random position around edges
   const positions = [
     { top: '10%', left: '10%' },
@@ -51,7 +54,7 @@ const PuffySmileAnimation: React.FC<PuffySmileAnimationProps> = ({ rowsCleared, 
     { bottom: '10%', right: '10%' },
   ];
   const position = positions[Math.floor(Math.random() * positions.length)];
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
@@ -59,9 +62,9 @@ const PuffySmileAnimation: React.FC<PuffySmileAnimationProps> = ({ rowsCleared, 
     }, duration);
     return () => clearTimeout(timer);
   }, [duration, onComplete]);
-  
+
   if (!isVisible) return null;
-  
+
   return (
     <img
       src="/app-uploads/puffysmile.png"
@@ -91,14 +94,17 @@ const getThemeStyles = (theme: CharacterTheme) => ({
   iframe: {
     border: `3px solid ${theme.primary}`,
     borderRadius: '12px',
-  }
+  },
 });
 
 export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [puffySmileAnimation, setPuffySmileAnimation] = useState<{ show: boolean; rows: number } | null>(null);
+  const [puffySmileAnimation, setPuffySmileAnimation] = useState<{
+    show: boolean;
+    rows: number;
+  } | null>(null);
   const [currentScore, setCurrentScore] = useState<number | null>(null);
   const [showScoreSubmission, setShowScoreSubmission] = useState(false);
   const [leaderboardKey, setLeaderboardKey] = useState(0); // Force refresh
@@ -124,38 +130,45 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       console.log('TetrisGame: Received postMessage:', event.data, 'from origin:', event.origin);
-      
+
       // Only process messages from our iframe
       if (event.source === iframeRef.current?.contentWindow) {
         console.log('TetrisGame: Message confirmed from our iframe');
-        
+
         // Handle test messages
         if (event.data.type === 'TETRIS_TEST_MESSAGE') {
           console.log('TetrisGame: Received test message at timestamp:', event.data.timestamp);
         }
-        
-        if (event.data.type === 'TETRIS_ROWS_CLEARED' && event.data.rows >= 2 && character === 'puffy') {
+
+        if (
+          event.data.type === 'TETRIS_ROWS_CLEARED' &&
+          event.data.rows >= 2 &&
+          character === 'puffy'
+        ) {
           setPuffySmileAnimation({ show: true, rows: event.data.rows });
         }
-        
+
         // Handle game over with score
         if (event.data.type === 'TETRIS_GAME_OVER' && typeof event.data.score === 'number') {
-          console.log('TetrisGame: Received TETRIS_GAME_OVER message with score:', event.data.score);
+          console.log(
+            'TetrisGame: Received TETRIS_GAME_OVER message with score:',
+            event.data.score
+          );
           setCurrentScore(event.data.score);
           setShowScoreSubmission(true);
-          
+
           // Show toast if user is not authenticated
           if (!AuthService.isAuthenticated()) {
             console.log('TetrisGame: User not authenticated, showing login prompt');
             toast({
-              title: "Great game!",
-              description: "Log in to save your score to the leaderboard.",
+              title: 'Great game!',
+              description: 'Log in to save your score to the leaderboard.',
             });
           } else {
             console.log('TetrisGame: User authenticated, showing score submission');
           }
         }
-        
+
         // Handle new game started
         if (event.data.type === 'TETRIS_GAME_START') {
           setCurrentScore(null);
@@ -163,7 +176,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
         }
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [character, toast]);
@@ -212,49 +225,43 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
 
   // Iframe security attributes
   const iframeAttributes = {
-    src: "/tetris/index.html", // Path to tetris game in public directory
-    sandbox: "allow-scripts allow-same-origin allow-forms" as const,
-    allow: "accelerometer; gyroscope; vibrate",
-    loading: "lazy" as const,
+    src: '/tetris/index.html', // Path to tetris game in public directory
+    sandbox: 'allow-scripts allow-same-origin allow-forms' as const,
+    allow: 'accelerometer; gyroscope; vibrate',
+    loading: 'lazy' as const,
     title: `Tetris Game - ${characterNames[character]} Theme`,
-    "aria-label": `Tetris game embedded for ${characterNames[character]}`,
+    'aria-label': `Tetris game embedded for ${characterNames[character]}`,
   };
 
   return (
     <div ref={containerRef} className="space-y-6">
       {/* Character Introduction Header */}
-      <Card 
+      <Card
         className="bg-white/90 backdrop-blur-sm border-2 shadow-lg"
         style={themeStyles.container}
       >
-        <CardHeader 
-          className="text-center text-white"
-          style={themeStyles.header}
-        >
+        <CardHeader className="text-center text-white" style={themeStyles.header}>
           <div className="flex items-center justify-center mb-4">
             <div className="p-3 rounded-full bg-white/20">
               <Gamepad2 className="w-8 h-8 text-white" />
             </div>
           </div>
-          <CardTitle 
-            className="text-3xl font-bold"
-            style={{ fontFamily: 'Cinzel, serif' }}
-          >
+          <CardTitle className="text-3xl font-bold" style={{ fontFamily: 'Cinzel, serif' }}>
             {introduction.title}
           </CardTitle>
-          <CardDescription 
-            className="text-lg mt-2 text-white/90" 
+          <CardDescription
+            className="text-lg mt-2 text-white/90"
             style={{ fontFamily: 'Crimson Text, serif' }}
           >
             {introduction.subtitle}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <p 
+          <p
             className="text-lg leading-relaxed text-center"
-            style={{ 
+            style={{
               fontFamily: 'Crimson Text, serif',
-              color: theme.dark
+              color: theme.dark,
             }}
           >
             {introduction.description}
@@ -263,7 +270,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
       </Card>
 
       {/* Game Container */}
-      <Card 
+      <Card
         className="bg-white/95 backdrop-blur-sm border-2 shadow-lg"
         style={themeStyles.container}
       >
@@ -271,11 +278,11 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
           <div className="relative">
             {/* Game Controls */}
             <div className="flex justify-between items-center mb-4">
-              <h3 
+              <h3
                 className="text-xl font-bold"
-                style={{ 
+                style={{
                   fontFamily: 'Cinzel, serif',
-                  color: theme.primary
+                  color: theme.primary,
                 }}
               >
                 Game Controls
@@ -323,7 +330,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
             </div>
 
             {/* Game Iframe Container */}
-            <div 
+            <div
               className={`relative w-full ${isFullscreen ? 'h-screen' : 'h-96 md:h-[600px]'} overflow-hidden`}
               style={themeStyles.iframe}
             >
@@ -331,15 +338,15 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
                   <div className="text-center">
-                    <Loader2 
+                    <Loader2
                       className="w-8 h-8 animate-spin mb-4 mx-auto"
                       style={{ color: theme.primary }}
                     />
-                    <p 
+                    <p
                       className="text-lg font-medium"
-                      style={{ 
+                      style={{
                         fontFamily: 'Crimson Text, serif',
-                        color: theme.dark
+                        color: theme.dark,
                       }}
                     >
                       Loading your {introduction.title.toLowerCase()}...
@@ -352,27 +359,28 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
               {hasError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white/90 z-10">
                   <div className="text-center max-w-md mx-auto p-6">
-                    <AlertCircle 
+                    <AlertCircle
                       className="w-12 h-12 mb-4 mx-auto"
                       style={{ color: theme.primary }}
                     />
-                    <h4 
+                    <h4
                       className="text-xl font-bold mb-2"
-                      style={{ 
+                      style={{
                         fontFamily: 'Cinzel, serif',
-                        color: theme.primary
+                        color: theme.primary,
                       }}
                     >
                       Game Loading Error
                     </h4>
-                    <p 
+                    <p
                       className="text-lg mb-4"
-                      style={{ 
+                      style={{
                         fontFamily: 'Crimson Text, serif',
-                        color: theme.dark
+                        color: theme.dark,
                       }}
                     >
-                      We're having trouble loading the Tetris game. Please try refreshing or check back later.
+                      We're having trouble loading the Tetris game. Please try refreshing or check
+                      back later.
                     </p>
                     <button
                       onClick={retryLoad}
@@ -405,11 +413,11 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
           onComplete={() => setPuffySmileAnimation(null)}
         />
       )}
-      
+
       {/* Score Submission Modal */}
       {showScoreSubmission && currentScore && AuthService.isAuthenticated() && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card 
+          <Card
             className="max-w-md w-full bg-white/95 backdrop-blur-sm"
             style={{ borderColor: theme.primary }}
           >
@@ -425,10 +433,10 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
                 character={character}
                 onSuccess={() => {
                   setShowScoreSubmission(false);
-                  setLeaderboardKey(prev => prev + 1); // Refresh leaderboard
+                  setLeaderboardKey((prev) => prev + 1); // Refresh leaderboard
                   toast({
-                    title: "Score submitted!",
-                    description: "Check the leaderboard to see your ranking.",
+                    title: 'Score submitted!',
+                    description: 'Check the leaderboard to see your ranking.',
                   });
                 }}
                 onError={() => {
@@ -445,18 +453,15 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ character, theme }) => {
           </Card>
         </div>
       )}
-      
+
       {/* Leaderboard Display */}
-      <Card 
+      <Card
         key={leaderboardKey}
         className="bg-white/90 backdrop-blur-sm border-2 shadow-lg"
         style={themeStyles.container}
       >
         <CardContent className="p-6">
-          <LeaderboardDisplay
-            game="tetris"
-            character={character}
-          />
+          <LeaderboardDisplay game="tetris" character={character} />
         </CardContent>
       </Card>
     </div>

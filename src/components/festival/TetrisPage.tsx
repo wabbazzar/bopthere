@@ -2,7 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Character, CharacterTheme, characterNames } from '@/types/character';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, AlertCircle, RotateCcw, Trophy } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { LeaderboardDisplay, ScoreSubmission } from '@/components/leaderboard';
 import { AuthService } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -21,11 +27,11 @@ interface PuffySmileAnimationProps {
 // Puffy smile animation component
 const PuffySmileAnimation: React.FC<PuffySmileAnimationProps> = ({ rowsCleared, onComplete }) => {
   const [isVisible, setIsVisible] = useState(true);
-  
+
   // Scale and duration based on rows cleared
   const scale = rowsCleared === 2 ? 0.8 : rowsCleared === 3 ? 1 : 1.2;
   const duration = rowsCleared === 2 ? 1500 : rowsCleared === 3 ? 2000 : 2500;
-  
+
   // Random position around edges
   const positions = [
     { top: '10%', left: '10%' },
@@ -34,18 +40,18 @@ const PuffySmileAnimation: React.FC<PuffySmileAnimationProps> = ({ rowsCleared, 
     { bottom: '20%', right: '10%' },
   ];
   const position = positions[Math.floor(Math.random() * positions.length)];
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onComplete, 300); // Allow fade out animation
     }, duration);
-    
+
     return () => clearTimeout(timer);
   }, [duration, onComplete]);
-  
+
   if (!isVisible) return null;
-  
+
   return (
     <img
       src="/app-uploads/puffysmile.png"
@@ -64,7 +70,9 @@ const PuffySmileAnimation: React.FC<PuffySmileAnimationProps> = ({ rowsCleared, 
 export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [puffySmileState, setPuffySmileState] = useState<{ show: boolean; rows: number } | null>(null);
+  const [puffySmileState, setPuffySmileState] = useState<{ show: boolean; rows: number } | null>(
+    null
+  );
   const [currentScore, setCurrentScore] = useState<number | null>(null);
   const [showScoreDialog, setShowScoreDialog] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -76,22 +84,29 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       console.log('TetrisPage: Received postMessage:', event.data, 'from origin:', event.origin);
-      
+
       if (event.source === iframeRef.current?.contentWindow) {
         console.log('TetrisPage: Message confirmed from our iframe');
-        
+
         // Handle test messages
         if (event.data.type === 'TETRIS_TEST_MESSAGE') {
           console.log('TetrisPage: Received test message at timestamp:', event.data.timestamp);
         }
-        
-        if (event.data.type === 'TETRIS_ROWS_CLEARED' && event.data.rows >= 2 && character === 'puffy') {
+
+        if (
+          event.data.type === 'TETRIS_ROWS_CLEARED' &&
+          event.data.rows >= 2 &&
+          character === 'puffy'
+        ) {
           setPuffySmileState({ show: true, rows: event.data.rows });
         }
-        
+
         // Handle game over with score
         if (event.data.type === 'TETRIS_GAME_OVER' && typeof event.data.score === 'number') {
-          console.log('TetrisPage: Received TETRIS_GAME_OVER message with score:', event.data.score);
+          console.log(
+            'TetrisPage: Received TETRIS_GAME_OVER message with score:',
+            event.data.score
+          );
           setCurrentScore(event.data.score);
           if (AuthService.isAuthenticated()) {
             console.log('TetrisPage: User authenticated, showing score dialog');
@@ -99,12 +114,12 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
           } else {
             console.log('TetrisPage: User not authenticated, showing login prompt');
             toast({
-              title: "Great game!",
-              description: "Log in to save your score to the leaderboard.",
+              title: 'Great game!',
+              description: 'Log in to save your score to the leaderboard.',
             });
           }
         }
-        
+
         // Handle new game started
         if (event.data.type === 'TETRIS_GAME_START') {
           setCurrentScore(null);
@@ -112,7 +127,7 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
         }
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [character, toast]);
@@ -145,18 +160,18 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
 
   // Iframe security attributes
   const iframeAttributes = {
-    src: "/tetris/index.html",
-    sandbox: "allow-scripts allow-same-origin allow-forms" as const,
-    allow: "accelerometer; gyroscope; vibrate",
-    loading: "lazy" as const,
+    src: '/tetris/index.html',
+    sandbox: 'allow-scripts allow-same-origin allow-forms' as const,
+    allow: 'accelerometer; gyroscope; vibrate',
+    loading: 'lazy' as const,
     title: `Tetris Game - ${characterNames[character]} Theme`,
-    "aria-label": `Tetris game embedded for ${characterNames[character]}`,
+    'aria-label': `Tetris game embedded for ${characterNames[character]}`,
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black">
       {/* Themed Navigation Bar */}
-      <div 
+      <div
         className="absolute top-0 left-0 right-0 h-16 flex items-center px-4 z-60"
         style={{
           background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
@@ -171,18 +186,18 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Games
         </Button>
-        
-        <h1 
+
+        <h1
           className="text-xl font-bold text-white flex-1 text-center"
           style={{ fontFamily: 'Cinzel, serif' }}
         >
-          {character === 'wesley' 
+          {character === 'wesley'
             ? 'Epic Tetris Quest'
             : character === 'heather'
-            ? 'Elegant Tetris Puzzle'
-            : 'Super Fun Tetris Party!'}
+              ? 'Elegant Tetris Puzzle'
+              : 'Super Fun Tetris Party!'}
         </h1>
-        
+
         <Button
           variant="ghost"
           size="sm"
@@ -199,12 +214,18 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="text-center text-white">
-              <Loader2 
-                className="w-8 h-8 animate-spin mx-auto mb-4" 
-                style={{ color: theme.primary }} 
+              <Loader2
+                className="w-8 h-8 animate-spin mx-auto mb-4"
+                style={{ color: theme.primary }}
               />
               <p style={{ fontFamily: 'Crimson Text, serif' }}>
-                Loading {character === 'wesley' ? 'quest' : character === 'heather' ? 'puzzle' : 'party game'}...
+                Loading{' '}
+                {character === 'wesley'
+                  ? 'quest'
+                  : character === 'heather'
+                    ? 'puzzle'
+                    : 'party game'}
+                ...
               </p>
             </div>
           </div>
@@ -213,29 +234,20 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
         {hasError && (
           <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="text-center text-white max-w-md mx-auto px-4">
-              <AlertCircle 
-                className="w-12 h-12 mx-auto mb-4" 
-                style={{ color: theme.primary }} 
-              />
-              <h3 
-                className="text-xl font-bold mb-4"
-                style={{ fontFamily: 'Cinzel, serif' }}
-              >
-                {character === 'wesley' 
+              <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: theme.primary }} />
+              <h3 className="text-xl font-bold mb-4" style={{ fontFamily: 'Cinzel, serif' }}>
+                {character === 'wesley'
                   ? 'Quest Loading Failed'
                   : character === 'heather'
-                  ? 'Puzzle Unavailable'
-                  : 'Game Not Loading!'}
+                    ? 'Puzzle Unavailable'
+                    : 'Game Not Loading!'}
               </h3>
-              <p 
-                className="mb-6"
-                style={{ fontFamily: 'Crimson Text, serif' }}
-              >
-                {character === 'wesley' 
+              <p className="mb-6" style={{ fontFamily: 'Crimson Text, serif' }}>
+                {character === 'wesley'
                   ? 'The mystical portal to the Tetris realm seems blocked. Try again, brave adventurer!'
                   : character === 'heather'
-                  ? 'The elegant puzzle experience is temporarily unavailable. Please try again.'
-                  : 'Oh no! The super fun game is being shy. Let\'s try again!'}
+                    ? 'The elegant puzzle experience is temporarily unavailable. Please try again.'
+                    : "Oh no! The super fun game is being shy. Let's try again!"}
               </p>
               <Button
                 onClick={retryLoad}
@@ -266,7 +278,7 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
           onComplete={() => setPuffySmileState(null)}
         />
       )}
-      
+
       {/* Score Submission Dialog */}
       <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
         <DialogContent className="sm:max-w-md">
@@ -285,10 +297,10 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
               character={character}
               onSuccess={() => {
                 setShowScoreDialog(false);
-                setLeaderboardKey(prev => prev + 1);
+                setLeaderboardKey((prev) => prev + 1);
                 toast({
-                  title: "Score submitted!",
-                  description: "Check the leaderboard to see your ranking.",
+                  title: 'Score submitted!',
+                  description: 'Check the leaderboard to see your ranking.',
                 });
               }}
               onError={() => {
@@ -298,7 +310,7 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
           )}
         </DialogContent>
       </Dialog>
-      
+
       {/* Leaderboard Dialog */}
       <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -310,11 +322,7 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
               View high scores and rankings for Tetris
             </DialogDescription>
           </DialogHeader>
-          <LeaderboardDisplay
-            key={leaderboardKey}
-            game="tetris"
-            character={character}
-          />
+          <LeaderboardDisplay key={leaderboardKey} game="tetris" character={character} />
         </DialogContent>
       </Dialog>
     </div>

@@ -6,23 +6,28 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Crown, Medal, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  LeaderboardResponse, 
+import {
+  LeaderboardResponse,
   LeaderboardScore,
   LeaderboardDisplayProps,
-  LEADERBOARD_TEXT 
+  LEADERBOARD_TEXT,
 } from '@/types/leaderboard';
-import { fetchLeaderboard, formatScore, formatTimestamp, getRankOrdinal } from '@/utils/leaderboardApi';
+import {
+  fetchLeaderboard,
+  formatScore,
+  formatTimestamp,
+  getRankOrdinal,
+} from '@/utils/leaderboardApi';
 import { useCharacter } from '@/contexts/CharacterContext';
 import { characterThemes } from '@/types/character';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function LeaderboardDisplay({ 
-  game, 
+export function LeaderboardDisplay({
+  game,
   className,
   currentUserScore,
-  onScoreSubmit 
+  onScoreSubmit,
 }: LeaderboardDisplayProps) {
   const { selectedCharacter } = useCharacter();
   const [leaderboard, setLeaderboard] = useState<LeaderboardResponse | null>(null);
@@ -32,7 +37,7 @@ export function LeaderboardDisplay({
   // Get theme from characterThemes
   const character = selectedCharacter || 'wesley';
   const characterTheme = characterThemes[character];
-  
+
   // Create theme object with expected structure
   const theme = {
     colors: {
@@ -42,14 +47,14 @@ export function LeaderboardDisplay({
       text: characterTheme.dark,
       border: `${characterTheme.secondary}40`,
       background: '#ffffff',
-      primaryText: '#ffffff'
+      primaryText: '#ffffff',
     },
     fonts: {
       heading: 'Cinzel, serif',
-      body: 'Crimson Text, serif'
-    }
+      body: 'Crimson Text, serif',
+    },
   };
-  
+
   const text = LEADERBOARD_TEXT[character];
 
   // Fetch leaderboard data
@@ -77,7 +82,7 @@ export function LeaderboardDisplay({
     }
 
     loadLeaderboard();
-    
+
     // Poll for updates every 30 seconds
     const interval = setInterval(loadLeaderboard, 30000);
 
@@ -150,29 +155,33 @@ export function LeaderboardDisplay({
   }
 
   return (
-    <Card 
+    <Card
       className={cn('w-full', className)}
-      style={{ 
+      style={{
         borderColor: theme.colors.border,
-        backgroundColor: `${theme.colors.background}99`
+        backgroundColor: `${theme.colors.background}99`,
       }}
     >
       <CardHeader className="pb-3">
-        <CardTitle 
+        <CardTitle
           className="text-2xl font-bold flex items-center gap-2"
-          style={{ 
+          style={{
             fontFamily: theme.fonts.heading,
-            color: theme.colors.primary
+            color: theme.colors.primary,
           }}
         >
           <Trophy className="w-6 h-6" />
-          {text.title} - {game === 'tetris' ? 'Tetris' : game.charAt(0).toUpperCase() + game.slice(1)}
+          {text.title} -{' '}
+          {game === 'tetris' ? 'Tetris' : game.charAt(0).toUpperCase() + game.slice(1)}
         </CardTitle>
-        <p className="text-sm text-gray-600 dark:text-gray-400" style={{ fontFamily: theme.fonts.body }}>
+        <p
+          className="text-sm text-gray-600 dark:text-gray-400"
+          style={{ fontFamily: theme.fonts.body }}
+        >
           {text.subtitle}
         </p>
       </CardHeader>
-      
+
       <CardContent>
         {leaderboard && leaderboard.scores.length > 0 ? (
           <div className="space-y-2">
@@ -193,11 +202,9 @@ export function LeaderboardDisplay({
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 min-w-[60px]">
                       {getRankIcon(index + 1)}
-                      <span className="font-semibold text-lg">
-                        {getRankOrdinal(index + 1)}
-                      </span>
+                      <span className="font-semibold text-lg">{getRankOrdinal(index + 1)}</span>
                     </div>
-                    
+
                     <div className="flex flex-col">
                       <span className="font-medium" style={{ color: theme.colors.text }}>
                         {score.username}
@@ -207,16 +214,13 @@ export function LeaderboardDisplay({
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
-                    <div 
-                      className="text-lg font-bold"
-                      style={{ color: theme.colors.accent }}
-                    >
+                    <div className="text-lg font-bold" style={{ color: theme.colors.accent }}>
                       {formatScore(score.score)}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      as {score.character}
+                      as character"{score.character}"
                     </div>
                   </div>
                 </motion.div>
@@ -226,12 +230,10 @@ export function LeaderboardDisplay({
         ) : (
           <div className="text-center py-8 text-gray-600 dark:text-gray-400">
             <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p style={{ fontFamily: theme.fonts.body }}>
-              {text.noScores}
-            </p>
+            <p style={{ fontFamily: theme.fonts.body }}>{text.noScores}</p>
           </div>
         )}
-        
+
         {currentUserScore && onScoreSubmit && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -241,9 +243,7 @@ export function LeaderboardDisplay({
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {text.yourScore}
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{text.yourScore}</p>
                 <p className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
                   {formatScore(currentUserScore)}
                 </p>

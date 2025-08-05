@@ -10,13 +10,8 @@ import { usePWA } from '../hooks/usePWA';
 export const OfflineStatus: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const { 
-    pendingSubmissions, 
-    isOffline, 
-    syncPending, 
-    clearPending, 
-    storageStats 
-  } = useOfflineRSVP();
+  const { pendingSubmissions, isOffline, syncPending, clearPending, storageStats } =
+    useOfflineRSVP();
   const { selectedCharacter } = useCharacter();
   const pwa = usePWA();
 
@@ -38,7 +33,7 @@ export const OfflineStatus: React.FC = () => {
           onlineTitle: 'Quest Mode: Online',
           onlineDesc: 'Connected to the realm',
           syncButton: 'Sync Quest Data',
-          clearButton: 'Clear Quest Cache'
+          clearButton: 'Clear Quest Cache',
         };
       case 'heather':
         return {
@@ -47,7 +42,7 @@ export const OfflineStatus: React.FC = () => {
           onlineTitle: 'Connected',
           onlineDesc: 'All systems ready',
           syncButton: 'Sync Responses',
-          clearButton: 'Clear Saved Data'
+          clearButton: 'Clear Saved Data',
         };
       case 'puffy':
         return {
@@ -56,7 +51,7 @@ export const OfflineStatus: React.FC = () => {
           onlineTitle: 'Party Online!',
           onlineDesc: 'Connected to the party network',
           syncButton: 'Sync Party Data',
-          clearButton: 'Clear Party Cache'
+          clearButton: 'Clear Party Cache',
         };
       default:
         return {
@@ -65,7 +60,7 @@ export const OfflineStatus: React.FC = () => {
           onlineTitle: 'Online',
           onlineDesc: 'Connected',
           syncButton: 'Sync Data',
-          clearButton: 'Clear Cache'
+          clearButton: 'Clear Cache',
         };
     }
   };
@@ -85,8 +80,8 @@ export const OfflineStatus: React.FC = () => {
           variant="ghost"
           size="sm"
           className={`${
-            isOffline 
-              ? 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-300' 
+            isOffline
+              ? 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-300'
               : 'bg-green-100 hover:bg-green-200 text-green-800 border border-green-300'
           }`}
         >
@@ -111,12 +106,7 @@ export const OfflineStatus: React.FC = () => {
                 {isOffline ? content.offlineTitle : content.onlineTitle}
               </h3>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowDetails(false)}
-              className="p-1"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowDetails(false)} className="p-1">
               ×
             </Button>
           </div>
@@ -140,17 +130,15 @@ export const OfflineStatus: React.FC = () => {
               </h4>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {pendingSubmissions.map((submission) => (
-                  <div 
-                    key={submission.id} 
+                  <div
+                    key={submission.id}
                     className="text-xs p-2 bg-gray-50 dark:bg-gray-700 rounded flex items-center justify-between"
                   >
                     <div>
                       <div className="font-medium">
                         RSVP from {new Date(submission.timestamp).toLocaleDateString()}
                       </div>
-                      <div className="text-gray-500">
-                        Retries: {submission.retryCount}
-                      </div>
+                      <div className="text-gray-500">Retries: {submission.retryCount}</div>
                     </div>
                     {submission.retryCount > 3 ? (
                       <AlertCircle size={14} className="text-red-500" />
@@ -165,12 +153,7 @@ export const OfflineStatus: React.FC = () => {
 
           <div className="flex space-x-2">
             {pendingSubmissions.length > 0 && !isOffline && (
-              <Button
-                size="sm"
-                onClick={handleSync}
-                disabled={isSyncing}
-                className="flex-1"
-              >
+              <Button size="sm" onClick={handleSync} disabled={isSyncing} className="flex-1">
                 {isSyncing ? (
                   <div className="flex items-center space-x-1">
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
@@ -186,12 +169,7 @@ export const OfflineStatus: React.FC = () => {
             )}
 
             {(pendingSubmissions.length > 0 || (storageStats && storageStats.cacheSize > 0)) && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={clearPending}
-                className="flex-1"
-              >
+              <Button size="sm" variant="outline" onClick={clearPending} className="flex-1">
                 <Trash2 size={14} className="mr-1" />
                 {content.clearButton}
               </Button>

@@ -56,17 +56,19 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onClose }) => {
         return {
           title: 'Install Heather & Wesley',
           subtitle: 'Ready your mobile device for adventure!',
-          description: 'Add this app to your home screen for quick access to our wedding celebration.',
+          description:
+            'Add this app to your home screen for quick access to our wedding celebration.',
           buttonText: 'Install App',
-          icon: '⚔️'
+          icon: '⚔️',
         };
       case 'heather':
         return {
           title: 'Install Heather & Wesley',
           subtitle: 'Keep our celebration close to your heart',
-          description: 'Add this app to your home screen for easy access to all our wedding details.',
+          description:
+            'Add this app to your home screen for easy access to all our wedding details.',
           buttonText: 'Install App',
-          icon: '💕'
+          icon: '💕',
         };
       case 'puffy':
         return {
@@ -74,7 +76,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onClose }) => {
           subtitle: 'Party time, all the time!',
           description: 'Add this app to your home screen so you never miss out on the celebration!',
           buttonText: 'Install App',
-          icon: '🎉'
+          icon: '🎉',
         };
       default:
         return {
@@ -82,7 +84,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onClose }) => {
           subtitle: 'Join the celebration',
           description: 'Add this app to your home screen for easy access.',
           buttonText: 'Install App',
-          icon: '📱'
+          icon: '📱',
         };
     }
   };
@@ -102,15 +104,9 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onClose }) => {
 
         <div className="text-center mb-6">
           <div className="text-4xl mb-3">{content.icon}</div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            {content.title}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
-            {content.subtitle}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {content.description}
-          </p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{content.title}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">{content.subtitle}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{content.description}</p>
         </div>
 
         <div className="flex flex-col space-y-3">

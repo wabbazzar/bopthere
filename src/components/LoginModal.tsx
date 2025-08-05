@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,29 +33,29 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!username.trim() || !password.trim()) {
       return;
     }
 
     navDebugger.log('LoginModal', 'login-submit-start', {
       username: username.trim(),
-      selectedCharacter
+      selectedCharacter,
     });
 
     setIsSubmitting(true);
-    
+
     try {
       await login(username.trim(), password);
       navDebugger.log('LoginModal', 'login-success', {
-        username: username.trim()
+        username: username.trim(),
       });
       onClose();
       setUsername('');
       setPassword('');
     } catch (error) {
       navDebugger.log('LoginModal', 'login-error', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       // Error handling is done in the AuthContext
     } finally {
@@ -69,7 +75,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md max-w-[95vw] mx-auto">
         <DialogHeader>
-          <DialogTitle 
+          <DialogTitle
             className="text-center text-2xl font-cinzel"
             style={{ color: theme.primary }}
           >
@@ -79,20 +85,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             Login form to access your personalized wedding festival experience
           </DialogDescription>
         </DialogHeader>
-        
+
         <Card className="border-2" style={{ borderColor: theme.secondary }}>
           <CardHeader className="pb-4">
-            <CardTitle 
-              className="text-lg font-cinzel text-center"
-              style={{ color: theme.primary }}
-            >
+            <CardTitle className="text-lg font-cinzel text-center" style={{ color: theme.primary }}>
               Access Your Festival Experience
             </CardTitle>
             <CardDescription className="text-center">
               Enter your credentials to unlock your personalized wedding quest
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -111,13 +114,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   autoComplete="username"
                   enterKeyHint="next"
                   className="transition-colors focus:ring-2"
-                  style={{
-                    borderColor: theme.secondary,
-                    '--tw-ring-color': theme.secondary,
-                  } as React.CSSProperties}
+                  style={
+                    {
+                      borderColor: theme.secondary,
+                      '--tw-ring-color': theme.secondary,
+                    } as React.CSSProperties
+                  }
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">
                   Password
@@ -135,10 +140,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     autoComplete="current-password"
                     enterKeyHint="done"
                     className="pr-10 transition-colors focus:ring-2"
-                    style={{
-                      borderColor: theme.secondary,
-                      '--tw-ring-color': theme.secondary,
-                    } as React.CSSProperties}
+                    style={
+                      {
+                        borderColor: theme.secondary,
+                        '--tw-ring-color': theme.secondary,
+                      } as React.CSSProperties
+                    }
                   />
                   <Button
                     type="button"
@@ -157,7 +164,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <Button
                   type="button"
@@ -172,7 +179,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 >
                   Cancel
                 </Button>
-                
+
                 <Button
                   type="submit"
                   disabled={isSubmitting || !username.trim() || !password.trim()}
@@ -195,7 +202,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             </form>
           </CardContent>
         </Card>
-        
+
         {/* Character-themed footer */}
         <div className="text-center text-sm text-muted-foreground">
           <p>Join the epic celebration • December 5-9, 2025 • Maui, Hawaii</p>

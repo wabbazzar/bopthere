@@ -1,7 +1,7 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import { pwaManager } from './utils/pwa'
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { pwaManager } from './utils/pwa';
 
 // Register service worker
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -10,4 +10,4 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById('root')!).render(<App />);
