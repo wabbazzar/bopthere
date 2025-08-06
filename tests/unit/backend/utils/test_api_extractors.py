@@ -201,7 +201,7 @@ class TestAPIGatewayExtractor:
         mock_client.get_integration.return_value = {
             "type": "AWS_PROXY",
             "httpMethod": "POST",
-            "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:123456:function:heatherandwesley-rsvp-handler/invocations",
+            "uri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456:function:heatherandwesley-rsvp-handler/invocations",
             "connectionType": "INTERNET",
         }
 
@@ -235,14 +235,14 @@ class TestAPIGatewayExtractor:
         # Test valid Lambda integration URI
         integration = {
             "type": "AWS_PROXY",
-            "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:123456:function:my-function/invocations",
+            "uri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456:function:my-function/invocations",
         }
 
         # Extract ARN
         result = extractor.extract_lambda_arn(integration)
 
         # Verify result
-        assert result == "arn:aws:lambda:us-west-2:123456:function:my-function"
+        assert result == "arn:aws:lambda:us-east-1:123456:function:my-function"
 
     def test_extract_lambda_arn_non_proxy(self, mock_boto3_session):
         """Test extraction returns None for non-proxy integration"""
@@ -318,7 +318,7 @@ class TestAPIGatewayExtractor:
         # Mock integration
         mock_client.get_integration.return_value = {
             "type": "AWS_PROXY",
-            "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:123456:function:rsvp-handler/invocations",
+            "uri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456:function:rsvp-handler/invocations",
         }
 
         # Extract routes
@@ -532,7 +532,7 @@ class TestLambdaPatternExtractor:
         mock_lambda.get_function.return_value = {
             "Configuration": {
                 "FunctionName": "test-function",
-                "FunctionArn": "arn:aws:lambda:us-west-2:123456:function:test-function",
+                "FunctionArn": "arn:aws:lambda:us-east-1:123456:function:test-function",
                 "Runtime": "python3.9",
                 "Handler": "index.handler",
                 "Timeout": 60,
@@ -810,7 +810,7 @@ class TestLambdaPatternExtractor:
         # Set up test data
         extractor.patterns = {
             "lambda_name": "test-function",
-            "lambda_arn": "arn:aws:lambda:us-west-2:123456:function:test-function",
+            "lambda_arn": "arn:aws:lambda:us-east-1:123456:function:test-function",
             "runtime": "python3.9",
             "handler": "index.handler",
             "environment_variables": {},
@@ -859,7 +859,7 @@ class TestLambdaPatternExtractor:
         mock_lambda.get_function.return_value = {
             "Configuration": {
                 "FunctionName": "heatherandwesley-rsvp-handler",
-                "FunctionArn": "arn:aws:lambda:us-west-2:123456:function:heatherandwesley-rsvp-handler",
+                "FunctionArn": "arn:aws:lambda:us-east-1:123456:function:heatherandwesley-rsvp-handler",
                 "Runtime": "python3.9",
                 "Handler": "index.handler",
                 "Timeout": 60,
@@ -941,13 +941,13 @@ class TestEdgeCases:
         mock_lambda.get_function.return_value = {
             "Configuration": {
                 "FunctionName": "test-function",
-                "FunctionArn": "arn:aws:lambda:us-west-2:123456:function:test-function",
+                "FunctionArn": "arn:aws:lambda:us-east-1:123456:function:test-function",
                 "Runtime": "python3.9",
                 "Handler": "index.handler",
                 "Timeout": 60,
                 "MemorySize": 256,
                 "Layers": [
-                    {"Arn": "arn:aws:lambda:us-west-2:123456:layer:test-layer:1"}
+                    {"Arn": "arn:aws:lambda:us-east-1:123456:layer:test-layer:1"}
                 ],
                 "Environment": {"Variables": {}},
                 "LastModified": "2024-01-01T00:00:00Z",
