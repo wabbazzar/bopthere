@@ -13,6 +13,7 @@ import {
   Users,
   TreePine,
   Home,
+  ExternalLink,
 } from 'lucide-react';
 import itineraryData from '/data/itinerary.json';
 
@@ -23,6 +24,7 @@ interface Activity {
   title: string;
   description: string;
   location: string;
+  link?: string;
   type: 'logistics' | 'social' | 'activity' | 'food' | 'ceremony' | 'reception' | 'party';
 }
 
@@ -146,7 +148,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, theme }) => {
             >
               {activity.description}
             </p>
-            <div className="flex items-start space-x-1">
+            <div className="flex items-start space-x-1 mb-2">
               <MapPin className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
               <span
                 className="text-xs text-gray-600 line-clamp-2"
@@ -155,6 +157,22 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, theme }) => {
                 {activity.location}
               </span>
             </div>
+            {activity.link && (
+              <a
+                href={activity.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium hover:opacity-80 transition-opacity"
+                style={{
+                  backgroundColor: `${theme.primary}15`,
+                  color: theme.primary,
+                  fontFamily: 'Crimson Text, serif',
+                }}
+              >
+                <ExternalLink className="w-3 h-3" />
+                <span>View Location</span>
+              </a>
+            )}
           </div>
         </div>
       </CardContent>
@@ -199,7 +217,9 @@ const DayCard: React.FC<DayCardProps> = ({ day, theme }) => {
 export const ItineraryView: React.FC = () => {
   const { selectedCharacter } = useCharacter();
 
-  if (!selectedCharacter) return null;
+  if (!selectedCharacter) {
+    return null;
+  }
 
   const currentTheme = characterThemes[selectedCharacter];
   const content = characterMessages[selectedCharacter];
