@@ -17,10 +17,10 @@ const App = () => {
   useEffect(() => {
     // Prevent navigation buttons from being disabled
     preventButtonDisabling();
-    
+
     // Start navbar protection to handle DevTools and viewport changes
     navbarProtector.start();
-    
+
     // Cleanup on unmount
     return () => {
       navbarProtector.stop();

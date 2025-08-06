@@ -25,9 +25,13 @@ logger = logging.getLogger(__name__)
 class LambdaPatternExtractor:
     """Extract request/response patterns from Lambda functions."""
 
-    def __init__(self, profile: str = "personal", region: str = "us-east-1"):
+    def __init__(self, profile: Optional[str] = None, region: str = "us-east-1"):
         """Initialize the extractor with AWS credentials."""
-        self.session = boto3.Session(profile_name=profile, region_name=region)
+        if profile:
+            self.session = boto3.Session(profile_name=profile, region_name=region)
+        else:
+            # Use environment credentials (e.g., in GitHub Actions)
+            self.session = boto3.Session(region_name=region)
         self.lambda_client = self.session.client("lambda")
         self.api_gateway = self.session.client("apigateway")
         self.region = region
@@ -729,7 +733,13 @@ class LambdaPatternExtractor:
 
 def main():
     """Main function."""
-    extractor = LambdaPatternExtractor(profile="personal", region="us-east-1")
+    # Use profile in local environment, environment credentials in CI
+    import os
+
+    profile_name = (
+        "personal" if os.path.exists(os.path.expanduser("~/.aws/credentials")) else None
+    )
+    extractor = LambdaPatternExtractor(profile=profile_name, region="us-east-1")
     extractor.extract("heatherandwesley-rsvp-handler")
 
 

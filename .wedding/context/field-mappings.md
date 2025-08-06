@@ -1,6 +1,6 @@
 # DynamoDB Table Schemas
 
-*Generated on: 2025-07-31 18:31:06 UTC*
+*Generated on: 2025-08-06 22:22:14 UTC*
 
 ## Overview
 
@@ -31,16 +31,16 @@ This document provides detailed schema information for the DynamoDB tables used 
 ### Example Values
 
 - **attendance**: `yes`, `no`
-- **created_at**: `2025-07-31T18:13:58.396354Z`, `2025-07-31T03:08:48.791963Z`, `2025-07-31T11:57:38.493342Z`
-- **dietary_restrictions**: `Vegetarian`, ``
-- **email**: `test@example.com`, `wesleybeckner@gmail.com`, `minimal@example.com`
-- **id**: `09669517-cb6a-4ba4-aa6b-6d8b86614434`, `2c2f0a3a-7191-4f36-870c-ab15e711817d`, `de2e97d0-56e4-48bb-ad46-ae2c124b68c6`
-- **message_for_couple**: `Congratulations on your special day!`, ``
-- **name**: `Test Guest`, `Wesley Adam Beckner`, `Minimal Guest`
-- **notifications**: `True`, `False`
-- **phone**: `+1234567890`, ``, `8176766617`
-- **song_request**: `Never Gonna Give You Up`, ``
-- **updated_at**: `2025-07-31T18:13:58.396354Z`, `2025-07-31T03:08:48.791963Z`, `2025-07-31T11:57:38.493342Z`
+- **created_at**: `2025-07-31T11:57:38.493342Z`, `2025-07-31T11:49:20.827694Z`
+- **dietary_restrictions**: ``
+- **email**: `wesleybeckner@gmail.com`
+- **id**: `de2e97d0-56e4-48bb-ad46-ae2c124b68c6`, `d72e7f7f-6620-4d79-b16f-739cb664f2d1`
+- **message_for_couple**: ``
+- **name**: `Wesley Adam Beckner`
+- **notifications**: `False`
+- **phone**: `8176766617`
+- **song_request**: ``
+- **updated_at**: `2025-07-31T11:57:38.493342Z`, `2025-07-31T11:49:20.827694Z`
 
 ---
 

@@ -57,13 +57,11 @@ class TestAPIGatewayExtractor:
         """Test initialization with default values"""
         mock_session, mock_client = mock_boto3_session
 
-        # Create extractor with defaults
+        # Create extractor with defaults (no profile since we're in test environment)
         extractor = APIGatewayExtractor()
 
-        # Verify defaults
-        mock_session.assert_called_once_with(
-            profile_name="personal", region_name="us-east-1"
-        )
+        # Verify defaults - should not pass profile when not specified
+        mock_session.assert_called_once_with(region_name="us-east-1")
         assert extractor.region == "us-east-1"
 
     def test_find_api_by_name_success(self, mock_boto3_session):

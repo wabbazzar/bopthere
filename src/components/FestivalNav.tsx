@@ -53,7 +53,7 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
   const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
   const menuStateRef = useRef(isMobileMenuOpen);
-  
+
   // Track viewport width to handle DevTools opening/closing
   useEffect(() => {
     const handleResize = () => {
@@ -135,10 +135,10 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
       {/* Desktop Navigation */}
       <nav
         className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-md border-b border-white/20"
-        style={{ 
-          isolation: 'isolate', 
+        style={{
+          isolation: 'isolate',
           zIndex: 100,
-          pointerEvents: 'auto' // Ensure nav is always clickable
+          pointerEvents: 'auto', // Ensure nav is always clickable
         }}
       >
         <div className="container mx-auto px-4">

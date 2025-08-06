@@ -181,9 +181,9 @@ class TestAPIFieldConsistency:
         item_pattern = r'"(\w+)":\s*(?:body\[|body\.get\(|current_time|rsvp_id|str\(uuid\.uuid4\(\)\))'
         for match in re.findall(item_pattern, code):
             analysis["dynamodb_fields"].add(match)
-        
+
         # Also look for literal field names in item construction
-        item_block_pattern = r'item\s*=\s*\{([^}]+)\}'
+        item_block_pattern = r"item\s*=\s*\{([^}]+)\}"
         item_match = re.search(item_block_pattern, code, re.DOTALL)
         if item_match:
             item_content = item_match.group(1)

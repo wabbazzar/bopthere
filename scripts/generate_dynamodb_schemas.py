@@ -440,8 +440,14 @@ def main():
     try:
         # Initialize extractor
         # Use profile in local environment, environment credentials in CI
-        profile_name = "personal" if os.path.exists(os.path.expanduser("~/.aws/credentials")) else None
-        extractor = DynamoDBSchemaExtractor(profile_name=profile_name, region="us-east-1")
+        profile_name = (
+            "personal"
+            if os.path.exists(os.path.expanduser("~/.aws/credentials"))
+            else None
+        )
+        extractor = DynamoDBSchemaExtractor(
+            profile_name=profile_name, region="us-east-1"
+        )
 
         # Extract schemas
         logger.info("Starting schema extraction...")

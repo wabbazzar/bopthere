@@ -52,7 +52,7 @@ export class NavbarProtector {
     if (nav) {
       // Force pointer events on nav
       (nav as HTMLElement).style.pointerEvents = 'auto';
-      
+
       // Ensure nav has high z-index
       const currentZIndex = parseInt(window.getComputedStyle(nav).zIndex || '0', 10);
       if (currentZIndex < 100) {
@@ -61,7 +61,7 @@ export class NavbarProtector {
 
       // Make all buttons in nav clickable
       const buttons = nav.querySelectorAll('button');
-      buttons.forEach(button => {
+      buttons.forEach((button) => {
         (button as HTMLElement).style.pointerEvents = 'auto';
       });
     }
@@ -70,10 +70,10 @@ export class NavbarProtector {
   private removeBlockingOverlays() {
     // Check for orphaned dialog overlays
     const overlays = document.querySelectorAll('[data-radix-dialog-overlay]');
-    overlays.forEach(overlay => {
+    overlays.forEach((overlay) => {
       const dialog = overlay.closest('[role="dialog"]');
       const dataState = overlay.getAttribute('data-state');
-      
+
       // If overlay exists but dialog is closed or missing, remove it
       if (!dialog || dataState === 'closed') {
         overlay.remove();
@@ -83,16 +83,16 @@ export class NavbarProtector {
 
     // Check for invisible blocking elements
     const potentialBlockers = document.querySelectorAll('.fixed.inset-0');
-    potentialBlockers.forEach(element => {
+    potentialBlockers.forEach((element) => {
       const computed = window.getComputedStyle(element);
       const isNav = element.tagName === 'NAV' || element.closest('nav');
-      
+
       // Skip if it's part of navigation
       if (isNav) return;
-      
+
       // Remove if it's invisible but still blocking
       if (
-        computed.opacity === '0' && 
+        computed.opacity === '0' &&
         computed.pointerEvents !== 'none' &&
         !element.querySelector(':scope > *') // No children
       ) {
