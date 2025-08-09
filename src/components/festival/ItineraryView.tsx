@@ -38,20 +38,20 @@ const characterMessages = {
   wesley: {
     title: 'Your Quest Itinerary',
     subtitle: 'The epic adventure timeline awaits',
-    message:
-      'Four days of legendary adventures await! From heroic hikes through mystical mountains to the grand wedding ceremony quest, every moment is a step in your epic journey through the enchanted lands of Maui.',
+    // message:
+    //   'Four days of legendary adventures await! From heroic hikes through mystical mountains to the grand wedding ceremony quest, every moment is a step in your epic journey through the enchanted lands of Maui.',
   },
   heather: {
     title: 'Our Wedding Itinerary',
     subtitle: 'A beautiful journey through our celebration',
-    message:
-      'Four magical days of love and celebration await us. From romantic sunset ceremonies to elegant receptions, every moment has been crafted with care to create the most beautiful memories with our beloved family and friends.',
+    // message:
+    //   'Four magical days of love and celebration await us. From romantic sunset ceremonies to elegant receptions, every moment has been crafted with care to create the most beautiful memories with our beloved family and friends.',
   },
   puffy: {
     title: 'The Ultimate Party Schedule',
     subtitle: 'Four days of the best fun ever!',
-    message:
-      "Four days of pure fun and coziness! I've personally tested all the nap spots and confirmed - the food is amazing, the games are epic, and there are so many comfortable places to relax between all the exciting activities!",
+    // message:
+    //   "Four days of pure fun and coziness! I've personally tested all the nap spots and confirmed - the food is amazing, the games are epic, and there are so many comfortable places to relax between all the exciting activities!",
   },
 };
 

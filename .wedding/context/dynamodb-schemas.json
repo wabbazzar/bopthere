@@ -10,81 +10,94 @@
           "type": "string",
           "description": "Timestamp when the RSVP was last updated (ISO 8601)",
           "examples": [
+            "2025-08-06T22:35:53.611715Z",
             "2025-07-31T11:57:38.493342Z",
-            "2025-07-31T11:49:20.827694Z"
+            "2025-08-06T22:35:53.438116Z"
           ]
         },
         "created_at": {
           "type": "string",
           "description": "Timestamp when the RSVP was submitted (ISO 8601)",
           "examples": [
+            "2025-08-06T22:35:53.611715Z",
             "2025-07-31T11:57:38.493342Z",
-            "2025-07-31T11:49:20.827694Z"
+            "2025-08-06T22:35:53.438116Z"
           ]
         },
         "notifications": {
           "type": "boolean",
           "description": "Whether the guest opted in for notifications",
           "examples": [
-            false
+            false,
+            true
           ]
         },
         "dietary_restrictions": {
           "type": "string",
           "description": "Any dietary restrictions or allergies",
           "examples": [
-            ""
+            "",
+            "Vegetarian"
           ]
         },
         "attendance": {
           "type": "string",
           "description": "Guest's attendance status (e.g., 'attending', 'not_attending', 'maybe')",
           "examples": [
-            "yes",
-            "no"
+            "no",
+            "yes"
           ]
         },
         "song_request": {
           "type": "string",
           "description": "Guest's song request for the reception",
           "examples": [
-            ""
+            "",
+            "Never Gonna Give You Up"
           ]
         },
         "id": {
           "type": "string",
           "description": "Unique identifier for the RSVP entry (UUID v4)",
           "examples": [
+            "046db126-171f-4295-b90d-eaba4ce33654",
             "de2e97d0-56e4-48bb-ad46-ae2c124b68c6",
-            "d72e7f7f-6620-4d79-b16f-739cb664f2d1"
+            "49c56b2b-2743-45fe-b4e6-c43344d01fc2"
           ]
         },
         "email": {
           "type": "string",
           "description": "Email address of the guest",
           "examples": [
-            "wesleybeckner@gmail.com"
+            "minimal@example.com",
+            "wesleybeckner@gmail.com",
+            "test@example.com"
           ]
         },
         "phone": {
           "type": "string",
           "description": "Phone number of the guest (optional)",
           "examples": [
-            "8176766617"
+            "",
+            "8176766617",
+            "+1234567890"
           ]
         },
         "name": {
           "type": "string",
           "description": "Full name of the guest",
           "examples": [
-            "Wesley Adam Beckner"
+            "Minimal Guest",
+            "Wesley Adam Beckner",
+            "Test Guest"
           ]
         },
         "message_for_couple": {
           "type": "string",
           "description": "Personal message from the guest to the couple",
           "examples": [
-            ""
+            "",
+            "Congratulations on your special day!"
           ]
         }
       },
@@ -105,7 +118,7 @@
     }
   },
   "metadata": {
-    "extractedAt": "2025-08-06T22:22:14.231201Z",
+    "extractedAt": "2025-08-06T22:38:52.432986Z",
     "version": "1.0.0"
   }
 }

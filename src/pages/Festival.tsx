@@ -60,15 +60,15 @@ export const Festival: React.FC = () => {
           <div className="max-w-6xl mx-auto">
             {/* Welcome header */}
             <div className="text-center mb-8">
-              <h1
+              {/* <h1
                 className="text-4xl font-bold text-white mb-2"
                 style={{ fontFamily: 'Cinzel, serif' }}
               >
-                Welcome to the Festival, {user.full_name}!
-              </h1>
-              <p className="text-xl text-white/90" style={{ fontFamily: 'Crimson Text, serif' }}>
-                Your personalized wedding experience awaits
-              </p>
+                Welcome to the Festival, !
+              </h1> */}
+              {/* <p className="text-xl text-white/90" style={{ fontFamily: 'Crimson Text, serif' }}>
+                Welcome, {user.full_name} your personalized wedding experience awaits
+              </p> */}
             </div>
 
             {/* Active view content */}

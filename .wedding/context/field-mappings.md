@@ -1,6 +1,6 @@
 # DynamoDB Table Schemas
 
-*Generated on: 2025-08-06 22:22:14 UTC*
+*Generated on: 2025-08-06 22:38:52 UTC*
 
 ## Overview
 
@@ -30,17 +30,17 @@ This document provides detailed schema information for the DynamoDB tables used 
 
 ### Example Values
 
-- **attendance**: `yes`, `no`
-- **created_at**: `2025-07-31T11:57:38.493342Z`, `2025-07-31T11:49:20.827694Z`
-- **dietary_restrictions**: ``
-- **email**: `wesleybeckner@gmail.com`
-- **id**: `de2e97d0-56e4-48bb-ad46-ae2c124b68c6`, `d72e7f7f-6620-4d79-b16f-739cb664f2d1`
-- **message_for_couple**: ``
-- **name**: `Wesley Adam Beckner`
-- **notifications**: `False`
-- **phone**: `8176766617`
-- **song_request**: ``
-- **updated_at**: `2025-07-31T11:57:38.493342Z`, `2025-07-31T11:49:20.827694Z`
+- **attendance**: `no`, `yes`
+- **created_at**: `2025-08-06T22:35:53.611715Z`, `2025-07-31T11:57:38.493342Z`, `2025-08-06T22:35:53.438116Z`
+- **dietary_restrictions**: ``, `Vegetarian`
+- **email**: `minimal@example.com`, `wesleybeckner@gmail.com`, `test@example.com`
+- **id**: `046db126-171f-4295-b90d-eaba4ce33654`, `de2e97d0-56e4-48bb-ad46-ae2c124b68c6`, `49c56b2b-2743-45fe-b4e6-c43344d01fc2`
+- **message_for_couple**: ``, `Congratulations on your special day!`
+- **name**: `Minimal Guest`, `Wesley Adam Beckner`, `Test Guest`
+- **notifications**: `False`, `True`
+- **phone**: ``, `8176766617`, `+1234567890`
+- **song_request**: ``, `Never Gonna Give You Up`
+- **updated_at**: `2025-08-06T22:35:53.611715Z`, `2025-07-31T11:57:38.493342Z`, `2025-08-06T22:35:53.438116Z`
 
 ---
 

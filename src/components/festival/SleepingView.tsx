@@ -191,7 +191,7 @@ export const SleepingView: React.FC = () => {
               {content.message}
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="text-center p-4 bg-white/50 rounded-lg border">
               <Home className="w-6 h-6 mx-auto mb-2" style={{ color: currentTheme.primary }} />
               <div className="text-2xl font-bold" style={{ color: currentTheme.primary }}>
@@ -219,13 +219,13 @@ export const SleepingView: React.FC = () => {
                 Guests
               </div>
             </div>
-            <div className="text-center p-4 bg-white/50 rounded-lg border">
+            {/* <div className="text-center p-4 bg-white/50 rounded-lg border">
               <AlertCircle className="w-6 h-6 mx-auto mb-2 text-amber-500" />
               <div className="text-2xl font-bold text-amber-600">
                 {summary.pending_confirmations}
               </div>
-              <div className="text-sm text-amber-600">Pending</div>
-            </div>
+              <div className="text-sm text-amber-600">Pending</div> */}
+            {/* </div> */}
           </div>
         </CardContent>
       </Card>
