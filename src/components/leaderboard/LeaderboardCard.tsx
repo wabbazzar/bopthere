@@ -201,7 +201,7 @@ export function LeaderboardCard({
       className={cn('w-full', className)}
       style={{
         borderColor: theme.colors.border,
-        backgroundColor: `${theme.colors.background}95`,
+        backgroundColor: `${theme.colors.background}f2`,  // 95% opacity in hex
       }}
     >
       <CardHeader className="pb-4">
@@ -210,7 +210,7 @@ export function LeaderboardCard({
             className="text-2xl font-bold flex items-center gap-2"
             style={{
               fontFamily: theme.fonts.heading,
-              color: '#3f3f46',
+              color: theme.colors.primary,
             }}
           >
             <Trophy className="w-6 h-6" />
@@ -243,7 +243,7 @@ export function LeaderboardCard({
               className="text-lg font-semibold flex items-center gap-2"
               style={{
                 fontFamily: theme.fonts.heading,
-                color: '#3f3f46',
+                color: theme.colors.secondary,
               }}
             >
               {formatGameName(gameLeaderboard.game)}
@@ -310,9 +310,6 @@ export function LeaderboardCard({
                               style={{ color: theme.colors.accent }}
                             >
                               {formatScore(score.score)}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {score.character}
                             </div>
                           </div>
                         </motion.div>
