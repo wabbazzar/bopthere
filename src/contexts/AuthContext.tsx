@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AuthContextValue, AuthState, AuthAction, User } from '@/types/auth';
 import { AuthService } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useTokenRefresh } from '@/hooks/useTokenRefresh';
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -84,17 +85,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = AuthService.getUser();
 
       if (token && user) {
-        // Try to verify the token with the server
-        try {
-          const verifiedUser = await AuthService.verifyToken();
-          dispatch({
-            type: 'LOGIN_SUCCESS',
-            payload: { user: verifiedUser, token },
-          });
-        } catch (error) {
-          // Token is invalid, clear local storage
-          AuthService.clearAuthData();
-          dispatch({ type: 'VERIFY_FAILURE' });
+        // Check if token needs refresh first
+        if (AuthService.shouldRefreshToken()) {
+          try {
+            console.log('Token needs refresh on mount, refreshing...');
+            const response = await AuthService.refreshToken();
+            dispatch({
+              type: 'LOGIN_SUCCESS',
+              payload: { user: response.user, token: response.token },
+            });
+          } catch (error) {
+            console.error('Failed to refresh token on mount:', error);
+            // Try to verify existing token as fallback
+            try {
+              const verifiedUser = await AuthService.verifyToken();
+              dispatch({
+                type: 'LOGIN_SUCCESS',
+                payload: { user: verifiedUser, token },
+              });
+            } catch (verifyError) {
+              // Both refresh and verify failed, clear auth
+              AuthService.clearAuthData();
+              dispatch({ type: 'VERIFY_FAILURE' });
+            }
+          }
+        } else {
+          // Token doesn't need refresh, just verify it
+          try {
+            const verifiedUser = await AuthService.verifyToken();
+            dispatch({
+              type: 'LOGIN_SUCCESS',
+              payload: { user: verifiedUser, token },
+            });
+          } catch (error) {
+            // Token is invalid, clear local storage
+            AuthService.clearAuthData();
+            dispatch({ type: 'VERIFY_FAILURE' });
+          }
         }
       } else {
         dispatch({ type: 'SET_LOADING', payload: false });
@@ -103,6 +130,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initializeAuth();
   }, []);
+
+  // Use the token refresh hook with callbacks for state updates
+  useTokenRefresh({
+    onRefreshSuccess: () => {
+      // Re-fetch user data after successful refresh
+      const token = AuthService.getToken();
+      const user = AuthService.getUser();
+      if (token && user) {
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: { user, token },
+        });
+      }
+    },
+    onRefreshError: (error) => {
+      console.error('Token refresh error in AuthContext:', error);
+      // Don't automatically logout on refresh failure
+      // User can still use the app until token actually expires
+    },
+  });
 
   const login = async (username: string, password: string): Promise<void> => {
     dispatch({ type: 'SET_LOADING', payload: true });

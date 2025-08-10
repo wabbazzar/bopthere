@@ -283,6 +283,109 @@ def lambda_handler(event, context):
                 ),
             }
 
+        elif path.endswith("/refresh") and http_method == "POST":
+            # Token refresh endpoint for extending sessions
+            token = None
+            
+            # Check Authorization header (case-insensitive)
+            headers_dict = event.get("headers", {})
+            auth_header = ""
+            for key, value in headers_dict.items():
+                if key.lower() == "authorization":
+                    auth_header = value
+                    break
+            
+            if auth_header.startswith("Bearer "):
+                token = auth_header[7:]  # Remove 'Bearer ' prefix
+            
+            # Also check body for token
+            if not token:
+                body = json.loads(event.get("body", "{}"))
+                token = body.get("token")
+            
+            if not token:
+                return {
+                    "statusCode": 401,
+                    "headers": headers,
+                    "body": json.dumps({"error": "Token is required for refresh"}),
+                }
+            
+            # Verify the current token
+            payload = verify_token(token)
+            
+            if not payload:
+                return {
+                    "statusCode": 401,
+                    "headers": headers,
+                    "body": json.dumps({"error": "Invalid or expired token"}),
+                }
+            
+            # Check if token is within refresh window (last 6 days of 30-day lifetime)
+            exp_timestamp = payload.get("exp", 0)
+            current_timestamp = datetime.utcnow().timestamp()
+            time_until_expiry = exp_timestamp - current_timestamp
+            
+            # Allow refresh if token expires within 6 days (518400 seconds)
+            # or if explicitly requested (for testing/PWA lifecycle)
+            if time_until_expiry > 518400:
+                logger.info(f"Token refresh requested with {time_until_expiry/86400:.1f} days remaining")
+            
+            # Get user info for new token
+            username = payload.get("username")
+            response = table.get_item(Key={"username": username})
+            
+            if "Item" not in response:
+                return {
+                    "statusCode": 401,
+                    "headers": headers,
+                    "body": json.dumps({"error": "User not found"}),
+                }
+            
+            user = response["Item"]
+            
+            # Update last_activity timestamp
+            current_time = datetime.utcnow().isoformat() + "Z"
+            try:
+                table.update_item(
+                    Key={"username": username},
+                    UpdateExpression="SET last_activity = :last_activity",
+                    ExpressionAttributeValues={":last_activity": current_time},
+                )
+            except Exception as update_error:
+                logger.warning(
+                    f"Failed to update last_activity for {username}: {str(update_error)}"
+                )
+                # Continue with refresh even if timestamp update fails
+            
+            # Generate new JWT token with fresh expiry
+            new_token = generate_token(username, user.get("role", "guest"))
+            
+            # Calculate expiry timestamp for response
+            expires_at = (datetime.utcnow() + timedelta(days=JWT_EXPIRY_DAYS)).isoformat() + "Z"
+            
+            # Return user info with new token
+            response_user = {
+                "username": user.get("username"),
+                "email": user.get("email"),
+                "full_name": user.get("full_name"),
+                "role": user.get("role", "guest"),
+            }
+            
+            logger.info(f"Token refreshed for user: {username}")
+            
+            return {
+                "statusCode": 200,
+                "headers": headers,
+                "body": json.dumps(
+                    {
+                        "message": "Token refreshed successfully",
+                        "token": new_token,
+                        "expires_at": expires_at,
+                        "user": response_user,
+                    }
+                ),
+            }
+        
         elif path.endswith("/register") and http_method == "POST":
             # Registration endpoint for admin user creation
             # Parse request body
