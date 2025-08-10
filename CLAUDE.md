@@ -485,6 +485,14 @@ When generating tickets for the Wedding App:
 - **Ensure directory exists**: Always verify `docs/tickets/backlog/` exists before writing
 - **Follow ticket rules**: Refer to `docs/generate_ticket_rules.md` for comprehensive ticket structure
 
+## 16. Recent Updates (August 2025)
+
+### Completed Features
+- **Persistent Login Sessions**: Implemented 30-day JWT tokens with automatic refresh at 80% lifetime
+- **Token Refresh**: Added `/auth/refresh` endpoint with PWA lifecycle support
+- **AWS Migration**: Completed migration from us-west-2 to us-east-1
+- **Region Consistency**: All resources now in us-east-1 (N. Virginia) with enforced consistency checks
+
 ### AWS Integration Requirements
 
 When working with AWS services:
