@@ -494,7 +494,7 @@ npm run dev
 - All test credentials working
 
 ### 🚀 Deployment Status
-- **API Gateway**: https://m1wocluixd.execute-api.us-west-2.amazonaws.com/prod
+- **API Gateway**: ~~https://m1wocluixd.execute-api.us-west-2.amazonaws.com/prod~~ (Migrated to us-east-1)
 - **DynamoDB Table**: heatherandwesley-auth-users (8 users)
 - **Lambda Function**: heatherandwesley-auth-handler
 - **Frontend**: Ready at http://localhost:8080

@@ -243,7 +243,7 @@ When testing AWS Lambda/API Gateway/DynamoDB integrations, you MUST create E2E s
    import pytest
    
    ENV = os.environ.get('ENV', 'prod')
-   API_BASE = f"https://[api-id].execute-api.us-west-2.amazonaws.com/{ENV}"
+   API_BASE = f"https://[api-id].execute-api.us-east-1.amazonaws.com/{ENV}"
    
    def test_[feature]_gateway_to_dynamo_flow():
        """Smoke test verifying Gateway → Lambda → DynamoDB flow"""

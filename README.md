@@ -217,7 +217,7 @@ make verify-migration
 # Complete comprehensive migration verification
 make verify-migration-complete
 
-# Clean up any remaining us-west-2 resources
+# Migration to us-east-1 completed - all resources migrated
 make cleanup-west-2-final
 ```
 

@@ -61,7 +61,7 @@ cp .env.example .env
 cd infrastructure && tofu output api_gateway_url
 
 # Update .env with the API Gateway URL
-# VITE_API_GATEWAY_URL=https://YOUR_API_ID.execute-api.us-west-2.amazonaws.com/prod
+# VITE_API_GATEWAY_URL=https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/prod
 ```
 
 ## Infrastructure Components

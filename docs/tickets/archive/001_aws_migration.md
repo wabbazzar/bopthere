@@ -394,7 +394,7 @@ While not explicitly requested, consider:
 
 **Infrastructure Deployment Status**: ✅ COMPLETE
 - All AWS resources successfully deployed and operational
-- API Gateway URL: `https://m1wocluixd.execute-api.us-west-2.amazonaws.com/prod`
+- API Gateway URL: ~~https://m1wocluixd.execute-api.us-west-2.amazonaws.com/prod~~ (Migrated to us-east-1)
 - Resources created:
   - DynamoDB Table: `heatherandwesley-users` (ACTIVE)
   - Lambda Function: `heatherandwesley-rsvp-handler` (Active)

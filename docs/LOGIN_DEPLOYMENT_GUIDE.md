@@ -278,7 +278,7 @@ Get your API Gateway URL from the infrastructure output and test:
 
 ```bash
 # Replace YOUR_API_URL with your actual API Gateway URL
-API_URL="https://your-api-id.execute-api.us-west-2.amazonaws.com/prod"
+API_URL="https://your-api-id.execute-api.us-east-1.amazonaws.com/prod"
 
 # Test user registration
 curl -X POST "${API_URL}/auth/register" \

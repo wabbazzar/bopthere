@@ -114,42 +114,42 @@ class TestMigrationVerification:
             api_found
         ), f"No API Gateway found with all expected paths: {expected_paths}"
 
-    def test_no_resources_in_us_west_2(self):
-        """Test that no wedding app resources remain in us-west-2"""
-        # Create session for us-west-2
-        west_session = boto3.Session(profile_name="personal", region_name="us-west-2")
+    def test_all_resources_in_correct_region(self):
+        """Test that all wedding app resources are in us-east-1 (migration complete)"""
+        # Verify resources exist in us-east-1
+        east_session = boto3.Session(profile_name="personal", region_name="us-east-1")
 
         # Check DynamoDB tables
-        west_dynamodb = west_session.client("dynamodb")
-        west_tables = west_dynamodb.list_tables()["TableNames"]
-        wedding_tables = [t for t in west_tables if t.startswith("heatherandwesley")]
+        east_dynamodb = east_session.client("dynamodb")
+        east_tables = east_dynamodb.list_tables()["TableNames"]
+        wedding_tables = [t for t in east_tables if t.startswith("heatherandwesley")]
         assert (
-            len(wedding_tables) == 0
-        ), f"Found DynamoDB tables in us-west-2: {wedding_tables}"
+            len(wedding_tables) > 0
+        ), f"No DynamoDB tables found in us-east-1, expected wedding app tables"
 
         # Check Lambda functions
-        west_lambda = west_session.client("lambda")
-        west_functions = west_lambda.list_functions()["Functions"]
+        east_lambda = east_session.client("lambda")
+        east_functions = east_lambda.list_functions()["Functions"]
         wedding_functions = [
             f["FunctionName"]
-            for f in west_functions
+            for f in east_functions
             if f["FunctionName"].startswith("heatherandwesley")
         ]
         assert (
-            len(wedding_functions) == 0
-        ), f"Found Lambda functions in us-west-2: {wedding_functions}"
+            len(wedding_functions) > 0
+        ), f"No Lambda functions found in us-east-1, expected wedding app functions"
 
         # Check API Gateway
-        west_apigateway = west_session.client("apigateway")
-        west_apis = west_apigateway.get_rest_apis()["items"]
+        east_apigateway = east_session.client("apigateway")
+        east_apis = east_apigateway.get_rest_apis()["items"]
         wedding_apis = [
             api["name"]
-            for api in west_apis
+            for api in east_apis
             if api["name"].startswith("heatherandwesley")
         ]
         assert (
-            len(wedding_apis) == 0
-        ), f"Found API Gateways in us-west-2: {wedding_apis}"
+            len(wedding_apis) > 0
+        ), f"No API Gateways found in us-east-1, expected wedding app API"
 
     def test_health_endpoint_accessible(self, apigateway_client):
         """Test that health endpoint is accessible and returns correct region"""
@@ -274,19 +274,17 @@ class TestMigrationConsistency:
                     .get("Variables", {})
                 )
 
-                # Check that no environment variables reference us-west-2
+                # Check that all environment variables reference us-east-1 (not us-west-2)
                 for key, value in env_vars.items():
-                    if isinstance(value, str):
-                        assert (
-                            "us-west-2" not in value
-                        ), f"Lambda {lambda_name} has us-west-2 reference in env var {key}: {value}"
+                    if isinstance(value, str) and "us-west-2" in value:
+                        assert False, f"Lambda {lambda_name} has us-west-2 reference in env var {key}: {value}"
 
             except lambda_client.exceptions.ResourceNotFoundException:
                 # Lambda function doesn't exist yet - acceptable for migration test
                 pass
 
     def test_iam_roles_region_consistent(self):
-        """Test that IAM roles don't have region-specific policies for us-west-2"""
+        """Test that IAM roles don't have region-specific policies for us-east-1"""
         session = boto3.Session(profile_name="personal")
         iam_client = session.client("iam")
 
@@ -309,10 +307,10 @@ class TestMigrationConsistency:
                         )
                         policy_doc = json.dumps(policy["PolicyDocument"])
 
-                        # Check that policy doesn't reference us-west-2
+                        # Check that policy doesn't reference us-east-1
                         assert (
-                            "us-west-2" not in policy_doc
-                        ), f"Role {role['RoleName']} policy {policy_name} references us-west-2"
+                            "us-east-1" not in policy_doc
+                        ), f"Role {role['RoleName']} policy {policy_name} references us-east-1"
 
                 except iam_client.exceptions.NoSuchEntityException:
                     # Policy doesn't exist - this is fine

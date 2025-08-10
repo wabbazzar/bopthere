@@ -161,7 +161,7 @@ import requests
 import pytest
 
 ENV = os.environ.get('ENV', 'prod')
-API_BASE = f"https://[api-id].execute-api.us-west-2.amazonaws.com/{ENV}"
+API_BASE = f"https://[api-id].execute-api.us-east-1.amazonaws.com/{ENV}"
 
 def test_[feature]_endpoint():
     """Smoke test for [feature] - verifies Gateway → Lambda → DynamoDB flow"""
@@ -330,7 +330,7 @@ aws logs tail /aws/lambda/[function-name] --follow --profile personal
 aws dynamodb describe-table --table-name [table-name] --profile personal
 
 # Test API endpoints
-curl -X POST https://[api-id].execute-api.us-west-2.amazonaws.com/prod/[endpoint] \
+curl -X POST https://[api-id].execute-api.us-east-1.amazonaws.com/prod/[endpoint] \
   -H "Content-Type: application/json" \
   -d '{"test": "data"}'
 ```
