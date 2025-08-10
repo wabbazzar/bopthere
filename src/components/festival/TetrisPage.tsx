@@ -216,7 +216,7 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
             <div className="text-center text-white">
               <Loader2
                 className="w-8 h-8 animate-spin mx-auto mb-4"
-                style={{ color: theme.primary }}
+                style={{ color: character === 'heather' ? theme.dark : character === 'puffy' ? '#8B4513' : theme.primary }}
               />
               <p style={{ fontFamily: 'Crimson Text, serif' }}>
                 Loading{' '}
@@ -234,7 +234,7 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
         {hasError && (
           <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
             <div className="text-center text-white max-w-md mx-auto px-4">
-              <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: theme.primary }} />
+              <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: character === 'heather' ? theme.dark : character === 'puffy' ? '#8B4513' : theme.primary }} />
               <h3 className="text-xl font-bold mb-4" style={{ fontFamily: 'Cinzel, serif' }}>
                 {character === 'wesley'
                   ? 'Quest Loading Failed'
@@ -283,7 +283,7 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
       <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Cinzel, serif', color: theme.primary }}>
+            <DialogTitle style={{ fontFamily: 'Cinzel, serif', color: character === 'heather' ? theme.dark : character === 'puffy' ? '#8B4513' : theme.primary }}>
               Game Over!
             </DialogTitle>
             <DialogDescription className="sr-only">
@@ -315,7 +315,7 @@ export const TetrisPage: React.FC<TetrisPageProps> = ({ character, theme, onBack
       <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Cinzel, serif', color: theme.primary }}>
+            <DialogTitle style={{ fontFamily: 'Cinzel, serif', color: character === 'heather' ? theme.dark : character === 'puffy' ? '#8B4513' : theme.primary }}>
               Tetris Leaderboard
             </DialogTitle>
             <DialogDescription className="sr-only">

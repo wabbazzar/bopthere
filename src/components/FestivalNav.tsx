@@ -137,7 +137,7 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
         className="fixed top-0 left-0 right-0 bg-black/20 backdrop-blur-md border-b border-white/20"
         style={{
           isolation: 'isolate',
-          zIndex: 100,
+          zIndex: 9999,
           pointerEvents: 'auto', // Ensure nav is always clickable
         }}
       >
@@ -178,6 +178,8 @@ export const FestivalNav: React.FC<FestivalNavProps> = ({ activeTab, onTabChange
                       backgroundColor: isActive ? currentTheme.primary : 'transparent',
                       color: isActive ? 'white' : undefined,
                       pointerEvents: 'auto', // Ensure buttons are clickable
+                      position: 'relative',
+                      zIndex: 1,
                     }}
                     title={tab.description}
                   >

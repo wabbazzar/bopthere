@@ -233,7 +233,7 @@ export const GuestListView: React.FC = () => {
                     <p
                       className="text-sm mt-1 flex items-center gap-1"
                       style={{
-                        color: currentTheme.secondary,
+                        color: selectedCharacter === 'puffy' ? currentTheme.primary : currentTheme.secondary,
                         fontFamily: 'Crimson Text, serif',
                       }}
                     >
@@ -246,11 +246,11 @@ export const GuestListView: React.FC = () => {
                     style={{
                       backgroundColor:
                         guest.bride_or_groom === 'bride'
-                          ? `${currentTheme.secondary}20`
+                          ? selectedCharacter === 'puffy' ? `${currentTheme.dark}20` : `${currentTheme.secondary}20`
                           : `${currentTheme.primary}20`,
                       color:
                         guest.bride_or_groom === 'bride'
-                          ? currentTheme.secondary
+                          ? selectedCharacter === 'puffy' ? currentTheme.dark : currentTheme.secondary
                           : currentTheme.primary,
                     }}
                   >
@@ -263,7 +263,7 @@ export const GuestListView: React.FC = () => {
                       fontFamily: 'Crimson Text, serif',
                     }}
                   >
-                    <Star className="w-3 h-3 inline mr-1" style={{ color: currentTheme.accent }} />"
+                    <Star className="w-3 h-3 inline mr-1" style={{ color: selectedCharacter === 'puffy' ? currentTheme.primary : currentTheme.accent }} />"
                     {guest.super_power}"
                   </p>
                 </div>

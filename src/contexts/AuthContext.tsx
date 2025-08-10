@@ -131,6 +131,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
+  // Define verifyToken function before using it in the hook
+  const verifyToken = async (): Promise<void> => {
+    try {
+      const user = await AuthService.verifyToken();
+      dispatch({ type: 'VERIFY_SUCCESS', payload: user });
+    } catch (error) {
+      dispatch({ type: 'VERIFY_FAILURE' });
+      throw error;
+    }
+  };
+
   // Use the token refresh hook with callbacks for state updates
   useTokenRefresh({
     onRefreshSuccess: () => {
@@ -149,6 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Don't automatically logout on refresh failure
       // User can still use the app until token actually expires
     },
+    verifyToken, // Pass the verifyToken function to the hook
   });
 
   const login = async (username: string, password: string): Promise<void> => {
@@ -192,16 +204,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     //   title: "Logged Out",
     //   description: "You have been successfully logged out.",
     // });
-  };
-
-  const verifyToken = async (): Promise<void> => {
-    try {
-      const user = await AuthService.verifyToken();
-      dispatch({ type: 'VERIFY_SUCCESS', payload: user });
-    } catch (error) {
-      dispatch({ type: 'VERIFY_FAILURE' });
-      throw error;
-    }
   };
 
   const contextValue: AuthContextValue = {

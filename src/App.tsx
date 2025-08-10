@@ -10,6 +10,7 @@ import NotFound from './pages/NotFound';
 import { setupClickabilityMonitor } from '@/utils/ensureClickable';
 import { preventButtonDisabling } from '@/utils/preventDisable';
 import { navbarProtector } from '@/utils/navbarFix';
+import { leaderboardPreloader } from '@/services/leaderboardPreloader';
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,13 @@ const App = () => {
 
     // Start navbar protection to handle DevTools and viewport changes
     navbarProtector.start();
+
+    // Initialize leaderboard preloader for background data loading
+    leaderboardPreloader.initialize().then(() => {
+      console.log('[App] Leaderboard data preloaded successfully');
+    }).catch((error) => {
+      console.error('[App] Failed to preload leaderboard data:', error);
+    });
 
     // Cleanup on unmount
     return () => {

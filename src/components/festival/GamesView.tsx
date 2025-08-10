@@ -4,13 +4,6 @@ import { characterThemes } from '@/types/character';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import {
   Gamepad,
   Trophy,
   Target,
@@ -20,10 +13,9 @@ import {
   Puzzle,
   Gamepad2,
   Play,
-  Medal,
 } from 'lucide-react';
 import { TetrisPage } from './TetrisPage';
-import { LeaderboardDisplay } from '@/components/leaderboard';
+import { LeaderboardCard } from '@/components/leaderboard';
 
 const characterMessages = {
   wesley: {
@@ -49,7 +41,6 @@ const characterMessages = {
 export const GamesView: React.FC = () => {
   const { selectedCharacter } = useCharacter();
   const [currentView, setCurrentView] = useState<'dashboard' | 'tetris'>('dashboard');
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   if (!selectedCharacter) return null;
 
@@ -100,6 +91,14 @@ export const GamesView: React.FC = () => {
           </CardDescription>
         </CardHeader>
       </Card>
+
+      {/* Integrated Leaderboard Display - Top 5 Scores */}
+      <LeaderboardCard 
+        className="bg-white/95 backdrop-blur-sm border-2 shadow-lg"
+        limit={5}
+        autoRefresh={true}
+        refreshInterval={30000}
+      />
 
       {/* Available Games */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -163,65 +162,6 @@ export const GamesView: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Tournament Leaderboard Card */}
-        <Card
-          className="bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full"
-          onClick={() => setShowLeaderboard(true)}
-        >
-          <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-center mb-3">
-              <div
-                className="p-4 rounded-full group-hover:scale-110 transition-transform duration-300"
-                style={{ backgroundColor: `${currentTheme.primary}20` }}
-              >
-                <Trophy className="w-8 h-8" style={{ color: currentTheme.primary }} />
-              </div>
-            </div>
-            <CardTitle
-              className="text-xl font-bold"
-              style={{
-                fontFamily: 'Cinzel, serif',
-                color: currentTheme.primary,
-              }}
-            >
-              Tournament Leaderboard
-            </CardTitle>
-            <CardDescription
-              className="text-sm"
-              style={{
-                fontFamily: 'Crimson Text, serif',
-                color: currentTheme.dark,
-              }}
-            >
-              Top scores across all games
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center flex flex-col flex-grow">
-            <p
-              className="text-sm mb-4 leading-relaxed flex-grow"
-              style={{
-                fontFamily: 'Crimson Text, serif',
-                color: currentTheme.dark,
-              }}
-            >
-              {selectedCharacter === 'wesley'
-                ? 'View the champions who have conquered our epic challenges!'
-                : selectedCharacter === 'heather'
-                  ? 'See our talented players and their impressive achievements.'
-                  : 'Check out all the amazing high scores from our super fun games!'}
-            </p>
-            <Button
-              className="w-full group-hover:scale-105 transition-transform duration-300"
-              style={{
-                backgroundColor: currentTheme.primary,
-                color: 'white',
-              }}
-            >
-              <Medal className="w-4 h-4 mr-2" />
-              View Leaderboard
-            </Button>
-          </CardContent>
-        </Card>
 
         {/* Coming Soon Games */}
         <Card className="bg-white/80 backdrop-blur-sm border-2 shadow-lg opacity-60">
@@ -229,16 +169,16 @@ export const GamesView: React.FC = () => {
             <div className="flex items-center justify-center mb-3">
               <div
                 className="p-4 rounded-full"
-                style={{ backgroundColor: `${currentTheme.secondary}20` }}
+                style={{ backgroundColor: '#3f3f4620' }}
               >
-                <Target className="w-8 h-8" style={{ color: currentTheme.secondary }} />
+                <Target className="w-8 h-8" style={{ color: '#3f3f46' }} />
               </div>
             </div>
             <CardTitle
               className="text-xl font-bold"
               style={{
                 fontFamily: 'Cinzel, serif',
-                color: currentTheme.secondary,
+                color: '#3f3f46',
               }}
             >
               Challenge Games
@@ -260,16 +200,16 @@ export const GamesView: React.FC = () => {
             <div className="flex items-center justify-center mb-3">
               <div
                 className="p-4 rounded-full"
-                style={{ backgroundColor: `${currentTheme.secondary}20` }}
+                style={{ backgroundColor: '#3f3f4620' }}
               >
-                <Trophy className="w-8 h-8" style={{ color: currentTheme.secondary }} />
+                <Trophy className="w-8 h-8" style={{ color: '#3f3f46' }} />
               </div>
             </div>
             <CardTitle
               className="text-xl font-bold"
               style={{
                 fontFamily: 'Cinzel, serif',
-                color: currentTheme.secondary,
+                color: '#3f3f46',
               }}
             >
               Tournaments
@@ -294,9 +234,9 @@ export const GamesView: React.FC = () => {
             <div className="mb-6">
               <div
                 className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-                style={{ backgroundColor: `${currentTheme.secondary}40` }}
+                style={{ backgroundColor: '#3f3f4640' }}
               >
-                <Star className="w-8 h-8" style={{ color: currentTheme.secondary }} />
+                <Star className="w-8 h-8" style={{ color: '#3f3f46' }} />
               </div>
               <h3
                 className="text-2xl font-bold mb-4"
@@ -352,36 +292,6 @@ export const GamesView: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Leaderboard Dialog */}
-      <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle
-              className="text-2xl font-bold"
-              style={{
-                fontFamily: 'Cinzel, serif',
-                color: currentTheme.primary,
-              }}
-            >
-              {selectedCharacter === 'wesley'
-                ? 'Tournament Hall of Champions'
-                : selectedCharacter === 'heather'
-                  ? 'Tournament Leaderboard'
-                  : 'Super Amazing High Scores!'}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              View tournament leaderboard and high scores
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4">
-            <LeaderboardDisplay
-              game="tetris"
-              character={selectedCharacter}
-              className="border-0 shadow-none"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

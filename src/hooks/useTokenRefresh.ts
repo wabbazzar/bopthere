@@ -1,11 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AuthService } from '@/lib/auth';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface UseTokenRefreshOptions {
   onRefreshSuccess?: () => void;
   onRefreshError?: (error: Error) => void;
   refreshThreshold?: number; // Percentage of token lifetime (0-1)
+  verifyToken?: () => Promise<void>; // Optional verify function
 }
 
 /**
@@ -16,10 +16,9 @@ export function useTokenRefresh(options: UseTokenRefreshOptions = {}) {
   const { 
     onRefreshSuccess, 
     onRefreshError,
-    refreshThreshold = 0.8 // Default to 80% of token lifetime
+    refreshThreshold = 0.8, // Default to 80% of token lifetime
+    verifyToken
   } = options;
-  
-  const { verifyToken } = useAuth();
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshRef = useRef<number>(0);
   const isRefreshingRef = useRef<boolean>(false);
@@ -126,13 +125,25 @@ export function useTokenRefresh(options: UseTokenRefreshOptions = {}) {
       }
     } else {
       // Even if we don't need refresh, verify the token is still valid
-      try {
-        await verifyToken();
-        console.log('Token still valid after app became visible');
-      } catch (error) {
-        console.error('Token verification failed after app became visible:', error);
-        // Try to refresh as a fallback
-        await performRefresh();
+      if (verifyToken) {
+        try {
+          await verifyToken();
+          console.log('Token still valid after app became visible');
+        } catch (error) {
+          console.error('Token verification failed after app became visible:', error);
+          // Try to refresh as a fallback
+          await performRefresh();
+        }
+      } else {
+        // If no verifyToken function provided, use AuthService directly
+        try {
+          await AuthService.verifyToken();
+          console.log('Token still valid after app became visible');
+        } catch (error) {
+          console.error('Token verification failed after app became visible:', error);
+          // Try to refresh as a fallback
+          await performRefresh();
+        }
       }
     }
   }, [performRefresh, setupRefreshTimer, verifyToken]);
