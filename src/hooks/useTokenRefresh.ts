@@ -113,7 +113,8 @@ export function useTokenRefresh(options: UseTokenRefreshOptions = {}) {
 
     console.log('App became visible, checking if token needs refresh...');
     
-    // Always check token validity when app becomes visible
+    // For PWA, be more conservative about token validation
+    // Only refresh if the token is actually near expiry
     const needsRefresh = AuthService.shouldRefreshToken();
     
     if (needsRefresh) {
@@ -123,27 +124,28 @@ export function useTokenRefresh(options: UseTokenRefreshOptions = {}) {
       if (success) {
         setupRefreshTimer();
       }
+      // Don't logout on refresh failure - token may still be valid
     } else {
-      // Even if we don't need refresh, verify the token is still valid
-      if (verifyToken) {
-        try {
-          await verifyToken();
-          console.log('Token still valid after app became visible');
-        } catch (error) {
-          console.error('Token verification failed after app became visible:', error);
-          // Try to refresh as a fallback
-          await performRefresh();
+      // Token doesn't need refresh, skip verification for PWA stability
+      // Only verify if the token is very close to expiry
+      const timeUntilExpiry = AuthService.getTimeUntilExpiry();
+      const oneHourInMs = 60 * 60 * 1000;
+      
+      if (timeUntilExpiry < oneHourInMs) {
+        // Only verify if less than 1 hour left
+        console.log('Token expires soon, verifying...');
+        if (verifyToken) {
+          try {
+            await verifyToken();
+            console.log('Token still valid after app became visible');
+          } catch (error) {
+            console.error('Token verification failed after app became visible:', error);
+            // Try to refresh as a last resort
+            await performRefresh();
+          }
         }
       } else {
-        // If no verifyToken function provided, use AuthService directly
-        try {
-          await AuthService.verifyToken();
-          console.log('Token still valid after app became visible');
-        } catch (error) {
-          console.error('Token verification failed after app became visible:', error);
-          // Try to refresh as a fallback
-          await performRefresh();
-        }
+        console.log('Token still has time, skipping verification to maintain PWA session');
       }
     }
   }, [performRefresh, setupRefreshTimer, verifyToken]);

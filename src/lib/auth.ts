@@ -118,8 +118,14 @@ export class AuthService {
 
       return response.user;
     } catch (error) {
-      // If token verification fails, clear local auth data
-      this.clearAuthData();
+      // For PWA stability, don't clear auth data on network errors
+      // Only clear if it's a definitive 401/403 authentication error
+      if (error instanceof APIError && (error.statusCode === 401 || error.statusCode === 403)) {
+        console.log('Token verification failed with auth error, clearing data');
+        this.clearAuthData();
+      } else {
+        console.warn('Token verification failed with network error, keeping auth data:', error);
+      }
 
       if (error instanceof APIError) {
         throw error;
@@ -235,8 +241,14 @@ export class AuthService {
       console.log('Token refreshed successfully');
       return response;
     } catch (error) {
-      // If refresh fails, clear auth data
-      this.clearAuthData();
+      // For PWA stability, only clear auth data on definitive auth errors
+      // Network issues shouldn't log the user out
+      if (error instanceof APIError && (error.statusCode === 401 || error.statusCode === 403)) {
+        console.log('Token refresh failed with auth error, clearing data');
+        this.clearAuthData();
+      } else {
+        console.warn('Token refresh failed with network error, keeping auth data:', error);
+      }
       
       if (error instanceof APIError) {
         throw error;

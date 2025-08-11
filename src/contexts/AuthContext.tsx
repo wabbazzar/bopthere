@@ -85,8 +85,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = AuthService.getUser();
 
       if (token && user) {
-        // Check if token needs refresh first
-        if (AuthService.shouldRefreshToken()) {
+        // For PWA persistence, be more conservative about token validation on startup
+        // Check if the token has actually expired (not just needs refresh)
+        const timeUntilExpiry = AuthService.getTimeUntilExpiry();
+        
+        if (timeUntilExpiry <= 0) {
+          // Token is actually expired, try to refresh
+          try {
+            console.log('Token expired on mount, refreshing...');
+            const response = await AuthService.refreshToken();
+            dispatch({
+              type: 'LOGIN_SUCCESS',
+              payload: { user: response.user, token: response.token },
+            });
+          } catch (error) {
+            console.error('Failed to refresh expired token on mount:', error);
+            // Clear expired token
+            AuthService.clearAuthData();
+            dispatch({ type: 'VERIFY_FAILURE' });
+          }
+        } else if (AuthService.shouldRefreshToken()) {
+          // Token needs refresh but isn't expired - try refresh but don't fail hard
           try {
             console.log('Token needs refresh on mount, refreshing...');
             const response = await AuthService.refreshToken();
@@ -95,33 +114,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               payload: { user: response.user, token: response.token },
             });
           } catch (error) {
-            console.error('Failed to refresh token on mount:', error);
-            // Try to verify existing token as fallback
-            try {
-              const verifiedUser = await AuthService.verifyToken();
-              dispatch({
-                type: 'LOGIN_SUCCESS',
-                payload: { user: verifiedUser, token },
-              });
-            } catch (verifyError) {
-              // Both refresh and verify failed, clear auth
-              AuthService.clearAuthData();
-              dispatch({ type: 'VERIFY_FAILURE' });
-            }
-          }
-        } else {
-          // Token doesn't need refresh, just verify it
-          try {
-            const verifiedUser = await AuthService.verifyToken();
+            console.error('Failed to refresh token on mount, using existing token:', error);
+            // Keep the existing token if refresh fails
             dispatch({
               type: 'LOGIN_SUCCESS',
-              payload: { user: verifiedUser, token },
+              payload: { user, token },
             });
-          } catch (error) {
-            // Token is invalid, clear local storage
-            AuthService.clearAuthData();
-            dispatch({ type: 'VERIFY_FAILURE' });
           }
+        } else {
+          // Token is fine, skip verification for PWA stability
+          console.log('Token is valid, skipping verification for PWA stability');
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: { user, token },
+          });
         }
       } else {
         dispatch({ type: 'SET_LOADING', payload: false });
