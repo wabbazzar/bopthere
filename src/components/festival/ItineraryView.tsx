@@ -24,7 +24,7 @@ interface Activity {
   title: string;
   description: string;
   location: string;
-  link?: string;
+  map?: string;
   type: 'logistics' | 'social' | 'activity' | 'food' | 'ceremony' | 'reception' | 'party';
 }
 
@@ -157,9 +157,9 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, theme }) => {
                 {activity.location}
               </span>
             </div>
-            {activity.link && (
+            {activity.map && (
               <a
-                href={activity.link}
+                href={activity.map}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium hover:opacity-80 transition-opacity"

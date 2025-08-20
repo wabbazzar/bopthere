@@ -71,6 +71,9 @@ help:
 	@echo "  make update-schemas     Update all API schemas and documentation"
 	@echo "  make test-api-consistency  Test field consistency across layers"
 	@echo ""
+	@echo "Development Operations:"
+	@echo "  make serve              Start local development server"
+	@echo ""
 	@echo "Code Quality Operations:"
 	@echo "  make format             Format all code with pre-commit tools"
 	@echo "  make format-check       Check code formatting without changes"
@@ -665,8 +668,13 @@ test-auth-integration: ## Run auth integration tests
 	@echo "🧪 Testing auth integration..."
 	@npm test -- tests/integration/frontend/auth-api-integration.test.tsx
 
+# Development Operations
+serve: ## Start local development server
+	@echo "🚀 Starting development server..."
+	@npm run dev
+
 # Development helpers
-.PHONY: help create-rsvp-table describe-table list-tables \
+.PHONY: help serve create-rsvp-table describe-table list-tables \
         update-lambda test-lambda test-api fix-cors test-all deploy-all cleanup-west-2 cleanup-west-2-final \
         update-schemas test-api-consistency \
         create-auth-table describe-auth-table create-auth-lambda-role deploy-auth-lambda \

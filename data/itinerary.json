@@ -19,7 +19,7 @@
                     "description": "Drinks with open tab",
                     "location": "Mauibars / South Shore Tiki",
                     "type": "social",
-                    "link": "https://maps.app.goo.gl/BM3HKDFuaSZbYWCY8"
+                    "map": "https://maps.app.goo.gl/BM3HKDFuaSZbYWCY8"
                 },
                 {
                     "start_time": "7:00 PM",
@@ -40,18 +40,18 @@
                     "end_time": "8:00 AM",
                     "title": "Sunrise Group Hike (Group 1)",
                     "description": "Morning group hiking activity, be ready to get up early!",
-                    "location": "Haleakalā National Park, HI",
+                    "location": "Lāhainā Pali Trail, HI",
                     "type": "activity",
-                    "link": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA"
+                    "map": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA"
                 },
                 {
                     "start_time": "8:00 AM",
                     "end_time": "11:00 AM",
                     "title": "Group Hike (Group 2)",
                     "description": "Morning group hiking activity",
-                    "location": "Haleakalā National Park, HI",
+                    "location": "Lāhainā Pali Trail, HI",
                     "type": "activity",
-                    "link": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA"
+                    "map": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA"
                 },
                 {
                     "start_time": "11:00 AM",
@@ -122,15 +122,15 @@
                     "description": "Brunch and coffee",
                     "location": "Maui Ono Donuts, 1819 S Kihei Rd Building E, Kihei, HI 96753",
                     "type": "food",
-                    "link": "https://maps.app.goo.gl/wTJ53FvrcRJP92M57"
+                    "map": "https://maps.app.goo.gl/wTJ53FvrcRJP92M57"
                 },
                 {
                     "start_time": "1:00 PM",
                     "end_time": "4:00 PM",
                     "title": "Beach Day",
-                    "description": "Hang out at the beach",
+                    "description": "Hang out at the beach - snorkel, surf, boogie",
                     "location": "Auntie Snorkel Rentals and Kamaole Beach, HI",
-                    "link": "https://maps.app.goo.gl/cUQgwZ5d4BN98APeA",
+                    "map": "https://maps.app.goo.gl/cUQgwZ5d4BN98APeA",
                     "type": "activity"
                 },
                 {
