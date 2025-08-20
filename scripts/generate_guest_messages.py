@@ -135,6 +135,7 @@ def fill_template(
             {
                 "{guest2_username}": partner.username,
                 "{guest2_password}": partner.password,
+                "{guest2}": f" and {partner.first_name}",
             }
         )
     else:
@@ -145,6 +146,8 @@ def fill_template(
                 continue
             lines.append(line)
         filled = "\n".join(lines)
+        # Ensure greeting stays clean
+        replacements["{guest2}"] = ""
 
     for needle, value in replacements.items():
         filled = filled.replace(needle, value)
