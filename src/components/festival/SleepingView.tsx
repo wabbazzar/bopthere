@@ -135,13 +135,23 @@ export const SleepingView: React.FC = () => {
   const currentTheme = characterThemes[selectedCharacter];
   const content = characterMessages[selectedCharacter];
   const accommodations = sleepingData.sleeping_assignments;
-  const summary = sleepingData.summary;
 
   // Process accommodations data
   const accommodationEntries = Object.entries(accommodations).map(([key, accommodation]) => ({
     key,
     ...accommodation,
   }));
+
+  // Compute live summary totals from data to ensure values stay up to date
+  const computedSummary = accommodationEntries.reduce(
+    (acc, accommodation) => {
+      acc.total_accommodations += 1;
+      acc.total_beds += accommodation.beds.length;
+      acc.total_guests += accommodation.beds.reduce((sum, bed) => sum + bed.guests.length, 0);
+      return acc;
+    },
+    { total_accommodations: 0, total_beds: 0, total_guests: 0 }
+  );
 
   return (
     <div className="space-y-6">
@@ -191,20 +201,20 @@ export const SleepingView: React.FC = () => {
               {content.message}
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="text-center p-4 bg-white/50 rounded-lg border">
               <Home className="w-6 h-6 mx-auto mb-2" style={{ color: currentTheme.primary }} />
               <div className="text-2xl font-bold" style={{ color: currentTheme.primary }}>
-                {summary.total_accommodations}
+                {computedSummary.total_accommodations}
               </div>
               <div className="text-sm" style={{ color: currentTheme.dark }}>
-                Accommodations
+                Lodges
               </div>
             </div>
             <div className="text-center p-4 bg-white/50 rounded-lg border">
               <Bed className="w-6 h-6 mx-auto mb-2" style={{ color: currentTheme.primary }} />
               <div className="text-2xl font-bold" style={{ color: currentTheme.primary }}>
-                {summary.total_beds}
+                {computedSummary.total_beds}
               </div>
               <div className="text-sm" style={{ color: currentTheme.dark }}>
                 Beds
@@ -213,7 +223,7 @@ export const SleepingView: React.FC = () => {
             <div className="text-center p-4 bg-white/50 rounded-lg border">
               <Users className="w-6 h-6 mx-auto mb-2" style={{ color: currentTheme.primary }} />
               <div className="text-2xl font-bold" style={{ color: currentTheme.primary }}>
-                {summary.total_guests}
+                {computedSummary.total_guests}
               </div>
               <div className="text-sm" style={{ color: currentTheme.dark }}>
                 Guests
@@ -226,6 +236,37 @@ export const SleepingView: React.FC = () => {
               </div>
               <div className="text-sm text-amber-600">Pending</div> */}
             {/* </div> */}
+          </div>
+          {/* Resort Location (moved into this block) */}
+          <div className="mt-6 text-center">
+            <div className="flex items-center justify-center mb-3">
+              <MapPin className="w-6 h-6" style={{ color: currentTheme.primary }} />
+            </div>
+            <h3
+              className="text-xl font-bold mb-2"
+              style={{
+                fontFamily: 'Cinzel, serif',
+                color: currentTheme.primary,
+              }}
+            >
+              Resort Location
+            </h3>
+            <p
+              className="text-base"
+              style={{
+                fontFamily: 'Crimson Text, serif',
+                color: currentTheme.dark,
+              }}
+            >
+              <a
+                href="https://maps.app.goo.gl/p6RPXU5nWm5wLwFJ6"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                {sleepingData.metadata.location}
+              </a>
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -241,32 +282,7 @@ export const SleepingView: React.FC = () => {
         ))}
       </div>
 
-      {/* Location Info */}
-      <Card className="bg-white/95 backdrop-blur-sm border-2 shadow-lg">
-        <CardContent className="p-6 text-center">
-          <div className="flex items-center justify-center mb-3">
-            <MapPin className="w-6 h-6" style={{ color: currentTheme.primary }} />
-          </div>
-          <h3
-            className="text-xl font-bold mb-2"
-            style={{
-              fontFamily: 'Cinzel, serif',
-              color: currentTheme.primary,
-            }}
-          >
-            Resort Location
-          </h3>
-          <p
-            className="text-base"
-            style={{
-              fontFamily: 'Crimson Text, serif',
-              color: currentTheme.dark,
-            }}
-          >
-            {sleepingData.metadata.location}
-          </p>
-        </CardContent>
-      </Card>
+      
     </div>
   );
 };

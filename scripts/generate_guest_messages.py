@@ -124,7 +124,7 @@ def fill_template(
     filled = template_text
 
     replacements = {
-        "{guest}": primary.display_name,
+        "{guest}": primary.first_name,
         "{guest_username}": primary.username,
         # Note: the template intentionally misspells this placeholder; preserve it
         "{guest_passwrod}": primary.password,

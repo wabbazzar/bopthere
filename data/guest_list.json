@@ -272,6 +272,13 @@
       "partner": "Nat",
       "bride_or_groom": "groom",
       "super_power": "Speaking for the animals"
+    },
+    {
+      "name": "Dillon",
+      "occupation": "Attorney",
+      "partner": null,
+      "bride_or_groom": "groom",
+      "super_power": "Like Buddha, but with litigation"
     }
   ],
   "summary": {
