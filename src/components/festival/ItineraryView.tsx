@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCharacter } from '@/contexts/CharacterContext';
-import { characterThemes } from '@/types/character';
+import { characterThemes, CharacterTheme } from '@/types/character';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Calendar,
@@ -15,7 +15,7 @@ import {
   Home,
   ExternalLink,
 } from 'lucide-react';
-import itineraryData from '/data/itinerary.json';
+import itineraryData from '../../../data/itinerary.json';
 
 // TypeScript interfaces
 interface Activity {
@@ -25,7 +25,8 @@ interface Activity {
   description: string;
   location: string;
   map?: string;
-  type: 'logistics' | 'social' | 'activity' | 'food' | 'ceremony' | 'reception' | 'party';
+  eta?: string;
+  type: 'logistics' | 'social' | 'activity' | 'food' | 'ceremony' | 'reception' | 'party' | 'rest';
 }
 
 interface DaySchedule {
@@ -34,24 +35,34 @@ interface DaySchedule {
   activities: Activity[];
 }
 
-const characterMessages = {
+interface CharacterMessage {
+  title: string;
+  subtitle: string;
+  message?: string;
+  link?: string;
+}
+
+const characterMessages: Record<'wesley' | 'heather' | 'puffy', CharacterMessage> = {
   wesley: {
     title: 'Your Quest Itinerary',
     subtitle: 'The epic adventure timeline awaits',
-    // message:
-    //   'Four days of legendary adventures await! From heroic hikes through mystical mountains to the grand wedding ceremony quest, every moment is a step in your epic journey through the enchanted lands of Maui.',
+    link: "https://maps.app.goo.gl/p6RPXU5nWm5wLwFJ6",
+    message:
+      "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
   },
   heather: {
     title: 'Our Wedding Itinerary',
     subtitle: 'A beautiful journey through our celebration',
-    // message:
-    //   'Four magical days of love and celebration await us. From romantic sunset ceremonies to elegant receptions, every moment has been crafted with care to create the most beautiful memories with our beloved family and friends.',
+    link: "https://maps.app.goo.gl/p6RPXU5nWm5wLwFJ6",
+    message:
+      "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
   },
   puffy: {
     title: 'The Ultimate Party Schedule',
     subtitle: 'Four days of the best fun ever!',
-    // message:
-    //   "Four days of pure fun and coziness! I've personally tested all the nap spots and confirmed - the food is amazing, the games are epic, and there are so many comfortable places to relax between all the exciting activities!",
+    link: "https://maps.app.goo.gl/p6RPXU5nWm5wLwFJ6",
+    message:
+      "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
   },
 };
 
@@ -72,6 +83,8 @@ const getActivityIcon = (type: Activity['type']) => {
       return Star;
     case 'party':
       return PartyPopper;
+    case 'rest':
+      return Home;
     default:
       return Clock;
   }
@@ -93,6 +106,8 @@ const getActivityColor = (type: Activity['type']) => {
       return '#8B5CF6'; // violet
     case 'party':
       return '#EF4444'; // red
+    case 'rest':
+      return '#9CA3AF'; // light gray
     default:
       return '#6B7280';
   }
@@ -101,12 +116,7 @@ const getActivityColor = (type: Activity['type']) => {
 // ActivityCard component
 interface ActivityCardProps {
   activity: Activity;
-  theme: {
-    primary: string;
-    secondary: string;
-    dark: string;
-    light: string;
-  };
+  theme: CharacterTheme;
 }
 
 const ActivityCard: React.FC<ActivityCardProps> = ({ activity, theme }) => {
@@ -157,6 +167,17 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, theme }) => {
                 {activity.location}
               </span>
             </div>
+            {activity.eta && (
+              <div className="flex items-start space-x-1 mb-2">
+                <Clock className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                <span
+                  className="text-xs text-gray-600"
+                  style={{ fontFamily: 'Crimson Text, serif' }}
+                >
+                  ETA: {activity.eta}
+                </span>
+              </div>
+            )}
             {activity.map && (
               <a
                 href={activity.map}
@@ -183,12 +204,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, theme }) => {
 // DayCard component
 interface DayCardProps {
   day: DaySchedule;
-  theme: {
-    primary: string;
-    secondary: string;
-    dark: string;
-    light: string;
-  };
+  theme: CharacterTheme;
 }
 
 const DayCard: React.FC<DayCardProps> = ({ day, theme }) => {
@@ -225,7 +241,12 @@ export const ItineraryView: React.FC = () => {
   const content = characterMessages[selectedCharacter];
 
   // Process itinerary data
-  const itinerary = itineraryData.wedding_weekend_itinerary;
+  const itinerary = itineraryData.wedding_weekend_itinerary as {
+    friday: DaySchedule;
+    saturday: DaySchedule;
+    sunday: DaySchedule;
+    monday: DaySchedule;
+  };
   const days: DaySchedule[] = [
     itinerary.friday,
     itinerary.saturday,
@@ -265,16 +286,31 @@ export const ItineraryView: React.FC = () => {
             {content.subtitle}
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-center pb-6">
-          <p
-            className="text-base leading-relaxed max-w-2xl mx-auto"
-            style={{
-              fontFamily: 'Crimson Text, serif',
-              color: currentTheme.dark,
-            }}
-          >
-            {content.message}
-          </p>
+        <CardContent className="text-center pb-3">
+          {content.message && (
+            <p
+              className="text-base leading-relaxed max-w-2xl mx-auto py-1"
+              style={{
+                fontFamily: 'Crimson Text, serif',
+                color: currentTheme.dark,
+              }}
+            >
+              {content.link ? (
+                <a
+                  href={content.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 hover:underline"
+                  style={{ color: currentTheme.primary }}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>{content.message}</span>
+                </a>
+              ) : (
+                content.message
+              )}
+            </p>
+          )}
         </CardContent>
       </Card>
 

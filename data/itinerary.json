@@ -19,7 +19,8 @@
                     "description": "Drinks with open tab",
                     "location": "Mauibars / South Shore Tiki",
                     "type": "social",
-                    "map": "https://maps.app.goo.gl/BM3HKDFuaSZbYWCY8"
+                    "map": "https://maps.app.goo.gl/BM3HKDFuaSZbYWCY8",
+                    "eta": "10 minute walk"
                 },
                 {
                     "start_time": "7:00 PM",
@@ -33,7 +34,7 @@
         },
         "saturday": {
             "day": 6,
-            "date_label": "Saturday - Wedding Day",
+            "date_label": "Saturday - Celebration Day",
             "activities": [
                 {
                     "start_time": "5:00 AM",
@@ -42,7 +43,8 @@
                     "description": "Morning group hiking activity, be ready to get up early!",
                     "location": "Lāhainā Pali Trail, HI",
                     "type": "activity",
-                    "map": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA"
+                    "map": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA",
+                    "eta": "1 hour 8 minutes"
                 },
                 {
                     "start_time": "8:00 AM",
@@ -51,7 +53,8 @@
                     "description": "Morning group hiking activity",
                     "location": "Lāhainā Pali Trail, HI",
                     "type": "activity",
-                    "map": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA"
+                    "map": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA",
+                    "eta": "1 hour 8 minutes"
                 },
                 {
                     "start_time": "11:00 AM",
@@ -122,7 +125,8 @@
                     "description": "Brunch and coffee",
                     "location": "Maui Ono Donuts, 1819 S Kihei Rd Building E, Kihei, HI 96753",
                     "type": "food",
-                    "map": "https://maps.app.goo.gl/wTJ53FvrcRJP92M57"
+                    "map": "https://maps.app.goo.gl/wTJ53FvrcRJP92M57",
+                    "eta": "15 minute walk"
                 },
                 {
                     "start_time": "1:00 PM",
@@ -131,7 +135,8 @@
                     "description": "Hang out at the beach - snorkel, surf, boogie",
                     "location": "Auntie Snorkel Rentals and Kamaole Beach, HI",
                     "map": "https://maps.app.goo.gl/cUQgwZ5d4BN98APeA",
-                    "type": "activity"
+                    "type": "activity",
+                    "eta": "20 minute walk"
                 },
                 {
                     "start_time": "4:00 PM",
