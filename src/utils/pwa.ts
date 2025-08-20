@@ -148,10 +148,19 @@ export class PWAManager {
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New service worker available
-                this.notifyUpdateAvailable();
+                // New service worker available — activate immediately
+                this.skipWaiting();
               }
             });
+          }
+        });
+
+        // Reload the page when the active SW changes
+        let reloaded = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!reloaded) {
+            reloaded = true;
+            window.location.reload();
           }
         });
 

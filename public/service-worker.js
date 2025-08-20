@@ -1,4 +1,8 @@
-const CACHE_NAME = 'wedding-app-v1';
+// Versioned cache name; GH Actions can inject a short commit SHA into __BUILD_ID__
+// Example: sed -i '' "1s/.*/self.__BUILD_ID__='${GITHUB_SHA::8}';/" public/service-worker.js
+// Fallback to 'dev' locally.
+self.__BUILD_ID__ = self.__BUILD_ID__ || 'dev';
+const CACHE_NAME = 'wedding-app-' + self.__BUILD_ID__;
 const urlsToCache = [
   '/',
   '/index.html',
@@ -41,10 +45,12 @@ const characterAssets = {
 // Install event - cache initial resources
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache');
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('Opened cache', CACHE_NAME);
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -52,15 +58,18 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (!cacheWhitelist.includes(cacheName)) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => self.clients.claim())
   );
 });
 
