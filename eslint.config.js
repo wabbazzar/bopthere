@@ -26,5 +26,12 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-unused-expressions": "off",
     },
+  },
+  // Disable react-refresh warnings for shadcn/ui components and context files
+  {
+    files: ["src/components/ui/**/*.{ts,tsx}", "src/contexts/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
   }
 );

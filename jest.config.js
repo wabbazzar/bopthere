@@ -18,11 +18,6 @@ export default {
       },
     }],
   },
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{ts,tsx}',
     '<rootDir>/src/**/*.{test,spec}.{ts,tsx}',

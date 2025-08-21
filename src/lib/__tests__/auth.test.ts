@@ -345,10 +345,10 @@ describe('AuthService', () => {
     });
 
     it('should handle JSON.stringify errors', () => {
-      const circularUser = { ...mockUser } as Record<string, unknown>;
+      const circularUser = { ...mockUser } as User & { self?: unknown };
       circularUser.self = circularUser; // Create circular reference
 
-      expect(() => AuthService.setAuthData(mockToken, circularUser)).toThrow();
+      expect(() => AuthService.setAuthData(mockToken, circularUser as User)).toThrow();
     });
 
     it('should handle concurrent login attempts', async () => {

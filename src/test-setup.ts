@@ -14,19 +14,6 @@ Object.defineProperty(globalThis, 'import', {
   },
 });
 
-// Extend Jest matchers
-declare global {
-  interface Matchers<R> {
-    toBeInTheDocument(): R;
-    toHaveTextContent(text: string | RegExp): R;
-    toHaveStyle(style: Record<string, string | number>): R;
-    toHaveValue(value: string | number): R;
-    toBeDisabled(): R;
-    toHaveClass(className: string): R;
-    toHaveAttribute(attr: string, value?: string): R;
-  }
-}
-
 // Mock matchMedia for responsive design tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -50,36 +37,70 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 }));
 
 // Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-  length: 0,
-  key: jest.fn(),
-};
-global.localStorage = localStorageMock as Storage;
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: jest.fn((key: string) => store[key] || null),
+    setItem: jest.fn((key: string, value: string | null) => {
+      if (value !== null && value !== undefined) {
+        store[key] = String(value);
+      }
+    }),
+    removeItem: jest.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: jest.fn((index: number) => {
+      const keys = Object.keys(store);
+      return keys[index] || null;
+    }),
+  };
+})();
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
 
 // Mock sessionStorage
-const sessionStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-  length: 0,
-  key: jest.fn(),
-};
-global.sessionStorage = sessionStorageMock as Storage;
+const sessionStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: jest.fn((key: string) => store[key] || null),
+    setItem: jest.fn((key: string, value: string | null) => {
+      if (value !== null && value !== undefined) {
+        store[key] = String(value);
+      }
+    }),
+    removeItem: jest.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: jest.fn((index: number) => {
+      const keys = Object.keys(store);
+      return keys[index] || null;
+    }),
+  };
+})();
+Object.defineProperty(window, 'sessionStorage', {
+  value: sessionStorageMock,
+  writable: true,
+});
 
 // Reset all mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();
-  localStorageMock.getItem.mockClear();
-  localStorageMock.setItem.mockClear();
-  localStorageMock.removeItem.mockClear();
-  localStorageMock.clear.mockClear();
-  sessionStorageMock.getItem.mockClear();
-  sessionStorageMock.setItem.mockClear();
-  sessionStorageMock.removeItem.mockClear();
-  sessionStorageMock.clear.mockClear();
+  // Clear localStorage store
+  localStorageMock.clear();
+  // Clear sessionStorage store
+  sessionStorageMock.clear();
 });

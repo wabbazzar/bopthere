@@ -190,8 +190,8 @@ export class AuthService {
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const tokenLifetime = payload.exp - payload.iat;
-    const tokenAge = now - payload.iat;
+    const tokenLifetime = Number(payload.exp) - Number(payload.iat);
+    const tokenAge = now - Number(payload.iat);
     
     // Refresh if 80% of token lifetime has passed
     return tokenAge >= tokenLifetime * TOKEN_REFRESH_THRESHOLD;
@@ -212,7 +212,7 @@ export class AuthService {
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const timeUntilExpiry = (payload.exp - now) * 1000;
+    const timeUntilExpiry = (Number(payload.exp) - now) * 1000;
     
     return Math.max(0, timeUntilExpiry);
   }
