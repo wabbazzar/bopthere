@@ -35,7 +35,9 @@ const characterBackgrounds = {
 export const HeroSection: React.FC = () => {
   const { selectedCharacter } = useCharacter();
 
-  if (!selectedCharacter) return null;
+  if (!selectedCharacter) {
+    return null;
+  }
 
   const content = characterContent[selectedCharacter];
   const theme = characterThemes[selectedCharacter];
@@ -78,7 +80,6 @@ export const HeroSection: React.FC = () => {
             December 5-9, 2025
           </div>
           <div className="text-xl font-body text-shadow">Maui, Hawaii</div>
-          <div className="text-sm font-body opacity-80 text-shadow mt-2">Update test • 1</div>
         </div>
       </div>
 

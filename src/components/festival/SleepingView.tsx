@@ -130,7 +130,9 @@ const AccommodationCard: React.FC<{
 export const SleepingView: React.FC = () => {
   const { selectedCharacter } = useCharacter();
 
-  if (!selectedCharacter) return null;
+  if (!selectedCharacter) {
+    return null;
+  }
 
   const currentTheme = characterThemes[selectedCharacter];
   const content = characterMessages[selectedCharacter];
