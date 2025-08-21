@@ -1,4 +1,4 @@
-import { CharacterType } from '../types/character';
+import type { Character as CharacterType } from '../types/character';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -175,7 +175,9 @@ export class PWAManager {
 
   public async updateManifestForCharacter(character: CharacterType): Promise<void> {
     const manifestLink = document.querySelector('link[rel="manifest"]');
-    if (!manifestLink) return;
+    if (!manifestLink) {
+      return;
+    }
 
     try {
       // Fetch current manifest
