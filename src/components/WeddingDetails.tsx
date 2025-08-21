@@ -77,7 +77,7 @@ export const WeddingDetails: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" style={{ color: theme.primary }} />
-                  <span className="font-body">Saturday, December 6th at 4:00 PM</span>
+                  <span className="font-body">Saturday, December 6th at 5:00 PM</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" style={{ color: theme.primary }} />
@@ -108,7 +108,7 @@ export const WeddingDetails: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" style={{ color: theme.primary }} />
-                  <span className="font-body">Saturday, December 6th at 7:00 PM</span>
+                  <span className="font-body">Saturday, December 6th at 5:30 PM</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" style={{ color: theme.primary }} />
@@ -161,7 +161,7 @@ export const WeddingDetails: React.FC = () => {
                 <p className="font-body text-sm font-bold">
                   THE BIG DAY!
                   <br />
-                  Ceremony & Reception
+                  Dinner & Rave
                 </p>
               </div>
 
@@ -178,7 +178,7 @@ export const WeddingDetails: React.FC = () => {
                 <p className="font-body text-sm">
                   Adventure Day
                   <br />
-                  Excursions & Sunset Cruise
+                  Excursions & Games
                 </p>
               </div>
 
