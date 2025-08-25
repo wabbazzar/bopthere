@@ -3,6 +3,8 @@
 // Fallback to 'dev' locally.
 self.__BUILD_ID__ = self.__BUILD_ID__ || 'dev';
 const CACHE_NAME = 'wedding-app-' + self.__BUILD_ID__;
+// API base is provided by the app at runtime via postMessage
+let API_BASE = '';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -141,7 +143,9 @@ async function syncRSVPData() {
           syncAttempt: data.retryCount + 1
         };
 
-        const response = await fetch('/api/rsvp', {
+        // Use configured API base if provided, otherwise fallback to relative
+        const rsvpUrl = (API_BASE ? API_BASE : '') + '/rsvp';
+        const response = await fetch(rsvpUrl, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -268,7 +272,10 @@ function putInStore(store, data) {
 
 // Listen for skip waiting message
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (!event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  } else if (event.data.type === 'SET_API_BASE' && typeof event.data.base === 'string') {
+    API_BASE = event.data.base;
   }
 });

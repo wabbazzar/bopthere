@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { offlineStorage, PendingRSVP } from '../utils/offline-storage';
 import { useCharacter } from '../contexts/CharacterContext';
 import { usePWA } from './usePWA';
+import { RSVPService } from '@/integrations/aws/rsvp-service';
+import type { RSVPRequest } from '@/integrations/aws/types';
 
 interface RSVPData {
   name: string;
@@ -50,20 +52,19 @@ export const useOfflineRSVP = (): UseOfflineRSVPReturn => {
   const submitRSVPOnline = useCallback(
     async (data: RSVPData): Promise<boolean> => {
       try {
-        // This would be your actual API endpoint
-        const response = await fetch('/api/rsvp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...data,
-            character: selectedCharacter,
-            timestamp: new Date().toISOString(),
-          }),
-        });
+        const payload: RSVPRequest = {
+          name: data.name,
+          email: data.email,
+          phone: undefined,
+          attendance: data.attending ? 'yes' : 'no',
+          notifications: undefined,
+          dietary_restrictions: data.dietaryRestrictions,
+          song_request: undefined,
+          message_for_couple: data.message,
+        };
 
-        return response.ok;
+        await RSVPService.submitRSVP(payload);
+        return true;
       } catch (error) {
         console.error('Online RSVP submission failed:', error);
         return false;
