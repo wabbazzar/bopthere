@@ -59,7 +59,7 @@ This document provides standardized rules for generating comprehensive tickets f
 ## Wedding App Context
 
 ### App Purpose
-This is a wedding website for Wesley & Heather's "Epic Wedding Quest" taking place December 5-9, 2025 in Maui, Hawaii. The app features:
+This is a wedding website for Wesley & Heather's "Epic Wedding Quest" taking place December 5-8, 2025 in Maui, Hawaii. The app features:
 
 - **Character-based experience**: Users choose between Wesley (adventure theme), Heather (romantic theme), or Puffy (playful theme)
 - **Multi-step RSVP system**: 4-step form with character-specific backgrounds

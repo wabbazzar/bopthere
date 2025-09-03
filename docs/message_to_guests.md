@@ -2,7 +2,9 @@ Hello {guest}{guest2}, Mahalo from the newlyweds! Quick note to share our weddin
 
 If you haven't already, please RSVP—we're looking for final confirmation by the end of August.
 
-Install this app on your phone by tapping the share icon (top right) and selecting "Add to Home Screen."
+To install the app:
+- On iPhone (Safari): tap the share icon (bottom toolbar), then "Add to Home Screen."
+- On Android (Chrome): tap the three-dot menu (top right), then "Add to Home screen."
 
 We will be using the app to relay information and coordinate—it contains the itinerary for the weekend, lodging and sleeping arrangements (yes! all your rooms are pre-booked), the guest list (where you'll see valuable insights into your weekend companions), and, most importantly, a link to our Games (aka the Tournament of Champions). By the end of the weekend, one team will emerge victorious. More details to come.
 

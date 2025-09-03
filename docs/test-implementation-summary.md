@@ -142,7 +142,7 @@ python -m pytest tests/e2e/test_auth_smoke.py::TestAuthenticationIntegration -v
 - **Layout Testing**: Button layouts, form layouts tested across breakpoints
 
 ### Wedding App Context
-- **Event Information**: December 5-9, 2025 Maui Hawaii information display
+- **Event Information**: December 5-8, 2025 Maui Hawaii information display
 - **User Roles**: Guest, VIP, Admin role handling in authentication
 - **Epic Quest Theme**: Terminology and theming consistency verified
 

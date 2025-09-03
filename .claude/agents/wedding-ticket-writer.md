@@ -428,7 +428,7 @@ curl -X POST https://[api-id].execute-api.us-east-1.amazonaws.com/prod/[endpoint
    - Document all make commands in deployment guide
 
 **WEDDING CONTEXT REMINDERS**:
-- This is for a December 5-9, 2025 wedding in Maui, Hawaii
+- This is for a December 5-8, 2025 wedding in Maui, Hawaii
 - Maintain the "Epic Wedding Quest" theme
 - Prioritize guest experience and mobile usability
 - Keep the magical, celebratory atmosphere

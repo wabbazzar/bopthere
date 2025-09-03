@@ -205,7 +205,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
         {/* Character-themed footer */}
         <div className="text-center text-sm text-muted-foreground">
-          <p>Join the epic celebration • December 5-9, 2025 • Maui, Hawaii</p>
+          <p>Join the epic celebration • December 5-8, 2025 • Maui, Hawaii</p>
         </div>
       </DialogContent>
     </Dialog>

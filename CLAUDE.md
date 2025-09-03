@@ -39,7 +39,7 @@ Research and understand the current state of the project before making major cha
 ### Content Guidelines
 - Maintain the "Epic Wedding Quest" theme and fantasy narrative
 - Use appropriate fonts (Cinzel for fantasy headers, Crimson Text for body)
-- December 5-9, 2025 in Maui, Hawaii context
+- December 5-8, 2025 in Maui, Hawaii context
 - Wedding celebration focus with quest/adventure metaphors
 
 ### UI/UX Consistency

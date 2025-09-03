@@ -544,7 +544,7 @@ When deployment issues arise:
 - Verify touch interactions work correctly
 
 ### AWS Infrastructure Reliability
-- Wedding date is December 5-9, 2025 - high availability critical
+- Wedding date is December 5-8, 2025 - high availability critical
 - Use health monitoring: `make test-health`
 - Verify us-east-1 region consistency
 - Test with realistic guest load scenarios

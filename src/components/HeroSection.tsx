@@ -77,7 +77,7 @@ export const HeroSection: React.FC = () => {
 
         <div className="space-y-4 animate-scale-in">
           <div className="text-2xl font-fantasy font-bold text-yellow-300 text-shadow">
-            December 5-9, 2025
+            December 5-8, 2025
           </div>
           <div className="text-xl font-body text-shadow">Maui, Hawaii</div>
         </div>

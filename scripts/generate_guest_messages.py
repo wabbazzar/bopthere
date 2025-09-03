@@ -107,7 +107,7 @@ def build_partner_index(users: List[User]) -> Dict[str, str]:
 
     # Manual overrides for specific known couples (by username)
     username_to_user: Dict[str, User] = {u.username: u for u in users}
-    manual_couples = [("annie.li", "mo.money")]
+    manual_couples = [("annie.li", "mo.money"), ("sienna.dear", "chace.nolen")]
 
     for a_user, b_user in manual_couples:
         if a_user in username_to_user and b_user in username_to_user:

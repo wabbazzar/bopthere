@@ -65,7 +65,7 @@
                             "name": "Heather Dad"
                         },
                         {
-                            "name": "Dad +1"
+                            "name": "Heather Dad +1"
                         }
                     ],
                     "total_persons": 2
@@ -119,15 +119,6 @@
             "accommodation_type": "Villa 5",
             "beds": [
                 {
-                    "bed_id": 5,
-                    "guests": [
-                        {
-                            "name": "Wesley Dad"
-                        }
-                    ],
-                    "total_persons": 1
-                },
-                {
                     "bed_id": 15,
                     "guests": [
                         {
@@ -148,13 +139,10 @@
                     "bed_id": 16,
                     "guests": [
                         {
-                            "name": "Josh"
-                        },
-                        {
-                            "name": "Crissy"
+                            "name": "Wesley Dad"
                         }
                     ],
-                    "total_persons": 2
+                    "total_persons": 1
                 }
             ]
         },

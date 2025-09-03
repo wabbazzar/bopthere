@@ -1,3 +1,47 @@
 {
-    "questions": []
+    "Questions about partner": [
+        {
+            "Question": "If I made us late to something, what would be the reason?",
+            "Heather": "You're looking at your code",
+            "Wesley": "Getting ready"
+        },
+        {
+            "Question": "If I got into an argument with your mom, what would it be about?",
+            "Heather": "Child rearing",
+            "Wesley": "If Puffy can have treats"
+        },
+        {
+            "Question": "If you lost me at Target, which section would you find me in?",
+            "Heather": "The garden section",
+            "Wesley": "Random household goods"
+        },
+        {
+            "Question": "My favorite fast food chain?",
+            "Heather": "Captain D's",
+            "Wesley": "Chick-fil-a"
+        },
+        {
+            "Question": "What's one thing I'm really bad at?",
+            "Heather": "Following precise measurements when baking",
+            "Wesley": "Letting others lead"
+        },
+        {
+            "Question": "What's something you'll never forget from when we first met?",
+            "Heather": "Awkward goodbye",
+            "Wesley": "The white dress"
+        },
+        {
+            "Question": "If we had to switch lives for 24 hours what would be the most stressful?",
+            "Heather": "Your intrusive thoughts about everything",
+            "Wesley": "Your job"
+        }
+        
+    ],
+    "Questions about you and your partner":
+    [
+        {
+            "Question": "What's something you two do together that's unique?",
+            "Heather-Wesley": "Sing about our cat"
+        }
+    ]
 }

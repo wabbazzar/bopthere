@@ -231,7 +231,7 @@ describe('LoginModal', () => {
     it('should display wedding event information', () => {
       renderLoginModal();
 
-      expect(screen.getByText(/December 5-9, 2025/)).toBeInTheDocument();
+      expect(screen.getByText(/December 5-8, 2025/)).toBeInTheDocument();
       expect(screen.getByText(/Maui, Hawaii/)).toBeInTheDocument();
     });
   });
