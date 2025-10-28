@@ -37,35 +37,35 @@
             "date_label": "Saturday - Celebration Day",
             "activities": [
                 {
-                    "start_time": "5:00 AM",
-                    "end_time": "8:00 AM",
+                    "start_time": "7:00 AM",
+                    "end_time": "12:00 PM",
                     "title": "Sunrise Group Hike (Group 1)",
-                    "description": "Morning group hiking activity, be ready to get up early!",
-                    "location": "Lāhainā Pali Trail, HI",
+                    "description": "5.8 mile hike, 1,230 feet elevation gain; meet second group at Twin Falls afterwards",
+                    "location": "Kahakapao Loop Trail, HI",
                     "type": "activity",
-                    "map": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA",
-                    "eta": "1 hour 8 minutes"
+                    "map": "https://maps.app.goo.gl/kGD8vB2Xd7MYdMNk6",
+                    "eta": "42 minutes"
                 },
                 {
-                    "start_time": "8:00 AM",
-                    "end_time": "11:00 AM",
+                    "start_time": "10:00 AM",
+                    "end_time": "12:00 PM",
                     "title": "Group Hike (Group 2)",
-                    "description": "Morning group hiking activity",
-                    "location": "Lāhainā Pali Trail, HI",
+                    "description": "Easy 1.8 miles, 357 feet elevation gain; cool waterfalls on private property",
+                    "location": "Twin Falls Trail, HI",
                     "type": "activity",
-                    "map": "https://maps.app.goo.gl/c9ATWvhVNLZN2F8bA",
-                    "eta": "1 hour 8 minutes"
+                    "map": "https://maps.app.goo.gl/kTkw9hcHfrpKkjf66",
+                    "eta": "44 minutes"
                 },
                 {
-                    "start_time": "11:00 AM",
-                    "end_time": "1:00 PM",
+                    "start_time": "1:00 PM",
+                    "end_time": "3:00 PM",
                     "title": "Crafts!",
                     "description": "Customize your own crocs and yeti mugs",
                     "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
                     "type": "activity"
                 },
                 {
-                    "start_time": "1:00 PM",
+                    "start_time": "3:00 PM",
                     "end_time": "5:00 PM",
                     "title": "Free Time",
                     "description": "Choose your own adventure",
