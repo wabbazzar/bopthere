@@ -687,3 +687,97 @@ serve: ## Start local development server
         hooks-setup hooks-test hooks-status hooks-enable hooks-disable \
         format format-check lint-python lint-frontend test-format test-clean test-all-clean \
         test-auth-quick test-auth-cors test-auth-integration
+# Bingo Photo Handler Operations
+BINGO_LAMBDA_NAME := heatherandwesley-bingo-photo-handler
+BINGO_S3_BUCKET := heatherandwesley-bingo-photos
+
+create-bingo-s3-bucket: ## Create S3 bucket for bingo photos
+	@echo "Creating S3 bucket for bingo photos..."
+	@aws s3 mb s3://$(BINGO_S3_BUCKET) \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) || echo "Bucket may already exist"
+	@echo "Configuring bucket for public read access..."
+	@aws s3api put-public-access-block \
+		--bucket $(BINGO_S3_BUCKET) \
+		--public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false" \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION)
+	@echo "Setting CORS configuration..."
+	@aws s3api put-bucket-cors \
+		--bucket $(BINGO_S3_BUCKET) \
+		--cors-configuration '{  "CORSRules": [    {      "AllowedOrigins": ["*"],      "AllowedMethods": ["GET", "PUT", "POST"],      "AllowedHeaders": ["*"],      "MaxAgeSeconds": 3000    }  ]}' \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION)
+	@echo "Bingo S3 bucket created and configured!"
+
+create-bingo-lambda-role: ## Create IAM role for bingo Lambda
+	@echo "Creating IAM role for bingo photo handler Lambda..."
+	@aws iam create-role \
+		--role-name $(BINGO_LAMBDA_NAME)-role \
+		--assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \
+		--profile $(AWS_PROFILE) || echo "Role may already exist"
+	@aws iam attach-role-policy \
+		--role-name $(BINGO_LAMBDA_NAME)-role \
+		--policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole \
+		--profile $(AWS_PROFILE) || echo "Policy may already be attached"
+	@echo "Creating S3 access policy..."
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --profile $(AWS_PROFILE) --query Account --output text) && \
+	aws iam put-role-policy \
+		--role-name $(BINGO_LAMBDA_NAME)-role \
+		--policy-name $(BINGO_LAMBDA_NAME)-s3-policy \
+		--policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["s3:PutObject","s3:PutObjectAcl","s3:GetObject"],"Resource":"arn:aws:s3:::$(BINGO_S3_BUCKET)/*"}]}' \
+		--profile $(AWS_PROFILE) || echo "Policy may already exist"
+
+deploy-bingo-lambda: create-bingo-lambda-role ## Deploy bingo photo handler Lambda
+	@echo "Building bingo photo handler Lambda deployment package..."
+	@rm -rf build/bingo-lambda-package && mkdir -p build/bingo-lambda-package
+	@cp aws/lambda/bingo-photo-handler.py build/bingo-lambda-package/
+	@cd build/bingo-lambda-package && zip -r ../bingo-lambda-deployment.zip . -x "*.pyc" "__pycache__/*"
+	@echo "Deploying bingo photo handler Lambda function..."
+	@ACCOUNT_ID=$$(aws sts get-caller-identity --profile $(AWS_PROFILE) --query Account --output text) && \
+	aws lambda create-function \
+		--function-name $(BINGO_LAMBDA_NAME) \
+		--runtime python3.11 \
+		--role arn:aws:iam::$$ACCOUNT_ID:role/$(BINGO_LAMBDA_NAME)-role \
+		--handler bingo-photo-handler.lambda_handler \
+		--zip-file fileb://build/bingo-lambda-deployment.zip \
+		--timeout 30 \
+		--memory-size 512 \
+		--environment Variables={S3_BUCKET=$(BINGO_S3_BUCKET)} \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.' || \
+	(echo "Function may already exist, updating..." && $(MAKE) update-bingo-lambda)
+
+update-bingo-lambda: ## Update bingo Lambda code
+	@echo "Updating bingo photo handler Lambda code..."
+	@rm -rf build/bingo-lambda-package && mkdir -p build/bingo-lambda-package
+	@cp aws/lambda/bingo-photo-handler.py build/bingo-lambda-package/
+	@cd build/bingo-lambda-package && zip -r ../bingo-lambda-deployment.zip . -x "*.pyc" "__pycache__/*"
+	@aws lambda update-function-code \
+		--function-name $(BINGO_LAMBDA_NAME) \
+		--zip-file fileb://build/bingo-lambda-deployment.zip \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.'
+	@echo "Bingo Lambda function code updated!"
+
+test-bingo-lambda: ## Test bingo Lambda function
+	@echo "Testing bingo photo handler Lambda..."
+	@aws lambda invoke \
+		--function-name $(BINGO_LAMBDA_NAME) \
+		--payload '{"httpMethod":"POST","body":"{\"user_id\":\"test-user\",\"square_position\":0,\"photo_data\":\"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"}"}' \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		/tmp/bingo-test-response.json
+	@cat /tmp/bingo-test-response.json | jq '.'
+
+deploy-bingo-all: create-bingo-s3-bucket deploy-bingo-lambda ## Deploy complete bingo photo system
+	@echo "Complete bingo photo system deployed!"
+	@echo "Next steps:"
+	@echo "1. Add API Gateway endpoint: POST /bingo/upload-photo → $(BINGO_LAMBDA_NAME)"
+	@echo "2. Configure CORS on API Gateway"
+	@echo "3. Test photo upload from frontend"
+
+.PHONY: create-bingo-s3-bucket create-bingo-lambda-role deploy-bingo-lambda update-bingo-lambda \
+        test-bingo-lambda deploy-bingo-all

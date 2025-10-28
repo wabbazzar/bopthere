@@ -15,6 +15,7 @@ import {
 import {
   fetchLeaderboard,
   formatScore,
+  formatBingoScore,
   formatTimestamp,
   getRankOrdinal,
 } from '@/utils/leaderboardApi';
@@ -217,10 +218,12 @@ export function LeaderboardDisplay({
 
                   <div className="text-right">
                     <div className="text-lg font-bold" style={{ color: theme.colors.accent }}>
-                      {formatScore(score.score)}
+                      {game === 'bingo'
+                        ? `${formatBingoScore(score.score)} (${score.score}/5)`
+                        : formatScore(score.score)}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      as character"{score.character}"
+                      as {score.character}
                     </div>
                   </div>
                 </motion.div>
@@ -245,7 +248,9 @@ export function LeaderboardDisplay({
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{text.yourScore}</p>
                 <p className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
-                  {formatScore(currentUserScore)}
+                  {game === 'bingo'
+                    ? `${formatBingoScore(currentUserScore)} (${currentUserScore}/5)`
+                    : formatScore(currentUserScore)}
                 </p>
               </div>
               <motion.button

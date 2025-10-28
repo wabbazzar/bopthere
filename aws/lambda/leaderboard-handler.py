@@ -158,12 +158,30 @@ def get_top_scores(game, limit=10):
 def submit_score(game, username, score, character):
     """Submit a new score and maintain top 10"""
     try:
+        timestamp = datetime.utcnow().isoformat() + "Z"
+
+        # Special handling for bingo: one score per user
+        if game == "bingo":
+            # For bingo, delete any existing scores for this user first
+            # Query all scores for this game
+            response = table.query(KeyConditionExpression=Key("game").eq(game))
+
+            # Find and delete existing entries for this user
+            for item in response.get("Items", []):
+                if item.get("username") == username:
+                    table.delete_item(
+                        Key={
+                            "game": game,
+                            "score_timestamp": item["score_timestamp"],
+                        }
+                    )
+                    logger.info(f"Deleted existing bingo score for {username}")
+
         # Create composite key for sorting (higher scores get lower sort keys)
         # Format: 999999999-score#timestamp
         score_timestamp = (
-            f"{999999999 - int(score):09d}#{datetime.utcnow().isoformat()}Z"
+            f"{999999999 - int(score):09d}#{timestamp}"
         )
-        timestamp = datetime.utcnow().isoformat() + "Z"
 
         # Prepare item
         item = {
@@ -177,6 +195,7 @@ def submit_score(game, username, score, character):
 
         # Put the new score
         table.put_item(Item=item)
+        logger.info(f"Submitted score for {username}: {score}")
 
         # Get all scores to maintain top 10
         response = table.query(

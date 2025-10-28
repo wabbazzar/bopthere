@@ -119,3 +119,18 @@ export function getRankOrdinal(rank: number): string {
   const v = rank % 100;
   return rank + (suffix[(v - 20) % 10] || suffix[v] || suffix[0]);
 }
+
+/**
+ * Format bingo score as B-I-N-G-O letters
+ * Score represents number of completed lines (1-5)
+ * Show completed letters based on score
+ */
+export function formatBingoScore(score: number): string {
+  const letters = ['B', 'I', 'N', 'G', 'O'];
+
+  // Score represents number of completed lines (1-5)
+  // Show completed letters based on score
+  return letters
+    .map((letter, index) => (index < score ? letter : '_'))
+    .join('-');
+}

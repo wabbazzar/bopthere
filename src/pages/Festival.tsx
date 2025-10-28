@@ -13,6 +13,15 @@ export const Festival: React.FC = () => {
   const { selectedCharacter } = useCharacter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<FestivalTab>('itinerary');
+  const [gamesViewKey, setGamesViewKey] = useState(0);
+
+  const handleTabChange = (tab: FestivalTab) => {
+    if (tab === 'games') {
+      // Increment key to force GamesView remount and reset to dashboard
+      setGamesViewKey(prev => prev + 1);
+    }
+    setActiveTab(tab);
+  };
 
   if (!selectedCharacter || !user) {
     return null;
@@ -27,7 +36,7 @@ export const Festival: React.FC = () => {
       case 'guests':
         return <GuestListView />;
       case 'games':
-        return <GamesView />;
+        return <GamesView key={`games-${gamesViewKey.current}`} />;
       default:
         return <ItineraryView />;
     }
@@ -53,7 +62,7 @@ export const Festival: React.FC = () => {
       {/* Scrollable content layer */}
       <div className="relative z-10">
         {/* Festival Navigation */}
-        <FestivalNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <FestivalNav activeTab={activeTab} onTabChange={handleTabChange} />
 
         {/* Main Content */}
         <main className="container mx-auto px-4 pt-20 pb-8">
