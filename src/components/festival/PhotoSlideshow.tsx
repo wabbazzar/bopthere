@@ -110,19 +110,19 @@ export const PhotoSlideshow: React.FC<PhotoSlideshowProps> = ({
           variant="ghost"
           size="lg"
           onClick={goToPrevious}
-          className="text-white hover:bg-white/20 pointer-events-auto backdrop-blur-sm"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          className="text-white/40 hover:text-white hover:bg-white/20 pointer-events-auto backdrop-blur-sm transition-all duration-300 opacity-50 hover:opacity-100"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
         >
-          <ChevronLeft className="w-8 h-8" />
+          <ChevronLeft className="w-6 h-6" />
         </Button>
         <Button
           variant="ghost"
           size="lg"
           onClick={goToNext}
-          className="text-white hover:bg-white/20 pointer-events-auto backdrop-blur-sm"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          className="text-white/40 hover:text-white hover:bg-white/20 pointer-events-auto backdrop-blur-sm transition-all duration-300 opacity-50 hover:opacity-100"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
         >
-          <ChevronRight className="w-8 h-8" />
+          <ChevronRight className="w-6 h-6" />
         </Button>
       </div>
 

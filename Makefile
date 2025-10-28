@@ -49,7 +49,9 @@ help:
 	@echo "Photos Gallery Operations (CLI):"
 	@echo "  make deploy-photos-list-lambda Deploy photos list Lambda function"
 	@echo "  make update-photos-list-lambda Update photos list Lambda code"
-	@echo "  make test-photos-list-lambda Test photos list Lambda function"
+	@echo "  make test-photos-list-lambda   Test photos list Lambda function"
+	@echo "  make deploy-photos-api         Deploy photos API Gateway endpoints"
+	@echo "  make test-photos-list-api      Test photos list API endpoint"
 	@echo ""
 	@echo "API Gateway Operations:"
 	@echo "  make test-api           Test API Gateway endpoints"
@@ -795,15 +797,14 @@ deploy-photos-list-lambda: ## Deploy photos list handler Lambda
 	@aws lambda create-function \
 		--function-name $(PHOTOS_LAMBDA_NAME) \
 		--runtime python3.11 \
-		--role arn:aws:iam::$(shell aws sts get-caller-identity --profile $(AWS_PROFILE) --query Account --output text):role/lambda-execution-role \
+		--role arn:aws:iam::037195638157:role/heatherandwesley-lambda-role \
 		--handler photos-list-handler.lambda_handler \
 		--zip-file fileb://build/photos-lambda-deployment.zip \
 		--timeout 30 \
 		--memory-size 256 \
 		--environment Variables={S3_BUCKET=$(BINGO_S3_BUCKET),USERS_TABLE=$(AUTH_TABLE_NAME)} \
 		--profile $(AWS_PROFILE) \
-		--region $(AWS_REGION) \
-		--output json | jq '.' || \
+		--region $(AWS_REGION) || \
 	(echo "Function may already exist, updating..." && $(MAKE) update-photos-list-lambda)
 
 update-photos-list-lambda: ## Update photos list Lambda code
@@ -823,13 +824,24 @@ test-photos-list-lambda: ## Test photos list Lambda function
 	@echo "Testing photos list handler Lambda..."
 	@aws lambda invoke \
 		--function-name $(PHOTOS_LAMBDA_NAME) \
+		--cli-binary-format raw-in-base64-out \
 		--payload '{"httpMethod":"GET","queryStringParameters":{"limit":"10"}}' \
 		--profile $(AWS_PROFILE) \
 		--region $(AWS_REGION) \
 		/tmp/photos-list-test-response.json
-	@cat /tmp/photos-list-test-response.json | jq '.'
-	@echo "3. Test photo upload from frontend"
+	@cat /tmp/photos-list-test-response.json
+	@rm /tmp/photos-list-test-response.json
+
+test-photos-list-api: ## Test photos list API Gateway endpoint
+	@echo "Testing photos list API endpoint..."
+	@chmod +x scripts/test-photos-list-api.sh
+	@./scripts/test-photos-list-api.sh
+
+deploy-photos-api: ## Deploy photos API Gateway endpoints
+	@echo "Deploying photos API Gateway endpoints..."
+	@chmod +x scripts/deploy-photos-api.sh
+	@./scripts/deploy-photos-api.sh
 
 .PHONY: create-bingo-s3-bucket create-bingo-lambda-role deploy-bingo-lambda update-bingo-lambda \
         test-bingo-lambda deploy-bingo-all deploy-photos-list-lambda update-photos-list-lambda \
-        test-photos-list-lambda
+        test-photos-list-lambda test-photos-list-api deploy-photos-api

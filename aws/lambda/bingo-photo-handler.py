@@ -29,12 +29,12 @@ CORS_HEADERS = {
 
 def lambda_handler(event, context):
     """
-    Upload bingo photo to S3
+    Upload photo to S3 (bingo or general photos)
 
     Expected payload:
     {
         "user_id": "username",
-        "square_position": 0-24,
+        "square_position": -1 (general photo) or 0-24 (bingo square),
         "photo_data": "base64_encoded_image_data"
     }
 
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
     {
         "success": true,
         "photo_url": "https://bucket.s3.amazonaws.com/path/to/photo.jpg",
-        "square_position": 0
+        "square_position": -1 or 0-24
     }
     """
 
@@ -73,13 +73,14 @@ def lambda_handler(event, context):
             }
 
         # Validate square_position is in valid range
-        if not isinstance(square_position, int) or square_position < 0 or square_position > 24:
+        # -1 = general photo (non-bingo), 0-24 = bingo square positions
+        if not isinstance(square_position, int) or square_position < -1 or square_position > 24:
             return {
                 'statusCode': 400,
                 'headers': CORS_HEADERS,
                 'body': json.dumps({
                     'success': False,
-                    'error': 'Invalid square_position: must be integer 0-24'
+                    'error': 'Invalid square_position: must be -1 (general photo) or 0-24 (bingo square)'
                 })
             }
 
