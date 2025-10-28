@@ -46,6 +46,11 @@ help:
 	@echo "  make deploy-leaderboard-api Deploy API Gateway for leaderboard"
 	@echo "  make test-leaderboard-api Test leaderboard API endpoints"
 	@echo ""
+	@echo "Photos Gallery Operations (CLI):"
+	@echo "  make deploy-photos-list-lambda Deploy photos list Lambda function"
+	@echo "  make update-photos-list-lambda Update photos list Lambda code"
+	@echo "  make test-photos-list-lambda Test photos list Lambda function"
+	@echo ""
 	@echo "API Gateway Operations:"
 	@echo "  make test-api           Test API Gateway endpoints"
 	@echo "  make fix-cors           Fix CORS configuration for API Gateway"
@@ -777,7 +782,54 @@ deploy-bingo-all: create-bingo-s3-bucket deploy-bingo-lambda ## Deploy complete 
 	@echo "Next steps:"
 	@echo "1. Add API Gateway endpoint: POST /bingo/upload-photo → $(BINGO_LAMBDA_NAME)"
 	@echo "2. Configure CORS on API Gateway"
+
+# Photos Gallery Lambda (uses same S3 bucket as bingo)
+PHOTOS_LAMBDA_NAME := heatherandwesley-photos-list-handler
+
+deploy-photos-list-lambda: ## Deploy photos list handler Lambda
+	@echo "Building photos list handler Lambda deployment package..."
+	@rm -rf build/photos-lambda-package && mkdir -p build/photos-lambda-package
+	@cp aws/lambda/photos-list-handler.py build/photos-lambda-package/
+	@cd build/photos-lambda-package && zip -r ../photos-lambda-deployment.zip . -x "*.pyc" "__pycache__/*"
+	@echo "Deploying photos list handler Lambda function..."
+	@aws lambda create-function \
+		--function-name $(PHOTOS_LAMBDA_NAME) \
+		--runtime python3.11 \
+		--role arn:aws:iam::$(shell aws sts get-caller-identity --profile $(AWS_PROFILE) --query Account --output text):role/lambda-execution-role \
+		--handler photos-list-handler.lambda_handler \
+		--zip-file fileb://build/photos-lambda-deployment.zip \
+		--timeout 30 \
+		--memory-size 256 \
+		--environment Variables={S3_BUCKET=$(BINGO_S3_BUCKET),USERS_TABLE=$(AUTH_TABLE_NAME)} \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.' || \
+	(echo "Function may already exist, updating..." && $(MAKE) update-photos-list-lambda)
+
+update-photos-list-lambda: ## Update photos list Lambda code
+	@echo "Updating photos list handler Lambda code..."
+	@rm -rf build/photos-lambda-package && mkdir -p build/photos-lambda-package
+	@cp aws/lambda/photos-list-handler.py build/photos-lambda-package/
+	@cd build/photos-lambda-package && zip -r ../photos-lambda-deployment.zip . -x "*.pyc" "__pycache__/*"
+	@aws lambda update-function-code \
+		--function-name $(PHOTOS_LAMBDA_NAME) \
+		--zip-file fileb://build/photos-lambda-deployment.zip \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		--output json | jq '.'
+	@echo "Photos list Lambda function code updated!"
+
+test-photos-list-lambda: ## Test photos list Lambda function
+	@echo "Testing photos list handler Lambda..."
+	@aws lambda invoke \
+		--function-name $(PHOTOS_LAMBDA_NAME) \
+		--payload '{"httpMethod":"GET","queryStringParameters":{"limit":"10"}}' \
+		--profile $(AWS_PROFILE) \
+		--region $(AWS_REGION) \
+		/tmp/photos-list-test-response.json
+	@cat /tmp/photos-list-test-response.json | jq '.'
 	@echo "3. Test photo upload from frontend"
 
 .PHONY: create-bingo-s3-bucket create-bingo-lambda-role deploy-bingo-lambda update-bingo-lambda \
-        test-bingo-lambda deploy-bingo-all
+        test-bingo-lambda deploy-bingo-all deploy-photos-list-lambda update-photos-list-lambda \
+        test-photos-list-lambda
