@@ -36,7 +36,7 @@ export const Festival: React.FC = () => {
       case 'guests':
         return <GuestListView />;
       case 'games':
-        return <GamesView key={`games-${gamesViewKey.current}`} />;
+        return <GamesView key={`games-${gamesViewKey}`} />;
       default:
         return <ItineraryView />;
     }
