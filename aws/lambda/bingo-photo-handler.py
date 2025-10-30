@@ -63,17 +63,26 @@ def handle_delete(event, s3_client, S3_BUCKET, CORS_HEADERS):
 
         # Extract S3 key from photo URL
         # URL format: https://bucket.s3.amazonaws.com/username/square_position_timestamp.jpg
+        # Or: https://bucket.s3.us-east-1.amazonaws.com/username/square_position_timestamp.jpg
         try:
-            url_parts = photo_url.split(f'{S3_BUCKET}.s3')
-            if len(url_parts) < 2:
-                raise ValueError('Invalid photo URL format')
+            # Handle both regional and non-regional S3 URLs
+            if f'{S3_BUCKET}.s3' in photo_url:
+                url_parts = photo_url.split(f'{S3_BUCKET}.s3')
+                if len(url_parts) < 2:
+                    raise ValueError('Invalid photo URL format')
 
-            # Get the path after the domain
-            path = url_parts[1].split('/', 1)[1]  # Split on first '/' after domain
-            s3_key = unquote(path)  # Decode URL encoding
+                # Get the path after the domain (skip region part if present)
+                path_part = url_parts[1]
+                # Remove .amazonaws.com or .us-east-1.amazonaws.com prefix
+                if path_part.startswith('.'):
+                    path_part = path_part.split('/', 1)[1] if '/' in path_part else ''
+
+                s3_key = unquote(path_part.lstrip('/'))  # Decode URL encoding and remove leading slash
+            else:
+                raise ValueError('Photo URL does not match expected S3 bucket')
 
         except (IndexError, ValueError) as e:
-            print(f"Error parsing photo URL: {str(e)}")
+            print(f"Error parsing photo URL: {str(e)}, URL: {photo_url}")
             return {
                 'statusCode': 400,
                 'headers': CORS_HEADERS,
@@ -86,6 +95,8 @@ def handle_delete(event, s3_client, S3_BUCKET, CORS_HEADERS):
         # SECURITY: Verify user owns the photo
         # S3 key format: {user_id}/{square_position}_{timestamp}.jpg
         # User can only delete photos in their own folder
+        print(f"Parsed S3 key: {s3_key} for user: {user_id}")
+
         if not s3_key.startswith(f'{user_id}/'):
             print(f"Security violation: User {user_id} attempted to delete {s3_key}")
             return {
@@ -100,16 +111,24 @@ def handle_delete(event, s3_client, S3_BUCKET, CORS_HEADERS):
         # Verify photo exists in S3 before attempting deletion
         try:
             s3_client.head_object(Bucket=S3_BUCKET, Key=s3_key)
-        except s3_client.exceptions.NoSuchKey:
-            return {
-                'statusCode': 404,
-                'headers': CORS_HEADERS,
-                'body': json.dumps({
-                    'success': False,
-                    'error': 'Photo not found'
-                })
-            }
+            print(f"Photo found in S3: {s3_key}")
         except Exception as e:
+            error_code = e.response.get('Error', {}).get('Code', '') if hasattr(e, 'response') else ''
+            print(f"S3 head_object error: {error_code}, {str(e)}")
+
+            if error_code == '404' or error_code == 'NoSuchKey' or '404' in str(e):
+                # Photo doesn't exist - treat as already deleted (idempotent operation)
+                print(f"Photo not found (already deleted?): {s3_key}")
+                return {
+                    'statusCode': 200,
+                    'headers': CORS_HEADERS,
+                    'body': json.dumps({
+                        'success': True,
+                        'message': 'Photo deleted successfully'
+                    })
+                }
+
+            # Other errors
             print(f"Error checking photo existence: {str(e)}")
             return {
                 'statusCode': 500,
