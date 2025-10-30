@@ -55,27 +55,24 @@ export const PhotoFullScreenView: React.FC<PhotoFullScreenViewProps> = ({
       className="fixed inset-0 bg-black/95 z-50 flex flex-col animate-in fade-in duration-300"
       onClick={onClose} // Close when clicking background
     >
-      {/* Header with close button */}
-      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 z-10">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="text-white">
-            <span className="text-lg font-semibold">
-              {currentIndex + 1} / {photos.length}
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="text-white hover:bg-white/20"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+      {/* Photo counter */}
+      <div className="absolute top-4 left-4 text-white text-lg font-semibold z-10 backdrop-blur-sm px-3 py-1 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
+        <span>{currentIndex + 1} / {photos.length}</span>
       </div>
+
+      {/* Close button - matches arrow style */}
+      <Button
+        variant="ghost"
+        size="lg"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        className="absolute top-4 right-4 text-white hover:bg-white/20 backdrop-blur-sm z-10"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
+      >
+        <X className="w-8 h-8" />
+      </Button>
 
       {/* Main photo */}
       <div

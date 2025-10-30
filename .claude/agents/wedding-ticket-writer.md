@@ -427,6 +427,42 @@ curl -X POST https://[api-id].execute-api.us-east-1.amazonaws.com/prod/[endpoint
    - Follow existing Makefile patterns for new resources
    - Document all make commands in deployment guide
 
+8. **CORS Configuration (CRITICAL)**:
+   - **ALWAYS update CORS policies when adding new HTTP methods to existing endpoints**
+   - If adding DELETE, PUT, PATCH methods: update API Gateway OPTIONS method to include them
+   - CORS headers in Lambda must match API Gateway OPTIONS configuration
+   - Test CORS preflight requests after deployment
+   - Common error: "Method [X] is not allowed by Access-Control-Allow-Methods in preflight response"
+   - **Deployment verification must include CORS preflight test**:
+     ```bash
+     # Test CORS preflight for new method
+     curl -X OPTIONS https://[api-id].execute-api.us-east-1.amazonaws.com/prod/[endpoint] \
+       -H "Origin: https://heatherandwesley.com" \
+       -H "Access-Control-Request-Method: [NEW_METHOD]" \
+       -H "Access-Control-Request-Headers: Content-Type" \
+       -i
+
+     # Verify response includes new method in Access-Control-Allow-Methods header
+     ```
+   - **Lambda CORS headers must include all methods**:
+     ```python
+     CORS_HEADERS = {
+         'Access-Control-Allow-Origin': '*',
+         'Access-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS',  # Include ALL methods
+         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+         'Access-Control-Max-Age': '86400'
+     }
+     ```
+   - **API Gateway OPTIONS method integration response must match**:
+     ```bash
+     aws apigateway put-integration-response \
+       --rest-api-id [api-id] \
+       --resource-id [resource-id] \
+       --http-method OPTIONS \
+       --status-code 200 \
+       --response-parameters '{"method.response.header.Access-Control-Allow-Methods":"'"'"'OPTIONS,POST,GET,PUT,DELETE'"'"'"}'
+     ```
+
 **WEDDING CONTEXT REMINDERS**:
 - This is for a December 5-8, 2025 wedding in Maui, Hawaii
 - Maintain the "Epic Wedding Quest" theme
