@@ -93,31 +93,26 @@ export const PhotoFullScreenView: React.FC<PhotoFullScreenViewProps> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Header with counter and close button */}
-      <div className="absolute top-0 left-0 right-0 p-4 z-20">
-        <div className="flex items-center justify-between">
-          {/* Photo counter */}
-          <div
-            className="text-white text-lg font-semibold backdrop-blur-sm px-3 py-1.5 rounded-lg"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-          >
-            <span>{currentIndex + 1} / {photos.length}</span>
-          </div>
-
-          {/* Close button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="text-white backdrop-blur-sm p-2 rounded-lg hover:bg-white/20 transition-all duration-200 hover:scale-110"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-            aria-label="Close"
-          >
-            <X className="w-8 h-8 stroke-[3]" />
-          </button>
-        </div>
+      {/* Photo counter - top left, below main header */}
+      <div
+        className="absolute top-20 left-4 text-white text-lg font-semibold backdrop-blur-sm px-3 py-1.5 rounded z-10"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
+      >
+        <span>{currentIndex + 1} / {photos.length}</span>
       </div>
+
+      {/* Close button - positioned below main header to avoid overlap */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        className="absolute top-20 right-4 text-white backdrop-blur-sm p-2 rounded hover:bg-white/20 transition-all duration-200 hover:scale-105 z-10"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
+        aria-label="Close"
+      >
+        <X className="w-8 h-8" />
+      </button>
 
       {/* Main photo */}
       <div
@@ -132,18 +127,18 @@ export const PhotoFullScreenView: React.FC<PhotoFullScreenViewProps> = ({
         />
       </div>
 
-      {/* Navigation arrows */}
+      {/* Navigation arrows - subtle style */}
       {currentIndex > 0 && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onNavigate('prev');
           }}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/30 backdrop-blur-sm z-10 p-3 rounded-lg transition-all duration-200"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white hover:bg-white/20 backdrop-blur-sm z-10 p-2 rounded transition-all duration-300 opacity-50 hover:opacity-100"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
           aria-label="Previous photo"
         >
-          <ChevronLeft className="w-8 h-8" />
+          <ChevronLeft className="w-6 h-6" />
         </button>
       )}
 
@@ -153,11 +148,11 @@ export const PhotoFullScreenView: React.FC<PhotoFullScreenViewProps> = ({
             e.stopPropagation();
             onNavigate('next');
           }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/30 backdrop-blur-sm z-10 p-3 rounded-lg transition-all duration-200"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white hover:bg-white/20 backdrop-blur-sm z-10 p-2 rounded transition-all duration-300 opacity-50 hover:opacity-100"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
           aria-label="Next photo"
         >
-          <ChevronRight className="w-8 h-8" />
+          <ChevronRight className="w-6 h-6" />
         </button>
       )}
 
