@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { Character, CharacterTheme } from '@/types/character';
 import { Photo } from '@/hooks/usePhotoGallery';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,37 @@ export const PhotoFullScreenView: React.FC<PhotoFullScreenViewProps> = ({
   onClose,
   onNavigate,
 }) => {
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [touchOffset, setTouchOffset] = useState<number>(0);
+
+  // Touch gesture handling for swipe-down to close
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    setTouchOffset(0);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStart) return;
+
+    const touch = e.touches[0];
+    const deltaY = touch.clientY - touchStart.y;
+
+    // Only track downward swipes
+    if (deltaY > 0) {
+      setTouchOffset(deltaY);
+    }
+  }, [touchStart]);
+
+  const handleTouchEnd = useCallback(() => {
+    // Close if swiped down more than 100px
+    if (touchOffset > 100) {
+      onClose();
+    }
+    setTouchStart(null);
+    setTouchOffset(0);
+  }, [touchOffset, onClose]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,14 +84,22 @@ export const PhotoFullScreenView: React.FC<PhotoFullScreenViewProps> = ({
   return (
     <div
       className="fixed inset-0 bg-black/95 z-50 flex flex-col animate-in fade-in duration-300"
+      style={{
+        transform: touchOffset > 0 ? `translateY(${touchOffset}px)` : 'none',
+        opacity: touchOffset > 0 ? Math.max(0.3, 1 - touchOffset / 300) : 1,
+        transition: touchStart ? 'none' : 'transform 0.3s ease-out, opacity 0.3s ease-out',
+      }}
       onClick={onClose} // Close when clicking background
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Photo counter */}
       <div className="absolute top-4 left-4 text-white text-lg font-semibold z-10 backdrop-blur-sm px-3 py-1 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
         <span>{currentIndex + 1} / {photos.length}</span>
       </div>
 
-      {/* Close button - matches arrow style */}
+      {/* Close button - more visible with better contrast */}
       <Button
         variant="ghost"
         size="lg"
@@ -68,10 +107,10 @@ export const PhotoFullScreenView: React.FC<PhotoFullScreenViewProps> = ({
           e.stopPropagation();
           onClose();
         }}
-        className="absolute top-4 right-4 text-white hover:bg-white/20 backdrop-blur-sm z-10"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
+        className="absolute top-4 right-4 text-white hover:bg-white/30 backdrop-blur-sm z-10 transition-all duration-300 opacity-90 hover:opacity-100 hover:scale-110"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       >
-        <X className="w-8 h-8" />
+        <X className="w-8 h-8 stroke-[2.5]" />
       </Button>
 
       {/* Main photo */}
@@ -83,6 +122,7 @@ export const PhotoFullScreenView: React.FC<PhotoFullScreenViewProps> = ({
           src={photo.url}
           alt={`Wedding photo by ${photo.user_name || photo.user_id}`}
           className="max-w-full max-h-full object-contain cursor-default"
+          draggable={false}
         />
       </div>
 
