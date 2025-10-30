@@ -146,11 +146,12 @@ export const PhotoSlideshow: React.FC<PhotoSlideshowProps> = ({
       {isPlaying && (
         <div className="absolute top-16 left-0 right-0 h-1 bg-white/20 z-10">
           <div
+            key={`progress-${currentIndex}`}
             className="h-full transition-all duration-100 ease-linear"
             style={{
               width: '0%',
               backgroundColor: theme.primary,
-              animation: `slideProgress ${autoPlayInterval}ms linear`,
+              animation: `slideProgress ${autoPlayInterval}ms linear forwards`,
             }}
           />
         </div>

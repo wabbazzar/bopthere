@@ -8,6 +8,7 @@ import { Image, Presentation, Upload, Loader2 } from 'lucide-react';
 import { PhotoGallery } from './PhotoGallery';
 import { PhotoSlideshow } from './PhotoSlideshow';
 import { PhotoUploadModal } from './PhotoUploadModal';
+import { PhotoFullScreenView } from './PhotoFullScreenView';
 import { usePhotoGallery } from '@/hooks/usePhotoGallery';
 
 // Character-specific content
@@ -35,7 +36,8 @@ const characterMessages = {
 export const PhotosView: React.FC = () => {
   const { selectedCharacter } = useCharacter();
   const { user } = useAuth();
-  const [viewMode, setViewMode] = useState<'gallery' | 'slideshow'>('gallery');
+  const [viewMode, setViewMode] = useState<'gallery' | 'slideshow' | 'fullscreen'>('gallery');
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const { photos, isLoading, error, refetch } = usePhotoGallery();
@@ -44,6 +46,27 @@ export const PhotosView: React.FC = () => {
 
   const currentTheme = characterThemes[selectedCharacter];
   const content = characterMessages[selectedCharacter];
+
+  // Full-screen mode
+  if (viewMode === 'fullscreen' && photos.length > 0) {
+    return (
+      <PhotoFullScreenView
+        photo={photos[selectedPhotoIndex]}
+        photos={photos}
+        currentIndex={selectedPhotoIndex}
+        character={selectedCharacter}
+        theme={currentTheme}
+        onClose={() => setViewMode('gallery')}
+        onNavigate={(direction) => {
+          if (direction === 'prev' && selectedPhotoIndex > 0) {
+            setSelectedPhotoIndex(selectedPhotoIndex - 1);
+          } else if (direction === 'next' && selectedPhotoIndex < photos.length - 1) {
+            setSelectedPhotoIndex(selectedPhotoIndex + 1);
+          }
+        }}
+      />
+    );
+  }
 
   // Slideshow mode
   if (viewMode === 'slideshow' && photos.length > 0) {
@@ -171,6 +194,12 @@ export const PhotosView: React.FC = () => {
           photos={photos}
           character={selectedCharacter}
           theme={currentTheme}
+          currentUserId={user?.username}
+          onPhotoClick={(index) => {
+            setSelectedPhotoIndex(index);
+            setViewMode('fullscreen');
+          }}
+          onPhotoDeleted={refetch}
         />
       )}
 

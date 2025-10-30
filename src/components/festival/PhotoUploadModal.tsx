@@ -14,69 +14,132 @@ interface PhotoUploadModalProps {
   theme: CharacterTheme;
 }
 
+interface UploadStatus {
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  progress: number;
+  error?: string;
+  photoUrl?: string;
+}
+
 export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
   isOpen,
   onClose,
   onUploadSuccess,
   theme,
 }) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadResults, setUploadResults] = useState<Map<string, UploadStatus>>(new Map());
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const { uploadPhoto, uploading } = usePhotoUpload();
+  const { uploadPhoto } = usePhotoUpload();
   const { toast } = useToast();
 
-  const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+
+    // Limit to 10 photos at a time
+    if (fileArray.length > 10) {
       toast({
-        title: 'Invalid File',
-        description: 'Please select an image file',
+        title: 'Too Many Photos',
+        description: 'Please select up to 10 photos at a time',
         variant: 'destructive',
       });
       return;
     }
 
-    setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-
-    try {
-      setUploadProgress(30); // Start progress indicator
-      // Use -1 for square_position to indicate general photos (not bingo)
-      await uploadPhoto(selectedFile, -1);
-      setUploadProgress(100);
-
+    // Validate all files are images
+    const validFiles = fileArray.filter(file => file.type.startsWith('image/'));
+    if (validFiles.length !== fileArray.length) {
       toast({
-        title: 'Success!',
-        description: 'Photo uploaded successfully',
-      });
-
-      onUploadSuccess();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo';
-      toast({
-        title: 'Upload Failed',
-        description: errorMessage,
+        title: 'Invalid Files',
+        description: 'Some files were not images and were skipped',
         variant: 'destructive',
       });
-      setUploadProgress(0);
+    }
+
+    setSelectedFiles(validFiles);
+
+    // Initialize upload status for each file
+    const statusMap = new Map<string, UploadStatus>();
+    validFiles.forEach(file => {
+      statusMap.set(file.name, { status: 'pending', progress: 0 });
+    });
+    setUploadResults(statusMap);
+  };
+
+  const handleBatchUpload = async () => {
+    setIsUploading(true);
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const file of selectedFiles) {
+      try {
+        // Update status to uploading
+        setUploadResults(prev => {
+          const newMap = new Map(prev);
+          newMap.set(file.name, { status: 'uploading', progress: 0 });
+          return newMap;
+        });
+
+        const photoUrl = await uploadPhoto(file, -1); // -1 for general photos
+
+        // Update status to success
+        setUploadResults(prev => {
+          const newMap = new Map(prev);
+          newMap.set(file.name, {
+            status: 'success',
+            progress: 100,
+            photoUrl
+          });
+          return newMap;
+        });
+        successCount++;
+      } catch (err) {
+        // Update status to error
+        setUploadResults(prev => {
+          const newMap = new Map(prev);
+          newMap.set(file.name, {
+            status: 'error',
+            progress: 0,
+            error: err instanceof Error ? err.message : 'Upload failed'
+          });
+          return newMap;
+        });
+        errorCount++;
+      }
+    }
+
+    setIsUploading(false);
+
+    // Show completion toast
+    if (successCount > 0) {
+      toast({
+        title: 'Upload Complete',
+        description: `${successCount} of ${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''} uploaded successfully`,
+      });
+      onUploadSuccess();
+    } else {
+      toast({
+        title: 'Upload Failed',
+        description: 'All uploads failed. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleClose = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setUploadProgress(0);
+    // Clean up object URLs
+    selectedFiles.forEach(file => {
+      const url = URL.createObjectURL(file);
+      URL.revokeObjectURL(url);
+    });
+    setSelectedFiles([]);
+    setUploadResults(new Map());
+    setIsUploading(false);
     onClose();
   };
 
@@ -87,35 +150,89 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
           <DialogTitle
             style={{ fontFamily: 'Cinzel, serif', color: theme.primary }}
           >
-            Upload Wedding Photo
+            Upload Wedding Photos
           </DialogTitle>
           <DialogDescription style={{ fontFamily: 'Crimson Text, serif' }}>
-            Share a special moment from the celebration
+            Share special moments from the celebration (up to 10 photos)
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {previewUrl ? (
-            <div className="relative">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full rounded-lg max-h-96 object-contain"
-              />
-              {!uploading && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    URL.revokeObjectURL(previewUrl);
-                    setSelectedFile(null);
-                    setPreviewUrl(null);
-                  }}
-                  className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
+          {selectedFiles.length > 0 ? (
+            <div className="space-y-3">
+              {/* Photo preview grid */}
+              <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                {selectedFiles.map((file, index) => {
+                  const status = uploadResults.get(file.name);
+                  return (
+                    <div key={`${file.name}-${index}`} className="relative">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-24 object-cover rounded"
+                      />
+
+                      {/* Status overlay */}
+                      {status?.status === 'uploading' && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
+                          <Loader2 className="w-6 h-6 animate-spin text-white" />
+                        </div>
+                      )}
+
+                      {status?.status === 'success' && (
+                        <div className="absolute top-1 right-1 bg-green-500 rounded-full p-1">
+                          <CheckCircle className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+
+                      {status?.status === 'error' && (
+                        <div className="absolute top-1 right-1 bg-red-500 rounded-full p-1">
+                          <X className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+
+                      {/* Remove button (before upload) */}
+                      {(!status || status.status === 'pending') && !isUploading && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                            setUploadResults(prev => {
+                              const newMap = new Map(prev);
+                              newMap.delete(file.name);
+                              return newMap;
+                            });
+                          }}
+                          className="absolute top-1 right-1 bg-black/50 text-white hover:bg-black/70 p-1 h-6 w-6"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Upload all button */}
+              <Button
+                onClick={handleBatchUpload}
+                className="w-full"
+                disabled={isUploading}
+                style={{ backgroundColor: theme.primary }}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading {selectedFiles.length} photo{selectedFiles.length > 1 ? 's' : ''}...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload {selectedFiles.length} Photo{selectedFiles.length > 1 ? 's' : ''}
+                  </>
+                )}
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
@@ -136,7 +253,7 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                 style={{ borderColor: theme.primary, color: theme.primary }}
               >
                 <Upload className="w-8 h-8 mb-2" />
-                <span>Choose Photo</span>
+                <span>Choose Photos</span>
               </Button>
             </div>
           )}
@@ -148,55 +265,16 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
             accept="image/*"
             capture="environment"
             className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileSelect(file);
-            }}
+            onChange={(e) => handleFileSelect(e.target.files)}
           />
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple
             className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileSelect(file);
-            }}
+            onChange={(e) => handleFileSelect(e.target.files)}
           />
-
-          {/* Upload button and progress */}
-          {selectedFile && (
-            <div className="space-y-3">
-              {uploading ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-center">
-                    <Loader2 className="w-6 h-6 animate-spin" style={{ color: theme.primary }} />
-                    <span className="ml-2" style={{ fontFamily: 'Crimson Text, serif' }}>
-                      Uploading... {uploadProgress}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${uploadProgress}%`,
-                        backgroundColor: theme.primary,
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <Button
-                  onClick={handleUpload}
-                  className="w-full"
-                  style={{ backgroundColor: theme.primary }}
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Upload Photo
-                </Button>
-              )}
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>
