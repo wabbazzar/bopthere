@@ -1,4 +1,4 @@
-# Ticket #020: Fix Local Development Environment Configuration for API Authentication
+# Ticket #XXX: Fix Local Development Environment Configuration for API Authentication
 
 **INSTRUCTIONS FOR CLAUDE:**
 - Save this ticket to `docs/tickets/backlog/020_bug_localhost_env_config_authentication.md`
