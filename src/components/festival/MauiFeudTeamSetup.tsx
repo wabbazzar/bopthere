@@ -25,11 +25,11 @@ export const MauiFeudTeamSetup: React.FC<MauiFeudTeamSetupProps> = ({
       style={{ borderColor: theme.primary }}
     >
       <CardHeader
-        className="text-center pb-6"
+        className="text-center pb-4 sm:pb-6 px-4"
         style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})` }}
       >
         <CardTitle
-          className="text-3xl font-bold text-white"
+          className="text-2xl sm:text-3xl font-bold text-white px-2 break-words"
           style={{ fontFamily: 'Cinzel, serif' }}
         >
           {character === 'wesley'
@@ -39,9 +39,9 @@ export const MauiFeudTeamSetup: React.FC<MauiFeudTeamSetupProps> = ({
               : 'Pick Your Team Names!'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-8 space-y-6">
+      <CardContent className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
         <p
-          className="text-center text-lg mb-6"
+          className="text-center text-base sm:text-lg mb-4 sm:mb-6 px-2"
           style={{ fontFamily: 'Crimson Text, serif', color: theme.dark }}
         >
           {character === 'wesley'
@@ -96,7 +96,7 @@ export const MauiFeudTeamSetup: React.FC<MauiFeudTeamSetupProps> = ({
         <Button
           disabled={!team1Name.trim() || !team2Name.trim()}
           onClick={handleStartGame}
-          className="w-full text-lg py-6 text-white"
+          className="w-full text-base sm:text-lg py-4 sm:py-6 text-white"
           style={{ backgroundColor: theme.primary }}
         >
           {character === 'wesley'

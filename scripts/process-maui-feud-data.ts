@@ -51,7 +51,7 @@ interface QuestionClusters {
 
 function processGameData(): void {
   // Load raw questionnaire data
-  const rawDataPath = path.join(__dirname, '../tmp/questionnaire_clustering_with_outliers.json');
+  const rawDataPath = path.join(__dirname, '../data/questionnaire_clustering_with_outliers.json');
   const rawData = JSON.parse(fs.readFileSync(rawDataPath, 'utf-8'));
   const questions = Object.entries(rawData.clustering_analysis.clusters_by_question);
 

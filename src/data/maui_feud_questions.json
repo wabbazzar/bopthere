@@ -9,12 +9,12 @@
           "count": 10
         },
         {
-          "text": "Apple/Apples",
+          "text": "Banana",
           "count": 9
         },
         {
-          "text": "Banana",
-          "count": 7
+          "text": "Apple/Apples",
+          "count": 9
         },
         {
           "text": "Chocolate",
@@ -32,7 +32,7 @@
       "answers": [
         {
           "text": "The body",
-          "count": 11
+          "count": 13
         },
         {
           "text": "The weapon",
@@ -40,7 +40,7 @@
         },
         {
           "text": "Evidence",
-          "count": 5
+          "count": 6
         },
         {
           "text": "Witnesses",
@@ -48,6 +48,28 @@
         },
         {
           "text": "Fingerprints",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "id": "bad_boss_traits",
+      "text": "Name a bad boss trait",
+      "answers": [
+        {
+          "text": "Micromanaging",
+          "count": 15
+        },
+        {
+          "text": "Poor communication",
+          "count": 6
+        },
+        {
+          "text": "Emotional immaturity",
+          "count": 3
+        },
+        {
+          "text": "Rude/disrespectful",
           "count": 2
         }
       ]
@@ -71,24 +93,16 @@
       ]
     },
     {
-      "id": "bad_boss_traits",
-      "text": "Name a bad boss trait",
+      "id": "gets_passed_around",
+      "text": "Name something that gets passed around",
       "answers": [
         {
-          "text": "Micromanaging",
-          "count": 11
+          "text": "Joint/Blunt",
+          "count": 16
         },
         {
-          "text": "Poor communication",
+          "text": "Diseases/Illness",
           "count": 6
-        },
-        {
-          "text": "Emotional immaturity",
-          "count": 3
-        },
-        {
-          "text": "Rude/disrespectful",
-          "count": 2
         }
       ]
     },
@@ -105,81 +119,11 @@
           "count": 3
         },
         {
-          "text": "Air mattress",
-          "count": 2
-        },
-        {
           "text": "Basketball",
-          "count": 2
-        }
-      ]
-    },
-    {
-      "id": "gets_passed_around",
-      "text": "Name something that gets passed around",
-      "answers": [
-        {
-          "text": "Joint/Blunt",
-          "count": 14
+          "count": 3
         },
         {
-          "text": "Diseases/Illness",
-          "count": 6
-        }
-      ]
-    },
-    {
-      "id": "people_kick",
-      "text": "Name something people kick",
-      "answers": [
-        {
-          "text": "Soccer ball",
-          "count": 9
-        },
-        {
-          "text": "Ball",
-          "count": 5
-        },
-        {
-          "text": "Rocks",
-          "count": 5
-        },
-        {
-          "text": "Balls",
-          "count": 4
-        },
-        {
-          "text": "Ass/Butt",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "id": "something_you_beat",
-      "text": "Name something you beat",
-      "answers": [
-        {
-          "text": "Meat",
-          "count": 8
-        },
-        {
-          "text": "Eggs",
-          "count": 6
-        },
-        {
-          "text": "Video games",
-          "count": 5
-        },
-        {
-          "text": "The Odds",
-          "count": 2
-        },
-        {
-          "text": "Drums",
-          "count": 2
-        },
-        {
-          "text": "Kids",
+          "text": "Air mattress",
           "count": 2
         }
       ]
@@ -190,7 +134,7 @@
       "answers": [
         {
           "text": "Paper clip",
-          "count": 9
+          "count": 11
         },
         {
           "text": "Staple",
@@ -224,15 +168,71 @@
         },
         {
           "text": "Tender",
-          "count": 7
+          "count": 8
         },
         {
           "text": "Juicy",
-          "count": 3
+          "count": 4
         },
         {
           "text": "Delicious",
           "count": 3
+        }
+      ]
+    },
+    {
+      "id": "something_you_beat",
+      "text": "Name something you beat",
+      "answers": [
+        {
+          "text": "Meat",
+          "count": 9
+        },
+        {
+          "text": "Eggs",
+          "count": 6
+        },
+        {
+          "text": "Video games",
+          "count": 5
+        },
+        {
+          "text": "The Odds",
+          "count": 2
+        },
+        {
+          "text": "Drums",
+          "count": 2
+        },
+        {
+          "text": "Kids",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "id": "people_kick",
+      "text": "Name something people kick",
+      "answers": [
+        {
+          "text": "Soccer ball",
+          "count": 9
+        },
+        {
+          "text": "Ball",
+          "count": 5
+        },
+        {
+          "text": "Rocks",
+          "count": 5
+        },
+        {
+          "text": "Ass/Butt",
+          "count": 5
+        },
+        {
+          "text": "Balls",
+          "count": 4
         }
       ]
     },
@@ -242,7 +242,7 @@
       "answers": [
         {
           "text": "Candles",
-          "count": 8
+          "count": 10
         },
         {
           "text": "Bubbles",
@@ -268,7 +268,7 @@
         },
         {
           "text": "Wet",
-          "count": 4
+          "count": 5
         },
         {
           "text": "Sloppy",
