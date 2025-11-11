@@ -161,3 +161,4 @@ pip.conf
 
 # Scripts cache
 scripts/.wedding/
+.aider*

@@ -1,0 +1,2400 @@
+{
+  "clustering_analysis": {
+    "description": "Analysis of questionnaire responses with clustering of similar answers and outliers",
+    "total_responses": 35,
+    "clusters_by_question": {
+      "bad_boss_traits": {
+        "micromanaging": {
+          "normalized_value": "Micromanaging",
+          "variants": [
+            "Micro managing, takes all credit, pushes blame down, rules stickler, bad vibes",
+            "Yelling. Micromanaging. Taking credit for your own work. Not protecting or investing in your employees.",
+            "Micromanaging",
+            "Micromanaging",
+            "micromanager",
+            "Micro manager",
+            "Micromanaging",
+            "Micromanagement",
+            "Micro-managing",
+            "Micromanager",
+            "Idk if this is bad like bad or bad like good gen z slang.  But the answer is micromanagement",
+            "Lack of confidence, micro manages",
+            "Micro manager",
+            "Micro-manage"
+          ],
+          "count": 14,
+          "response_ids": [
+            2,
+            5,
+            8,
+            10,
+            11,
+            14,
+            16,
+            19,
+            21,
+            23,
+            24,
+            26,
+            28,
+            29
+          ]
+        },
+        "poor_communication": {
+          "normalized_value": "Poor communication",
+          "variants": [
+            "Not communicating and not listening",
+            "Poor communication",
+            "Poor communication",
+            "Poor communication",
+            "Poor Communication, Small PP Syndrome, Leading from the rear",
+            "Bad communication"
+          ],
+          "count": 6,
+          "response_ids": [
+            15,
+            27,
+            32,
+            33,
+            34,
+            35
+          ]
+        },
+        "emotional_issues": {
+          "normalized_value": "Emotional immaturity",
+          "variants": [
+            "Emotional immaturity"
+          ],
+          "count": 1,
+          "response_ids": [
+            30
+          ]
+        },
+        "rude": {
+          "normalized_value": "Rude/disrespectful",
+          "variants": [
+            "Rude / disrespectful"
+          ],
+          "count": 1,
+          "response_ids": [
+            31
+          ]
+        },
+        "outliers": [
+          {
+            "id": 1,
+            "response": "disorganized, untimely, gaslighting, ungrateful"
+          },
+          {
+            "id": 3,
+            "response": "Being not around when needed."
+          },
+          {
+            "id": 4,
+            "response": "Mean"
+          },
+          {
+            "id": 6,
+            "response": "Can't recognize greatness, are mediocre, doesn't keep up morale, easily annoyed, emotionally immature"
+          },
+          {
+            "id": 7,
+            "response": "No long lunch breaks , doesn't like to dance, and makes you work with insulation"
+          },
+          {
+            "id": 9,
+            "response": "Anger issues"
+          },
+          {
+            "id": 12,
+            "response": "Being a projector of blame"
+          },
+          {
+            "id": 13,
+            "response": "Bad or ~Bad~?"
+          },
+          {
+            "id": 17,
+            "response": "Ego"
+          },
+          {
+            "id": 18,
+            "response": "Rude and out of touch"
+          },
+          {
+            "id": 20,
+            "response": "know it all!"
+          },
+          {
+            "id": 22,
+            "response": "Ruthless, focused"
+          },
+          {
+            "id": 25,
+            "response": "Hustle"
+          }
+        ]
+      },
+      "gets_pumped_up": {
+        "tire": {
+          "normalized_value": "Tire",
+          "variants": [
+            "every person in my vicinity 🙃",
+            "Tire",
+            "Bicycle tire.",
+            "Tires",
+            "Tires. Me getting ready to travel. Peter after 3 cups of coffee.",
+            "Beach ball",
+            "Myself when the dj shouts me out for wearing a buddy the elf costume",
+            "Crypto coins",
+            "Tire",
+            "tires",
+            "tires",
+            "My little heart when I hear EDM",
+            "Car Tire",
+            "Tire",
+            "Bike tire",
+            "inflatable tube people",
+            "Bicycle tire",
+            "gas stations",
+            "Bike tires",
+            "The beat",
+            "Kicks",
+            "Tire",
+            "The jams",
+            "T-pain",
+            "Tires",
+            "Tire"
+          ],
+          "count": 26,
+          "response_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            26,
+            28,
+            29,
+            33
+          ]
+        },
+        "muscles": {
+          "normalized_value": "Muscles",
+          "variants": [
+            "Your muscles",
+            "Muscles",
+            "My Muscles"
+          ],
+          "count": 3,
+          "response_ids": [
+            15,
+            27,
+            34
+          ]
+        },
+        "air_mattress": {
+          "normalized_value": "Air mattress",
+          "variants": [
+            "Air mattress",
+            "Air mattress"
+          ],
+          "count": 2,
+          "response_ids": [
+            8,
+            25
+          ]
+        },
+        "basketball": {
+          "normalized_value": "Basketball",
+          "variants": [
+            "Basketball",
+            "Basketball"
+          ],
+          "count": 2,
+          "response_ids": [
+            32,
+            35
+          ]
+        },
+        "outliers": [
+          {
+            "id": 30,
+            "response": "Pool"
+          },
+          {
+            "id": 31,
+            "response": "Balloons"
+          }
+        ]
+      },
+      "people_kick": {
+        "soccer_ball": {
+          "normalized_value": "Soccer ball",
+          "variants": [
+            "Soccer ball",
+            "Soccer ball",
+            "Soccer ball",
+            "soccer ball",
+            "A soccer ball",
+            "Soccer ball",
+            "Soccer ball",
+            "Soccer ball"
+          ],
+          "count": 8,
+          "response_ids": [
+            2,
+            4,
+            9,
+            14,
+            21,
+            22,
+            25,
+            32
+          ]
+        },
+        "ball": {
+          "normalized_value": "Ball",
+          "variants": [
+            "Opponent's ass.",
+            "Man balls",
+            "Butt",
+            "Balls",
+            "balls",
+            "ball",
+            "Your face",
+            "Ball",
+            "Football",
+            "Addiction",
+            "the bucket",
+            "Testicles",
+            "Ball",
+            "Ball",
+            "Ball",
+            "A Tire"
+          ],
+          "count": 16,
+          "response_ids": [
+            3,
+            6,
+            8,
+            10,
+            11,
+            12,
+            15,
+            16,
+            17,
+            19,
+            20,
+            23,
+            24,
+            30,
+            33,
+            34
+          ]
+        },
+        "balls": {
+          "normalized_value": "Balls",
+          "variants": [
+            "puppies",
+            "Puppies :("
+          ],
+          "count": 2,
+          "response_ids": [
+            18,
+            28
+          ]
+        },
+        "rocks": {
+          "normalized_value": "Rocks",
+          "variants": [
+            "Pinecones",
+            "Rocks",
+            "Rocks",
+            "Rocks",
+            "Soccer",
+            "Soccer",
+            "Rocks"
+          ],
+          "count": 7,
+          "response_ids": [
+            1,
+            5,
+            7,
+            13,
+            27,
+            31,
+            35
+          ]
+        },
+        "ass": {
+          "normalized_value": "Ass/Butt",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "outliers": [
+          {
+            "id": 26,
+            "response": "Ass"
+          },
+          {
+            "id": 29,
+            "response": "Ass"
+          }
+        ]
+      },
+      "partner_like_steak": {
+        "rare": {
+          "normalized_value": "Rare",
+          "variants": [
+            "rare gem, perfect on the outside, tender on the inside, and always leaves me satisfied",
+            "Melts in the mouth",
+            "Rare",
+            "Thick cut. Needs to rest after cooking.",
+            "He's the best",
+            "Medium rare",
+            "expensive",
+            "He is so good people wonder where do you get your protein?  He's the most well balanced part of my day",
+            "With ketchup",
+            "Costs a lot of money",
+            "always ready to her -> might need salt.",
+            "They're rare!",
+            "Fat in all the right places",
+            "By being rare",
+            "Not applicable",
+            "Well done",
+            "He's medium rare",
+            "Rare",
+            "Rare",
+            "Rare (one of a kind)",
+            "Very tasty",
+            "She Bleeds a Little but she still tastes great? 😂"
+          ],
+          "count": 22,
+          "response_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            10,
+            12,
+            15,
+            18,
+            19,
+            20,
+            21,
+            22,
+            24,
+            25,
+            27,
+            28,
+            29,
+            30,
+            31,
+            33,
+            34
+          ]
+        },
+        "juicy": {
+          "normalized_value": "Juicy",
+          "variants": [
+            "She is juicy, wet and melts in my mouth",
+            "She's juicy!",
+            "Juicy and perfect",
+            "Juicy some days tough other days",
+            "Thick :-)"
+          ],
+          "count": 5,
+          "response_ids": [
+            7,
+            8,
+            13,
+            14,
+            17
+          ]
+        },
+        "tender": {
+          "normalized_value": "Tender",
+          "variants": [
+            "Tender and nourishing.",
+            "lean and tender",
+            "Tender",
+            "Surprisingly tender",
+            "Tender",
+            "Tender"
+          ],
+          "count": 6,
+          "response_ids": [
+            3,
+            11,
+            16,
+            26,
+            32,
+            35
+          ]
+        },
+        "delicious": {
+          "normalized_value": "Delicious",
+          "variants": [
+            "He's reliably delicious",
+            "Delicious"
+          ],
+          "count": 2,
+          "response_ids": [
+            9,
+            23
+          ]
+        },
+        "outliers": []
+      },
+      "something_you_beat": {
+        "video_games": {
+          "normalized_value": "Video games",
+          "variants": [
+            "Video games",
+            "Video games",
+            "Video games 😤",
+            "Video game",
+            "MY MEAT. God… This is hard not to be so horrible….. Video Games"
+          ],
+          "count": 5,
+          "response_ids": [
+            2,
+            8,
+            22,
+            33,
+            34
+          ]
+        },
+        "eggs": {
+          "normalized_value": "Eggs",
+          "variants": [
+            "the bad vibes (with good vibes)",
+            "Levels",
+            "Eggs",
+            "My steering wheel",
+            "Weiner",
+            "Scrambled eggs",
+            "Eggs",
+            "Eggs",
+            "Eggs",
+            "eggs",
+            "Opponents in magic the gathering"
+          ],
+          "count": 11,
+          "response_ids": [
+            1,
+            4,
+            5,
+            6,
+            15,
+            21,
+            23,
+            27,
+            30,
+            32,
+            35
+          ]
+        },
+        "meat": {
+          "normalized_value": "Meat",
+          "variants": [
+            "Meat, unless my partner is around",
+            "cream",
+            "My meat",
+            "Meat 😈",
+            "Your meat",
+            "Meat",
+            "Meat",
+            "A dead horse",
+            "Connor at Mario kart",
+            "Meat",
+            "Game"
+          ],
+          "count": 11,
+          "response_ids": [
+            7,
+            12,
+            13,
+            17,
+            18,
+            19,
+            24,
+            26,
+            28,
+            29,
+            31
+          ]
+        },
+        "odds": {
+          "normalized_value": "The Odds",
+          "variants": [
+            "The odds and my opponent's ass.",
+            "the odds"
+          ],
+          "count": 2,
+          "response_ids": [
+            3,
+            16
+          ]
+        },
+        "drums": {
+          "normalized_value": "Drums",
+          "variants": [
+            "Drum",
+            "Drum"
+          ],
+          "count": 2,
+          "response_ids": [
+            10,
+            25
+          ]
+        },
+        "kids": {
+          "normalized_value": "Kids",
+          "variants": [
+            "Autism",
+            "kids",
+            "Kids, jk. Mario cart"
+          ],
+          "count": 3,
+          "response_ids": [
+            9,
+            11,
+            14
+          ]
+        },
+        "outliers": [
+          {
+            "id": 20,
+            "response": "it"
+          }
+        ]
+      },
+      "romantic_bath": {
+        "candles": {
+          "normalized_value": "Candles",
+          "variants": [
+            "Any bath big enough to fit both me & my huge husband",
+            "Candles",
+            "Candles",
+            "candles",
+            "Scented candle",
+            "Candles",
+            "Candles",
+            "Candle",
+            "Cheese plate",
+            "Candles",
+            "Actually enough depth for two bodies",
+            "Candles"
+          ],
+          "count": 12,
+          "response_ids": [
+            1,
+            2,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            22,
+            30
+          ]
+        },
+        "bubbles": {
+          "normalized_value": "Bubbles",
+          "variants": [
+            "Bubbles",
+            "bubbles",
+            "Bubbles",
+            "Bubbles w/bubbly drinks",
+            "Bubbles",
+            "Tub Jets"
+          ],
+          "count": 6,
+          "response_ids": [
+            8,
+            11,
+            19,
+            29,
+            33,
+            34
+          ]
+        },
+        "rose_petals": {
+          "normalized_value": "Rose petals",
+          "variants": [
+            "Rose petals",
+            "Rose petals",
+            "Rose petals"
+          ],
+          "count": 3,
+          "response_ids": [
+            24,
+            27,
+            32
+          ]
+        },
+        "massage": {
+          "normalized_value": "Massage",
+          "variants": [
+            "Massage",
+            "Massage",
+            "Champagne"
+          ],
+          "count": 3,
+          "response_ids": [
+            4,
+            25,
+            31
+          ]
+        },
+        "outliers": [
+          {
+            "id": 3,
+            "response": "When the cloths come off."
+          },
+          {
+            "id": 5,
+            "response": "Peter getting into the bath with me"
+          },
+          {
+            "id": 6,
+            "response": "Someone else joining you"
+          },
+          {
+            "id": 7,
+            "response": "Barry White"
+          },
+          {
+            "id": 9,
+            "response": "Hard water"
+          },
+          {
+            "id": 15,
+            "response": "Roses"
+          },
+          {
+            "id": 21,
+            "response": "A big enough tub"
+          },
+          {
+            "id": 23,
+            "response": "2000s R&B"
+          },
+          {
+            "id": 26,
+            "response": "Another person"
+          },
+          {
+            "id": 28,
+            "response": "a book"
+          },
+          {
+            "id": 35,
+            "response": "The ussy"
+          }
+        ]
+      },
+      "partner_love": {
+        "machine": {
+          "normalized_value": "Machine",
+          "variants": [
+            "Machine",
+            "Machine",
+            "*r of scratches",
+            "Machine",
+            "Machine",
+            "Machine",
+            "Machine",
+            "machine! 🤖"
+          ],
+          "count": 8,
+          "response_ids": [
+            2,
+            4,
+            5,
+            7,
+            10,
+            23,
+            33,
+            34
+          ]
+        },
+        "bug": {
+          "normalized_value": "Bug",
+          "variants": [
+            "black hole — I keep falling in deeper and I'm not mad about it",
+            "Bird",
+            "Bug",
+            "bug",
+            "purrs",
+            "Bug",
+            "Bug",
+            "Bug",
+            "Bug",
+            "bug",
+            "Bug",
+            "Bug",
+            "Not applicable",
+            "Bug",
+            "Bug",
+            "Bug",
+            "Guru",
+            "Bug"
+          ],
+          "count": 18,
+          "response_ids": [
+            1,
+            3,
+            9,
+            11,
+            12,
+            13,
+            15,
+            17,
+            18,
+            20,
+            21,
+            24,
+            25,
+            26,
+            28,
+            30,
+            31,
+            32
+          ]
+        },
+        "magnet": {
+          "normalized_value": "Magnet",
+          "variants": [
+            "monster",
+            "-ly man",
+            "Magnet",
+            "Magnet",
+            "Wanter"
+          ],
+          "count": 5,
+          "response_ids": [
+            16,
+            22,
+            27,
+            29,
+            35
+          ]
+        },
+        "outliers": [
+          {
+            "id": 6,
+            "response": "Lovey dovey schmoopy"
+          },
+          {
+            "id": 8,
+            "response": "For life"
+          },
+          {
+            "id": 14,
+            "response": "Ly lady"
+          },
+          {
+            "id": 19,
+            "response": "Dove"
+          }
+        ]
+      },
+      "gets_passed_around": {
+        "joint": {
+          "normalized_value": "Joint/Blunt",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "diseases": {
+          "normalized_value": "Diseases/Illness",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "outliers": [
+          {
+            "id": 1,
+            "response": "if anyone answers anything other than a joint, I quit. Because that's the only real answer."
+          },
+          {
+            "id": 2,
+            "response": "Joint"
+          },
+          {
+            "id": 3,
+            "response": "Inaccurate information."
+          },
+          {
+            "id": 4,
+            "response": "A joint"
+          },
+          {
+            "id": 5,
+            "response": "The buck. Gossip. COVID."
+          },
+          {
+            "id": 6,
+            "response": "Blunt"
+          },
+          {
+            "id": 7,
+            "response": "A joint. Not my partner"
+          },
+          {
+            "id": 8,
+            "response": "Joint or pipe"
+          },
+          {
+            "id": 9,
+            "response": "My dog Ramona"
+          },
+          {
+            "id": 10,
+            "response": "Joint"
+          },
+          {
+            "id": 11,
+            "response": "moonshine"
+          },
+          {
+            "id": 12,
+            "response": "money"
+          },
+          {
+            "id": 13,
+            "response": "The joint"
+          },
+          {
+            "id": 14,
+            "response": "Covid 19"
+          },
+          {
+            "id": 15,
+            "response": "Cigarette"
+          },
+          {
+            "id": 16,
+            "response": "Diseases"
+          },
+          {
+            "id": 17,
+            "response": "Blunt"
+          },
+          {
+            "id": 18,
+            "response": "Your mom"
+          },
+          {
+            "id": 19,
+            "response": "Blunt"
+          },
+          {
+            "id": 20,
+            "response": "the blunt"
+          },
+          {
+            "id": 21,
+            "response": "The hat"
+          },
+          {
+            "id": 22,
+            "response": "A cocktail"
+          },
+          {
+            "id": 23,
+            "response": "Joint"
+          },
+          {
+            "id": 24,
+            "response": "Gas"
+          },
+          {
+            "id": 25,
+            "response": "Joint"
+          },
+          {
+            "id": 26,
+            "response": "Viruses"
+          },
+          {
+            "id": 27,
+            "response": "Cold"
+          },
+          {
+            "id": 28,
+            "response": "Joint"
+          },
+          {
+            "id": 29,
+            "response": "Blunts"
+          },
+          {
+            "id": 30,
+            "response": "library books"
+          },
+          {
+            "id": 31,
+            "response": "Rumor"
+          },
+          {
+            "id": 32,
+            "response": "Cold"
+          },
+          {
+            "id": 33,
+            "response": "Bottle"
+          },
+          {
+            "id": 34,
+            "response": "My Ex!"
+          },
+          {
+            "id": 35,
+            "response": "Money"
+          }
+        ]
+      },
+      "doctor_pulls_out": {
+        "tooth": {
+          "normalized_value": "Tooth",
+          "variants": [
+            "Sex toy",
+            "Tooth",
+            "A bottle. An appendix. Tonsils.",
+            "Tooth",
+            "blood",
+            "Poop",
+            "Junior mint",
+            "The truth",
+            "Tooth",
+            "Sex toy",
+            "Junior mint",
+            "Endoscope",
+            "Blood",
+            "Tooth",
+            "Splooge"
+          ],
+          "count": 15,
+          "response_ids": [
+            2,
+            4,
+            5,
+            10,
+            12,
+            18,
+            19,
+            20,
+            22,
+            23,
+            24,
+            25,
+            30,
+            33,
+            35
+          ]
+        },
+        "baby": {
+          "normalized_value": "Baby",
+          "variants": [
+            "Big chunk of Earwax (speaking from experience and it's so satisfying)",
+            "Ugh a tumor",
+            "My child",
+            "Appendix",
+            "Tape worm",
+            "gallbladder",
+            "Earwax",
+            "Baby",
+            "A dildo",
+            "Tapeworm",
+            "A splinter",
+            "A baby",
+            "Baby",
+            "baby",
+            "A gerbil. Yes, a GERBIL."
+          ],
+          "count": 15,
+          "response_ids": [
+            1,
+            6,
+            7,
+            8,
+            9,
+            11,
+            13,
+            14,
+            16,
+            17,
+            21,
+            26,
+            29,
+            32,
+            34
+          ]
+        },
+        "sex_toy": {
+          "normalized_value": "Sex toy/Dildo",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "bullet": {
+          "normalized_value": "Bullet",
+          "variants": [
+            "A bullet.",
+            "Bullet",
+            "Spleen",
+            "Bullet"
+          ],
+          "count": 4,
+          "response_ids": [
+            3,
+            27,
+            28,
+            31
+          ]
+        },
+        "outliers": [
+          {
+            "id": 15,
+            "response": "Rib"
+          }
+        ]
+      },
+      "office_item_teeth": {
+        "paper_clip": {
+          "normalized_value": "Paper clip",
+          "variants": [
+            "Paper clip",
+            "Paper clip",
+            "Paper clip",
+            "Paper clip",
+            "Paper clip",
+            "Paper clips"
+          ],
+          "count": 6,
+          "response_ids": [
+            2,
+            4,
+            7,
+            9,
+            10,
+            29
+          ]
+        },
+        "staple": {
+          "normalized_value": "Staple",
+          "variants": [
+            "Staple?",
+            "staples",
+            "Staples",
+            "Staple",
+            "Staples",
+            "Staples"
+          ],
+          "count": 6,
+          "response_ids": [
+            1,
+            20,
+            21,
+            22,
+            28,
+            35
+          ]
+        },
+        "post_it": {
+          "normalized_value": "Post-it note",
+          "variants": [
+            "Post it note",
+            "Post-it note"
+          ],
+          "count": 2,
+          "response_ids": [
+            13,
+            19
+          ]
+        },
+        "letter_opener": {
+          "normalized_value": "Letter opener",
+          "variants": [
+            "Letter opener.",
+            "Letter opener"
+          ],
+          "count": 2,
+          "response_ids": [
+            3,
+            16
+          ]
+        },
+        "pen": {
+          "normalized_value": "Pen",
+          "variants": [
+            "Absolutely nothing. Get some dental floss.",
+            "Folded up sticky note",
+            "Plastic fork",
+            "Post-it",
+            "Tape",
+            "Post it",
+            "Pen",
+            "Strand of their hair",
+            "Plastic knife",
+            "Pen"
+          ],
+          "count": 10,
+          "response_ids": [
+            5,
+            6,
+            14,
+            15,
+            18,
+            23,
+            24,
+            25,
+            26,
+            33
+          ]
+        },
+        "paper": {
+          "normalized_value": "Paper",
+          "variants": [
+            "Paper",
+            "paper",
+            "Paperclip",
+            "Paperclip",
+            "Paperclip",
+            "Paperclip",
+            "A piece of paper",
+            "Paperclip"
+          ],
+          "count": 8,
+          "response_ids": [
+            8,
+            11,
+            17,
+            27,
+            30,
+            31,
+            32,
+            34
+          ]
+        },
+        "outliers": [
+          {
+            "id": 12,
+            "response": "🫩"
+          }
+        ]
+      },
+      "last_kiss": {
+        "sweet": {
+          "normalized_value": "Sweet",
+          "variants": [
+            "Sweet",
+            "Sweet.",
+            "Sweet",
+            "Sweet",
+            "sweet",
+            "Sweet",
+            "Sweet",
+            "Gross",
+            "Sweet",
+            "Sweet",
+            "Sweet",
+            "Sweet"
+          ],
+          "count": 12,
+          "response_ids": [
+            2,
+            3,
+            5,
+            10,
+            11,
+            16,
+            17,
+            18,
+            22,
+            26,
+            27,
+            30
+          ]
+        },
+        "wet": {
+          "normalized_value": "Wet",
+          "variants": [
+            "Romantic",
+            "Dangerous",
+            "Electrifying",
+            "Wet",
+            "Wet",
+            "wet",
+            "Peck",
+            "Not applicable",
+            "Nice",
+            "Wet",
+            "So moist. Lots of tongue. A little ass grabbing.",
+            "Reluctant"
+          ],
+          "count": 12,
+          "response_ids": [
+            4,
+            6,
+            7,
+            9,
+            14,
+            20,
+            24,
+            25,
+            28,
+            32,
+            34,
+            35
+          ]
+        },
+        "sloppy": {
+          "normalized_value": "Sloppy",
+          "variants": [
+            "Sloppy",
+            "Sloppy"
+          ],
+          "count": 2,
+          "response_ids": [
+            8,
+            15
+          ]
+        },
+        "tender": {
+          "normalized_value": "Tender",
+          "variants": [
+            "Tender",
+            "Tender"
+          ],
+          "count": 2,
+          "response_ids": [
+            23,
+            29
+          ]
+        },
+        "passionate": {
+          "normalized_value": "Passionate",
+          "variants": [
+            "Passionate",
+            "Passionate"
+          ],
+          "count": 2,
+          "response_ids": [
+            21,
+            31
+          ]
+        },
+        "outliers": [
+          {
+            "id": 1,
+            "response": "Yum"
+          },
+          {
+            "id": 12,
+            "response": "🥱"
+          },
+          {
+            "id": 13,
+            "response": "Boing"
+          },
+          {
+            "id": 19,
+            "response": "Juicy"
+          },
+          {
+            "id": 33,
+            "response": "Amazing"
+          }
+        ]
+      },
+      "full_of_holes": {
+        "swiss_cheese": {
+          "normalized_value": "Swiss cheese",
+          "variants": [
+            "Swiss cheese",
+            "Swiss cheese",
+            "Swiss cheese",
+            "swiss cheese",
+            "Swiss cheess",
+            "Swiss cheese",
+            "Swiss cheese",
+            "Swiss cheese",
+            "Swiss cheese"
+          ],
+          "count": 9,
+          "response_ids": [
+            2,
+            8,
+            10,
+            12,
+            19,
+            21,
+            24,
+            25,
+            33
+          ]
+        },
+        "spongebob": {
+          "normalized_value": "SpongeBob",
+          "variants": [
+            "SpongeBob",
+            "Spongebob"
+          ],
+          "count": 2,
+          "response_ids": [
+            7,
+            13
+          ]
+        },
+        "sponge": {
+          "normalized_value": "Sponge",
+          "variants": [
+            "Freshly baked sourdough bread omg yum",
+            "My cheese grater.",
+            "Harry Potter movies",
+            "donuts",
+            "Connect 4 game",
+            "Pores in our skin",
+            "Politics",
+            "Bread dough",
+            "republican talking points",
+            "Strainer",
+            "Plot lines",
+            "Movie plots",
+            "Sponge",
+            "A bad movie",
+            "Colander",
+            "cheese grater",
+            "Sponge",
+            "— My ex's stories about where she's been."
+          ],
+          "count": 18,
+          "response_ids": [
+            1,
+            3,
+            5,
+            11,
+            14,
+            15,
+            16,
+            18,
+            20,
+            22,
+            23,
+            26,
+            27,
+            28,
+            29,
+            30,
+            32,
+            34
+          ]
+        },
+        "outliers": [
+          {
+            "id": 4,
+            "response": "Wiffle ball"
+          },
+          {
+            "id": 6,
+            "response": "Coral"
+          },
+          {
+            "id": 9,
+            "response": "My heart"
+          },
+          {
+            "id": 17,
+            "response": "Cheese"
+          },
+          {
+            "id": 31,
+            "response": "Net"
+          },
+          {
+            "id": 35,
+            "response": "Scrub daddy"
+          }
+        ]
+      },
+      "no_toilet_paper": {
+        "yell_for_help": {
+          "normalized_value": "Yell/Scream for help",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "use_tissues": {
+          "normalized_value": "Use tissues/napkins",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "waddle": {
+          "normalized_value": "Waddle",
+          "variants": [
+            "I just don't ever run out of toilet paper soooo 🤪",
+            "Use hand",
+            "Waddle for a wet wash rag.",
+            "Yell \"Peter\" really loud until he brings me some",
+            "Yell for my partner to bring me more",
+            "Call my partner",
+            "Waddle",
+            "Take a shower",
+            "Shuffle to the other bathroom",
+            "Use water and soap",
+            "Use Klenex tissue",
+            "yell for my partner",
+            "Scream for my partner",
+            "Poop harder so you don't have to wipe",
+            "Jiggle",
+            "Yell for the nearest person",
+            "Use my bidet 😇",
+            "Waddle"
+          ],
+          "count": 18,
+          "response_ids": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8,
+            9,
+            13,
+            14,
+            15,
+            20,
+            23,
+            24,
+            26,
+            28,
+            34,
+            35
+          ]
+        },
+        "get_more": {
+          "normalized_value": "Get more toilet paper",
+          "variants": [
+            "Get more toilet paper"
+          ],
+          "count": 1,
+          "response_ids": [
+            33
+          ]
+        },
+        "outliers": [
+          {
+            "id": 4,
+            "response": "Find tissues"
+          },
+          {
+            "id": 10,
+            "response": "Drip dry"
+          },
+          {
+            "id": 11,
+            "response": "get more"
+          },
+          {
+            "id": 12,
+            "response": "😵"
+          },
+          {
+            "id": 16,
+            "response": "Scream"
+          },
+          {
+            "id": 17,
+            "response": "Weep"
+          },
+          {
+            "id": 18,
+            "response": "Yell"
+          },
+          {
+            "id": 19,
+            "response": "Grab more with pants down"
+          },
+          {
+            "id": 21,
+            "response": "Pray"
+          },
+          {
+            "id": 22,
+            "response": "Improvise"
+          },
+          {
+            "id": 25,
+            "response": "Air dry"
+          },
+          {
+            "id": 27,
+            "response": "Use tissues"
+          },
+          {
+            "id": 29,
+            "response": "Cry"
+          },
+          {
+            "id": 30,
+            "response": "Scream"
+          },
+          {
+            "id": 31,
+            "response": "Napkins"
+          },
+          {
+            "id": 32,
+            "response": "Tissue"
+          }
+        ]
+      },
+      "creepy_cat_behavior": {
+        "lick_self": {
+          "normalized_value": "Lick themselves",
+          "variants": [
+            "Lick themselves",
+            "Lick themselves while making eye contact with you",
+            "Lick themselves"
+          ],
+          "count": 3,
+          "response_ids": [
+            10,
+            14,
+            26
+          ]
+        },
+        "lick_butthole": {
+          "normalized_value": "Lick butthole",
+          "variants": [
+            "Lick their butthole",
+            "Lick butthole publicly",
+            "Lick butt hole",
+            "Lick its butthole"
+          ],
+          "count": 4,
+          "response_ids": [
+            15,
+            17,
+            23,
+            30
+          ]
+        },
+        "stare": {
+          "normalized_value": "Stare creepily",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "bring_dead_animals": {
+          "normalized_value": "Bring dead animals",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "outliers": [
+          {
+            "id": 1,
+            "response": "hiding in dark places staring at your from afar but you don't actually know where they are and you feel them looking at you"
+          },
+          {
+            "id": 2,
+            "response": "Bites"
+          },
+          {
+            "id": 3,
+            "response": "Lick their hand to comb their hair."
+          },
+          {
+            "id": 4,
+            "response": "Stare at you while sitting on top of your dresser"
+          },
+          {
+            "id": 5,
+            "response": "Jump from a height 10x their size."
+          },
+          {
+            "id": 6,
+            "response": "Bring you dead animals as gifts"
+          },
+          {
+            "id": 7,
+            "response": "Watches you have sex"
+          },
+          {
+            "id": 8,
+            "response": "Lick their paws"
+          },
+          {
+            "id": 9,
+            "response": "Heavy purring"
+          },
+          {
+            "id": 11,
+            "response": "lick someone's hand"
+          },
+          {
+            "id": 12,
+            "response": "lick 👅"
+          },
+          {
+            "id": 13,
+            "response": "Sit on your chest and stare at you at night"
+          },
+          {
+            "id": 16,
+            "response": "Hung out on top of my cabinet"
+          },
+          {
+            "id": 18,
+            "response": "Crawl on you while you're sleeping"
+          },
+          {
+            "id": 19,
+            "response": "Spray to mark their territory"
+          },
+          {
+            "id": 20,
+            "response": "stare silently"
+          },
+          {
+            "id": 21,
+            "response": "Shit in a box"
+          },
+          {
+            "id": 22,
+            "response": "Stare at an empty corner"
+          },
+          {
+            "id": 24,
+            "response": "Spy on ppl from above"
+          },
+          {
+            "id": 25,
+            "response": "Hair ball"
+          },
+          {
+            "id": 27,
+            "response": "Hisses"
+          },
+          {
+            "id": 28,
+            "response": "Lick your toes"
+          },
+          {
+            "id": 29,
+            "response": "Sit on your chest while sleeping"
+          },
+          {
+            "id": 31,
+            "response": "Coughs up hairballs"
+          },
+          {
+            "id": 32,
+            "response": "Stares at you"
+          },
+          {
+            "id": 33,
+            "response": "Groom like a cat"
+          },
+          {
+            "id": 34,
+            "response": "Lick their inners."
+          },
+          {
+            "id": 35,
+            "response": "Eat your face"
+          }
+        ]
+      },
+      "foods_with_peanut_butter": {
+        "jelly": {
+          "normalized_value": "Jelly",
+          "variants": [
+            "Jelly",
+            "Sliced apples, jelly, bananas, ritz crackers, bread.",
+            "Apples",
+            "Jelly",
+            "Jelly",
+            "jelly",
+            "Apples, bagels, protein smoothies",
+            "Crackers",
+            "jelly",
+            "Honey",
+            "Apples",
+            "Apple",
+            "Apple, jelly, ritz crackers",
+            "Green apple",
+            "Celery",
+            "Jelly",
+            "Jelly",
+            "Apples",
+            "Celery",
+            "Jelly",
+            "Celsius, soy sauce"
+          ],
+          "count": 21,
+          "response_ids": [
+            2,
+            3,
+            8,
+            9,
+            10,
+            11,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            22,
+            24,
+            27,
+            28,
+            29,
+            31,
+            32,
+            33,
+            35
+          ]
+        },
+        "banana": {
+          "normalized_value": "Banana",
+          "variants": [
+            "Banana",
+            "Chocolate, Greek yogurt, apples or bananas, Oreos",
+            "Yogurt, apple, banana, toast, pancakes, waffles,",
+            "banana",
+            "Banana",
+            "bananas",
+            "Banana",
+            "Banana",
+            "Chocolate, bananas, apples",
+            "banana",
+            "Carrot, Celery, Thai Food, Bananananananana"
+          ],
+          "count": 11,
+          "response_ids": [
+            4,
+            5,
+            7,
+            12,
+            13,
+            20,
+            23,
+            25,
+            26,
+            30,
+            34
+          ]
+        },
+        "apple": {
+          "normalized_value": "Apple/Apples",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "chocolate": {
+          "normalized_value": "Chocolate",
+          "variants": [
+            "Bread, chocolate, chicken satay, more peanut butter",
+            "Butter, toast, chococlate",
+            "Chocolate"
+          ],
+          "count": 3,
+          "response_ids": [
+            1,
+            6,
+            21
+          ]
+        },
+        "bread": {
+          "normalized_value": "Bread/Toast",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "outliers": []
+      },
+      "mom_question": {
+        "grandchildren": {
+          "normalized_value": "When are you having children/grandchildren?",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "marriage": {
+          "normalized_value": "When are you getting married?",
+          "variants": [
+            "When are you getting married?",
+            "When are you getting married"
+          ],
+          "count": 2,
+          "response_ids": [
+            27,
+            28
+          ]
+        },
+        "are_you_okay": {
+          "normalized_value": "Are you okay?",
+          "variants": [
+            "Are you staying out of trouble.",
+            "are you okay?",
+            "Are you happy",
+            "Are you married yet",
+            "How are you baby?",
+            "When are you having children",
+            "Are you eating?",
+            "Are you okay?\"",
+            "When are you having kids"
+          ],
+          "count": 9,
+          "response_ids": [
+            3,
+            11,
+            12,
+            13,
+            16,
+            19,
+            22,
+            31,
+            33
+          ]
+        },
+        "eating": {
+          "normalized_value": "Have you eaten?",
+          "variants": [
+            "Have you been to the doctor recently",
+            "Have you eaten yet"
+          ],
+          "count": 2,
+          "response_ids": [
+            4,
+            24
+          ]
+        },
+        "visiting": {
+          "normalized_value": "When are you coming to visit?",
+          "variants": [
+            "When are you coming to visit"
+          ],
+          "count": 1,
+          "response_ids": [
+            21
+          ]
+        },
+        "outliers": [
+          {
+            "id": 1,
+            "response": "I called you 5 times why didn't you call me back?! (It's been 5 min)"
+          },
+          {
+            "id": 2,
+            "response": "Are they healthy"
+          },
+          {
+            "id": 5,
+            "response": "How was your day honey? Can you help me set up the printer?"
+          },
+          {
+            "id": 6,
+            "response": "Have you found a girlfriend yet"
+          },
+          {
+            "id": 7,
+            "response": "When am I going to be a grandma?"
+          },
+          {
+            "id": 8,
+            "response": "What did you eat?"
+          },
+          {
+            "id": 9,
+            "response": "When are you going to marry?"
+          },
+          {
+            "id": 10,
+            "response": "When do I get grandchildren"
+          },
+          {
+            "id": 14,
+            "response": "When you having babies?"
+          },
+          {
+            "id": 15,
+            "response": "Are you using a rubber?"
+          },
+          {
+            "id": 17,
+            "response": "Are you coming for the holidays?"
+          },
+          {
+            "id": 18,
+            "response": "Why don't you call me"
+          },
+          {
+            "id": 20,
+            "response": "can you help me?"
+          },
+          {
+            "id": 23,
+            "response": "When are you coming home"
+          },
+          {
+            "id": 25,
+            "response": "When am I going to get grandkids?"
+          },
+          {
+            "id": 26,
+            "response": "Are you coming home for [insert holiday]?"
+          },
+          {
+            "id": 29,
+            "response": "Did you eat?"
+          },
+          {
+            "id": 30,
+            "response": "Can you mulch my garden?"
+          },
+          {
+            "id": 32,
+            "response": "When are you visiting?"
+          },
+          {
+            "id": 34,
+            "response": "When are you coming to see me"
+          },
+          {
+            "id": 35,
+            "response": "Why aren't you buying a house?"
+          }
+        ]
+      },
+      "get_rid_of_fast": {
+        "body": {
+          "normalized_value": "The body",
+          "variants": [
+            "The body",
+            "All evidence, including the body",
+            "The body",
+            "The bloody weapon",
+            "The body!",
+            "The body",
+            "The body",
+            "The body",
+            "The body",
+            "The body."
+          ],
+          "count": 10,
+          "response_ids": [
+            2,
+            5,
+            7,
+            18,
+            22,
+            23,
+            28,
+            31,
+            32,
+            34
+          ]
+        },
+        "weapon": {
+          "normalized_value": "The weapon",
+          "variants": [
+            "The murder weapon",
+            "Weapon",
+            "the murder weapon",
+            "The weapon",
+            "the weapon",
+            "The weapon",
+            "The weapon",
+            "Murder Weapon",
+            "The weapon"
+          ],
+          "count": 9,
+          "response_ids": [
+            4,
+            8,
+            11,
+            13,
+            20,
+            24,
+            26,
+            30,
+            33
+          ]
+        },
+        "evidence": {
+          "normalized_value": "Evidence",
+          "variants": [
+            "Any evidence you where at the scene.",
+            "Evidence",
+            "evidence",
+            "Your identity",
+            "ALL EVIDENCE",
+            "Evidence"
+          ],
+          "count": 6,
+          "response_ids": [
+            3,
+            6,
+            12,
+            14,
+            16,
+            27
+          ]
+        },
+        "witnesses": {
+          "normalized_value": "Witnesses",
+          "variants": [
+            "Witnesses",
+            "Witnesses"
+          ],
+          "count": 2,
+          "response_ids": [
+            9,
+            19
+          ]
+        },
+        "fingerprints": {
+          "normalized_value": "Fingerprints",
+          "variants": [
+            "Your fingerprints",
+            "Fingerprints"
+          ],
+          "count": 2,
+          "response_ids": [
+            21,
+            25
+          ]
+        },
+        "outliers": [
+          {
+            "id": 1,
+            "response": "Your memory so there's nothing to actually admit to"
+          },
+          {
+            "id": 10,
+            "response": "Body"
+          },
+          {
+            "id": 15,
+            "response": "Body"
+          },
+          {
+            "id": 17,
+            "response": "Bloodstains"
+          },
+          {
+            "id": 29,
+            "response": "Body"
+          },
+          {
+            "id": 35,
+            "response": "Nice try, FBI 👀"
+          }
+        ]
+      },
+      "at_100_saturday_night": {
+        "sleep": {
+          "normalized_value": "Sleep",
+          "variants": [
+            "Celebrate",
+            "Go dancing be it ever so slow. Then sleep late the next morning.",
+            "Sleep",
+            "Go to a show (broadway, art, etc)",
+            "Fall asleep",
+            "Magic mushrooms",
+            "sleep early",
+            "Watch reruns of the Price is Right",
+            "Sleep",
+            "Party in the nursing home",
+            "Watch survivor season 120 with zombie Jeff Probst",
+            "Sleep at 8pm",
+            "Family feud",
+            "Sit on my porch in a rocking chair",
+            "Celebrate",
+            "K-hole",
+            "smoke weed",
+            "Celebrate",
+            "Celebrate",
+            "Turn up",
+            "Pickleball",
+            "Hoop with the boys"
+          ],
+          "count": 22,
+          "response_ids": [
+            2,
+            3,
+            4,
+            5,
+            8,
+            9,
+            11,
+            13,
+            14,
+            18,
+            21,
+            23,
+            24,
+            25,
+            27,
+            28,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35
+          ]
+        },
+        "celebrate": {
+          "normalized_value": "Celebrate/Party",
+          "variants": [],
+          "count": 0,
+          "response_ids": []
+        },
+        "dance": {
+          "normalized_value": "Dance",
+          "variants": [
+            "Probably the same bullshit I do now — maybe DJ, probably dance, definitely smoke a J, laugh a lot, and think about how wild it is that I'm 100 but still look & act 30 🤭",
+            "Dance with the homies and talk about what we had for dinner at 4pm",
+            "Party? (100 what?)",
+            "watch the stars",
+            "Watch porn",
+            "Dance",
+            "Finally die 🫡",
+            "Bingo",
+            "Eat a yummy dinner, pet my cats (no euphemism here), curl up in a cozy bed",
+            "Play a complicated board game",
+            "LAN party"
+          ],
+          "count": 11,
+          "response_ids": [
+            1,
+            7,
+            10,
+            12,
+            15,
+            16,
+            17,
+            19,
+            22,
+            26,
+            29
+          ]
+        },
+        "play_bingo": {
+          "normalized_value": "Play Bingo",
+          "variants": [
+            "Play Bingo"
+          ],
+          "count": 1,
+          "response_ids": [
+            6
+          ]
+        },
+        "outliers": [
+          {
+            "id": 20,
+            "response": "lsd"
+          }
+        ]
+      },
+      "once_a_week": {
+        "laundry": {
+          "normalized_value": "Laundry",
+          "variants": [
+            "laundry",
+            "Laundry",
+            "Water their plants",
+            "Laundry",
+            "Laundry",
+            "laundry",
+            "Laundry"
+          ],
+          "count": 7,
+          "response_ids": [
+            11,
+            16,
+            22,
+            23,
+            28,
+            32,
+            33
+          ]
+        },
+        "grocery_shopping": {
+          "normalized_value": "Grocery shopping",
+          "variants": [
+            "Grocery shopping",
+            "Grocery shopping",
+            "grocery shop",
+            "Grocery shop",
+            "Grocery shop"
+          ],
+          "count": 5,
+          "response_ids": [
+            5,
+            19,
+            20,
+            26,
+            30
+          ]
+        },
+        "clean": {
+          "normalized_value": "Clean house",
+          "variants": [
+            "Clean their house",
+            "Clean house",
+            "Clean house"
+          ],
+          "count": 3,
+          "response_ids": [
+            14,
+            27,
+            31
+          ]
+        },
+        "take_out_trash": {
+          "normalized_value": "Take out trash",
+          "variants": [
+            "Take out the garbage.",
+            "Take out the trash",
+            "take out trash"
+          ],
+          "count": 3,
+          "response_ids": [
+            3,
+            21,
+            29
+          ]
+        },
+        "work_out": {
+          "normalized_value": "Work out",
+          "variants": [
+            "Work out",
+            "Work out"
+          ],
+          "count": 2,
+          "response_ids": [
+            8,
+            24
+          ]
+        },
+        "outliers": [
+          {
+            "id": 1,
+            "response": "Question almost everything about their life? No just me?"
+          },
+          {
+            "id": 2,
+            "response": "Watch football"
+          },
+          {
+            "id": 4,
+            "response": "Wash sheets"
+          },
+          {
+            "id": 6,
+            "response": "Wash bed sheets"
+          },
+          {
+            "id": 7,
+            "response": "Wash their hair if they want beautiful silky locks"
+          },
+          {
+            "id": 9,
+            "response": "Call their momma"
+          },
+          {
+            "id": 10,
+            "response": "Clean"
+          },
+          {
+            "id": 12,
+            "response": "vacuum"
+          },
+          {
+            "id": 13,
+            "response": "Get gas"
+          },
+          {
+            "id": 15,
+            "response": "Face mask"
+          },
+          {
+            "id": 17,
+            "response": "Fill your car up with gas"
+          },
+          {
+            "id": 18,
+            "response": "Call their mom"
+          },
+          {
+            "id": 25,
+            "response": "Go to church"
+          },
+          {
+            "id": 34,
+            "response": "Call their parents / Beat their meat - for dinner."
+          },
+          {
+            "id": 35,
+            "response": "Think about calling their parents"
+          }
+        ]
+      }
+    }
+  },
+  "summary_statistics": {
+    "total_clusters_identified": 79,
+    "questions_with_clustering": 20,
+    "total_outliers": 268,
+    "highest_cluster_concentration": {
+      "question": "partner_love",
+      "cluster": "bug",
+      "count": 14,
+      "percentage": "40%"
+    },
+    "most_variant_responses": {
+      "question": "gets_passed_around",
+      "cluster": "joint",
+      "variants": 7
+    },
+    "most_outliers": {
+      "question": "at_100_saturday_night",
+      "outlier_count": 19
+    }
+  }
+}

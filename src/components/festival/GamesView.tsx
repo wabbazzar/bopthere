@@ -5,17 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import {
   Gamepad,
-  Trophy,
-  Target,
-  Star,
-  Zap,
-  Gift,
-  Puzzle,
   Gamepad2,
   Play,
+  Grid,
+  Swords,
 } from 'lucide-react';
 import { TetrisPage } from './TetrisPage';
+import { BingoPage } from './BingoPage';
+import { MauiFeudPage } from './MauiFeudPage';
 import { LeaderboardCard } from '@/components/leaderboard';
+import { AuthService } from '@/lib/auth';
 
 const characterMessages = {
   wesley: {
@@ -40,17 +39,48 @@ const characterMessages = {
 
 export const GamesView: React.FC = () => {
   const { selectedCharacter } = useCharacter();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'tetris'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'tetris' | 'bingo' | 'maui-feud'>('dashboard');
 
   if (!selectedCharacter) return null;
 
+  // Admin check for Maui Feud game
+  const isAdmin = AuthService.getUser()?.role === 'admin';
+
   const currentTheme = characterThemes[selectedCharacter];
   const content = characterMessages[selectedCharacter];
+
+  // Track available games for dynamic grid layout
+  const availableGamesCount = isAdmin ? 3 : 2; // Include Maui Feud for admins
+  const gridColsClass = availableGamesCount >= 3
+    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+    : 'grid-cols-1 md:grid-cols-2';
 
   // If Tetris is selected, show full-screen Tetris page
   if (currentView === 'tetris') {
     return (
       <TetrisPage
+        character={selectedCharacter}
+        theme={currentTheme}
+        onBack={() => setCurrentView('dashboard')}
+      />
+    );
+  }
+
+  // If Bingo is selected, show full-screen Bingo page
+  if (currentView === 'bingo') {
+    return (
+      <BingoPage
+        character={selectedCharacter}
+        theme={currentTheme}
+        onBack={() => setCurrentView('dashboard')}
+      />
+    );
+  }
+
+  // If Maui Feud is selected, show full-screen Maui Feud page
+  if (currentView === 'maui-feud') {
+    return (
+      <MauiFeudPage
         character={selectedCharacter}
         theme={currentTheme}
         onBack={() => setCurrentView('dashboard')}
@@ -101,7 +131,7 @@ export const GamesView: React.FC = () => {
       />
 
       {/* Available Games */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={`grid ${gridColsClass} gap-6`}>
         {/* Tetris Game Card */}
         <Card
           className="bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full"
@@ -162,26 +192,28 @@ export const GamesView: React.FC = () => {
           </CardContent>
         </Card>
 
-
-        {/* Coming Soon Games */}
-        <Card className="bg-white/80 backdrop-blur-sm border-2 shadow-lg opacity-60">
+        {/* Wedding Bingo Game Card */}
+        <Card
+          className="bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full"
+          onClick={() => setCurrentView('bingo')}
+        >
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center mb-3">
               <div
-                className="p-4 rounded-full"
-                style={{ backgroundColor: '#3f3f4620' }}
+                className="p-4 rounded-full group-hover:scale-110 transition-transform duration-300"
+                style={{ backgroundColor: `${currentTheme.primary}20` }}
               >
-                <Target className="w-8 h-8" style={{ color: '#3f3f46' }} />
+                <Grid className="w-8 h-8" style={{ color: currentTheme.primary }} />
               </div>
             </div>
             <CardTitle
               className="text-xl font-bold"
               style={{
                 fontFamily: 'Cinzel, serif',
-                color: '#3f3f46',
+                color: currentTheme.primary,
               }}
             >
-              Challenge Games
+              Wedding Bingo
             </CardTitle>
             <CardDescription
               className="text-sm"
@@ -190,107 +222,98 @@ export const GamesView: React.FC = () => {
                 color: currentTheme.dark,
               }}
             >
-              Coming Soon
+              Photo scavenger hunt
             </CardDescription>
           </CardHeader>
-        </Card>
-
-        <Card className="bg-white/80 backdrop-blur-sm border-2 shadow-lg opacity-60">
-          <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-center mb-3">
-              <div
-                className="p-4 rounded-full"
-                style={{ backgroundColor: '#3f3f4620' }}
-              >
-                <Trophy className="w-8 h-8" style={{ color: '#3f3f46' }} />
-              </div>
-            </div>
-            <CardTitle
-              className="text-xl font-bold"
-              style={{
-                fontFamily: 'Cinzel, serif',
-                color: '#3f3f46',
-              }}
-            >
-              Tournaments
-            </CardTitle>
-            <CardDescription
-              className="text-sm"
+          <CardContent className="text-center flex flex-col flex-grow">
+            <p
+              className="text-sm mb-4 leading-relaxed flex-grow"
               style={{
                 fontFamily: 'Crimson Text, serif',
                 color: currentTheme.dark,
               }}
             >
-              Coming Soon
-            </CardDescription>
-          </CardHeader>
+              {selectedCharacter === 'wesley'
+                ? 'Capture legendary moments and complete your epic bingo quest!'
+                : selectedCharacter === 'heather'
+                  ? 'Collect beautiful memories through our photo collection game.'
+                  : 'The most fun photo scavenger hunt adventure ever!'}
+            </p>
+            <Button
+              className="w-full group-hover:scale-105 transition-transform duration-300"
+              style={{
+                backgroundColor: currentTheme.primary,
+                color: 'white',
+              }}
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Start Bingo
+            </Button>
+          </CardContent>
         </Card>
-      </div>
 
-      {/* Preview Features Grid */}
-      <Card className="bg-white/95 backdrop-blur-sm border-2 shadow-lg">
-        <CardContent className="p-8 text-center">
-          <div className="max-w-2xl mx-auto">
-            <div className="mb-6">
-              <div
-                className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-                style={{ backgroundColor: '#3f3f4640' }}
-              >
-                <Star className="w-8 h-8" style={{ color: '#3f3f46' }} />
+        {/* Maui Feud Game Card (Admin Only) */}
+        {isAdmin && (
+          <Card
+            className="bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full"
+            onClick={() => setCurrentView('maui-feud')}
+          >
+            <CardHeader className="text-center pb-4">
+              <div className="flex items-center justify-center mb-3">
+                <div
+                  className="p-4 rounded-full group-hover:scale-110 transition-transform duration-300"
+                  style={{ backgroundColor: `${currentTheme.primary}20` }}
+                >
+                  <Swords className="w-8 h-8" style={{ color: currentTheme.primary }} />
+                </div>
               </div>
-              <h3
-                className="text-2xl font-bold mb-4"
+              <CardTitle
+                className="text-xl font-bold"
                 style={{
                   fontFamily: 'Cinzel, serif',
                   color: currentTheme.primary,
                 }}
               >
-                More Games Coming Soon
-              </h3>
-              <p
-                className="text-lg leading-relaxed mb-6"
+                Maui Feud
+              </CardTitle>
+              <CardDescription
+                className="text-sm"
                 style={{
                   fontFamily: 'Crimson Text, serif',
                   color: currentTheme.dark,
                 }}
               >
-                {content.message}
+                Family Feud-style trivia (Admin Only)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center flex flex-col flex-grow">
+              <p
+                className="text-sm mb-4 leading-relaxed flex-grow"
+                style={{
+                  fontFamily: 'Crimson Text, serif',
+                  color: currentTheme.dark,
+                }}
+              >
+                {selectedCharacter === 'wesley'
+                  ? 'Host an epic trivia battle using wedding questionnaire answers!'
+                  : selectedCharacter === 'heather'
+                    ? 'Lead an elegant game show experience for our guests.'
+                    : 'The most fun trivia party game ever!'}
               </p>
-            </div>
-
-            {/* Preview Features */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Puzzle className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span
-                  className="text-sm font-medium text-center"
-                  style={{ color: currentTheme.dark }}
-                >
-                  Team Activities
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Zap className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span
-                  className="text-sm font-medium text-center"
-                  style={{ color: currentTheme.dark }}
-                >
-                  Quick Rounds
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-white/50 rounded-lg border">
-                <Gift className="w-6 h-6 mb-2" style={{ color: currentTheme.primary }} />
-                <span
-                  className="text-sm font-medium text-center"
-                  style={{ color: currentTheme.dark }}
-                >
-                  Prizes & Rewards
-                </span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              <Button
+                className="w-full group-hover:scale-105 transition-transform duration-300"
+                style={{
+                  backgroundColor: currentTheme.primary,
+                  color: 'white',
+                }}
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Host Game
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
     </div>
   );

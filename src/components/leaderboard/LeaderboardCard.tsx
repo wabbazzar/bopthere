@@ -15,6 +15,7 @@ import {
 import {
   fetchLeaderboard,
   formatScore,
+  formatBingoScore,
   formatTimestamp,
 } from '@/utils/leaderboardApi';
 import { leaderboardPreloader } from '@/services/leaderboardPreloader';
@@ -59,7 +60,7 @@ export function LeaderboardCard({
   // Available games - will expand automatically as new games are added
   // To add a new game: Simply add its identifier to this array (e.g., ['tetris', 'memory', 'trivia'])
   // The component will automatically fetch and display top 5 scores for each game
-  const availableGames = useMemo(() => ['tetris'], []); // TODO: Add more games here as they're implemented
+  const availableGames = useMemo(() => ['tetris', 'bingo'], []);
 
   // Create theme object
   const theme = {
@@ -193,6 +194,7 @@ export function LeaderboardCard({
   // Format game name for display
   const formatGameName = (game: string) => {
     if (game === 'tetris') return 'Tetris Quest';
+    if (game === 'bingo') return 'Wedding Bingo';
     return game.charAt(0).toUpperCase() + game.slice(1);
   };
 
@@ -305,11 +307,13 @@ export function LeaderboardCard({
                           </div>
 
                           <div className="text-right">
-                            <div 
-                              className="text-base font-bold" 
+                            <div
+                              className="text-base font-bold"
                               style={{ color: theme.colors.accent }}
                             >
-                              {formatScore(score.score)}
+                              {gameLeaderboard.game === 'bingo'
+                                ? `${formatBingoScore(score.score)} (${score.score}/5)`
+                                : formatScore(score.score)}
                             </div>
                           </div>
                         </motion.div>
