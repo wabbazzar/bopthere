@@ -3,7 +3,7 @@ import { useCharacter } from '@/contexts/CharacterContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { characterThemes } from '@/types/character';
 import { Button } from '@/components/ui/button';
-import { Calendar, Bed, Users, Gamepad, LogOut, Menu, X } from 'lucide-react';
+import { Calendar, Bed, Users, Gamepad, Gift, LogOut, Menu, X } from 'lucide-react';
 import { FestivalTab } from '@/pages/Festival';
 import { navDebugger } from '@/utils/navDebugger';
 
@@ -43,6 +43,12 @@ const tabs: TabConfig[] = [
     label: 'Games',
     icon: Gamepad,
     description: 'Fun activities and challenges',
+  },
+  {
+    id: 'registry',
+    label: 'Registry',
+    icon: Gift,
+    description: 'Contribute to our future together',
   },
 ];
 

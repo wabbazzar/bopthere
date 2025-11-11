@@ -6,8 +6,9 @@ import { ItineraryView } from '@/components/festival/ItineraryView';
 import { SleepingView } from '@/components/festival/SleepingView';
 import { GuestListView } from '@/components/festival/GuestListView';
 import { GamesView } from '@/components/festival/GamesView';
+import { RegistryView } from '@/components/festival/RegistryView';
 
-export type FestivalTab = 'itinerary' | 'sleeping' | 'guests' | 'games';
+export type FestivalTab = 'itinerary' | 'sleeping' | 'guests' | 'games' | 'registry';
 
 export const Festival: React.FC = () => {
   const { selectedCharacter } = useCharacter();
@@ -28,6 +29,8 @@ export const Festival: React.FC = () => {
         return <GuestListView />;
       case 'games':
         return <GamesView />;
+      case 'registry':
+        return <RegistryView />;
       default:
         return <ItineraryView />;
     }
