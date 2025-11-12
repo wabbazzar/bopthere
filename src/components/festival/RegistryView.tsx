@@ -1,6 +1,8 @@
 import React from 'react';
 import { useCharacter } from '@/contexts/CharacterContext';
 import { characterThemes } from '@/types/character';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Gift } from 'lucide-react';
 
 interface RegistryViewProps {}
 
@@ -40,98 +42,123 @@ export function RegistryView({}: RegistryViewProps) {
   const content = getCharacterContent();
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Character-specific header */}
-      <div className="text-center mb-8">
-        <h2
-          className="text-3xl font-bold text-white mb-4"
-          style={{ fontFamily: 'Cinzel, serif' }}
-        >
-          {content.title}
-        </h2>
-        <p
-          className="text-white/90 text-lg mb-4"
-          style={{ fontFamily: 'Crimson Text, serif' }}
-        >
-          {content.subtitle}
-        </p>
-        <p
-          className="text-white/80 text-base max-w-lg mx-auto"
-          style={{ fontFamily: 'Crimson Text, serif' }}
-        >
-          {content.description}
-        </p>
-      </div>
-
-      {/* Venmo QR Code and Link */}
-      <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center shadow-lg">
-        <div className="mb-6">
-          <img
-            src="/app-uploads/venmo_qr_code.jpg"
-            alt="Venmo QR Code for Heather Liu - Scan to contribute to the wedding registry"
-            className="mx-auto max-w-xs h-auto rounded-lg shadow-lg border-2 border-white/20"
-            onError={(e) => {
-              // Hide the broken image and show fallback text
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const fallback = target.nextElementSibling as HTMLElement;
-              if (fallback) fallback.style.display = 'block';
-            }}
-          />
-          <div
-            className="hidden text-white/80 text-sm mt-4 p-4 bg-black/20 rounded-lg"
-            style={{ fontFamily: 'Crimson Text, serif' }}
-          >
-            <p className="font-semibold mb-2">QR Code not available</p>
-            <p>Click the button below to contribute via Venmo</p>
+    <div className="space-y-6">
+      {/* Header Card */}
+      <Card className="bg-white/90 backdrop-blur-sm border-2 shadow-lg">
+        <CardHeader className="text-center">
+          <div className="flex items-center justify-center mb-4">
+            <div
+              className="p-3 rounded-full"
+              style={{ backgroundColor: `${currentTheme.primary}20` }}
+            >
+              <Gift className="w-8 h-8" style={{ color: currentTheme.primary }} />
+            </div>
           </div>
-        </div>
-        <div className="space-y-4">
-          <p
-            className="text-white text-lg"
-            style={{ fontFamily: 'Crimson Text, serif' }}
-          >
-            Scan the QR code or click below to contribute via Venmo
-          </p>
-          <a
-            href="https://venmo.com/u/heatherliu92"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+          <CardTitle
+            className="text-3xl font-bold"
             style={{
-              backgroundColor: currentTheme.primary,
-              color: 'white',
-              fontFamily: 'Crimson Text, serif',
+              fontFamily: 'Cinzel, serif',
+              color: currentTheme.primary,
             }}
           >
-            Contribute via Venmo
-          </a>
-          <div className="text-center">
-            <p
-              className="text-white/90 text-base font-medium"
-              style={{ fontFamily: 'Crimson Text, serif' }}
+            {content.title}
+          </CardTitle>
+          <CardDescription
+            className="text-lg mt-2"
+            style={{
+              fontFamily: 'Crimson Text, serif',
+              color: currentTheme.dark,
+            }}
+          >
+            {content.subtitle}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center pb-3">
+          <p
+            className="text-base leading-relaxed max-w-2xl mx-auto"
+            style={{
+              fontFamily: 'Crimson Text, serif',
+              color: currentTheme.dark,
+            }}
+          >
+            {content.description}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Venmo QR Code and Link Card */}
+      <Card className="bg-white/90 backdrop-blur-sm border-2 shadow-lg">
+        <CardContent className="p-8 text-center">
+          <div className="mb-6">
+            <img
+              src="/app-uploads/venmo_qr_code.jpg"
+              alt="Venmo QR Code for Heather Liu - Scan to contribute to the wedding registry"
+              className="mx-auto max-w-xs h-auto rounded-lg shadow-lg border-2 border-white/20"
+              onError={(e) => {
+                // Hide the broken image and show fallback text
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'block';
+              }}
+            />
+            <div
+              className="hidden text-sm mt-4 p-4 bg-black/20 rounded-lg"
+              style={{ fontFamily: 'Crimson Text, serif', color: currentTheme.dark }}
             >
-              @heatherliu92
-            </p>
-            <p
-              className="text-white/70 text-sm mt-1"
-              style={{ fontFamily: 'Crimson Text, serif' }}
-            >
-              Search for this username in the Venmo app
-            </p>
+              <p className="font-semibold mb-2">QR Code not available</p>
+              <p>Click the button below to contribute via Venmo</p>
+            </div>
           </div>
-        </div>
-      </div>
+          <div className="space-y-4">
+            <p
+              className="text-lg"
+              style={{ fontFamily: 'Crimson Text, serif', color: currentTheme.dark }}
+            >
+              Scan the QR code or click below to contribute via Venmo
+            </p>
+            <a
+              href="https://venmo.com/u/heatherliu92"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+              style={{
+                backgroundColor: currentTheme.primary,
+                color: 'white',
+                fontFamily: 'Crimson Text, serif',
+              }}
+            >
+              Contribute via Venmo
+            </a>
+            <div className="text-center">
+              <p
+                className="text-base font-medium"
+                style={{ fontFamily: 'Crimson Text, serif', color: currentTheme.dark }}
+              >
+                @heatherliu92
+              </p>
+              <p
+                className="text-sm mt-1"
+                style={{ fontFamily: 'Crimson Text, serif', color: currentTheme.dark, opacity: 0.7 }}
+              >
+                Search for this username in the Venmo app
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Additional information */}
-      <div className="text-center mt-8">
-        <p
-          className="text-white/70 text-sm"
-          style={{ fontFamily: 'Crimson Text, serif' }}
-        >
-          While not expected, your contribution, no matter the size, is deeply appreciated. Thank you for being part of our special celebration!
-        </p>
-      </div>
+      <Card className="bg-white/90 backdrop-blur-sm border-2 shadow-lg">
+        <CardContent className="text-center py-6">
+          <p
+            className="text-sm"
+            style={{ fontFamily: 'Crimson Text, serif', color: currentTheme.dark, opacity: 0.7 }}
+          >
+            While not expected, your contribution, no matter the size, is deeply appreciated. Thank you for being part of our special celebration!
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
