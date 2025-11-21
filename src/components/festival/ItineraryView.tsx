@@ -324,8 +324,6 @@ export const ItineraryView: React.FC = () => {
               color: currentTheme.primary,
             }}
           >
-            <span>👗</span>
-            <span>Dress Code Adventures</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
