@@ -314,6 +314,66 @@ export const ItineraryView: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Dress Code Section */}
+      <Card className="bg-white/90 backdrop-blur-sm border-2 shadow-lg">
+        <CardHeader className="pb-4">
+          <CardTitle
+            className="text-xl font-bold text-center flex items-center justify-center space-x-2"
+            style={{
+              fontFamily: 'Cinzel, serif',
+              color: currentTheme.primary,
+            }}
+          >
+            <span>👗</span>
+            <span>Dress Code Adventures</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="bg-white/50 rounded-lg p-4 border">
+            <h4
+              className="font-bold text-base mb-2 flex items-center space-x-2"
+              style={{
+                fontFamily: 'Cinzel, serif',
+                color: currentTheme.primary,
+              }}
+            >
+              <Star className="w-4 h-4" />
+              <span>Saturday (Celebration Day)</span>
+            </h4>
+            <p
+              className="text-sm leading-relaxed"
+              style={{
+                fontFamily: 'Crimson Text, serif',
+                color: currentTheme.dark,
+              }}
+            >
+              Tropical island chic for the sunset ceremony and luau! Think flowy dresses, linen shirts, tropical prints, and comfortable dressy sandals.
+            </p>
+          </div>
+          <div className="bg-white/50 rounded-lg p-4 border">
+            <h4
+              className="font-bold text-base mb-2 flex items-center space-x-2"
+              style={{
+                fontFamily: 'Cinzel, serif',
+                color: currentTheme.primary,
+              }}
+            >
+              <TreePine className="w-4 h-4" />
+              <span>All Other Days</span>
+            </h4>
+            <p
+              className="text-sm leading-relaxed"
+              style={{
+                fontFamily: 'Crimson Text, serif',
+                color: currentTheme.dark,
+              }}
+            >
+              Active wear is your best friend! Pack for hiking, swimming, beach activities, and being outside in the beautiful Hawaiian weather.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Itinerary Days Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {days.map((day, index) => (
