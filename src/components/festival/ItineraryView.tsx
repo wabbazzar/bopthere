@@ -286,7 +286,7 @@ export const ItineraryView: React.FC = () => {
             {content.subtitle}
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-center pb-3">
+        <CardContent className="text-center pb-6">
           {content.message && (
             <p
               className="text-base leading-relaxed max-w-2xl mx-auto py-1"
@@ -311,63 +311,60 @@ export const ItineraryView: React.FC = () => {
               )}
             </p>
           )}
-        </CardContent>
-      </Card>
 
-      {/* Dress Code Section */}
-      <Card className="bg-white/90 backdrop-blur-sm border-2 shadow-lg">
-        <CardHeader className="pb-4">
-          <CardTitle
-            className="text-xl font-bold text-center flex items-center justify-center space-x-2"
-            style={{
-              fontFamily: 'Cinzel, serif',
-              color: currentTheme.primary,
-            }}
-          >
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="bg-white/50 rounded-lg p-4 border">
-            <h4
-              className="font-bold text-base mb-2 flex items-center space-x-2"
+          {/* Dress Code */}
+          <div className="mt-6 pt-6 border-t max-w-2xl mx-auto">
+            <h3
+              className="text-lg font-bold mb-4"
               style={{
                 fontFamily: 'Cinzel, serif',
                 color: currentTheme.primary,
               }}
             >
-              <Star className="w-4 h-4" />
-              <span>Saturday (Celebration Day)</span>
-            </h4>
-            <p
-              className="text-sm leading-relaxed"
-              style={{
-                fontFamily: 'Crimson Text, serif',
-                color: currentTheme.dark,
-              }}
-            >
-              Tropical island chic for the sunset ceremony and luau! Think flowy dresses, linen shirts, tropical prints, and comfortable dressy sandals.
-            </p>
-          </div>
-          <div className="bg-white/50 rounded-lg p-4 border">
-            <h4
-              className="font-bold text-base mb-2 flex items-center space-x-2"
-              style={{
-                fontFamily: 'Cinzel, serif',
-                color: currentTheme.primary,
-              }}
-            >
-              <TreePine className="w-4 h-4" />
-              <span>All Other Days</span>
-            </h4>
-            <p
-              className="text-sm leading-relaxed"
-              style={{
-                fontFamily: 'Crimson Text, serif',
-                color: currentTheme.dark,
-              }}
-            >
-              Active wear is your best friend! Pack for hiking, swimming, beach activities, and being outside in the beautiful Hawaiian weather.
-            </p>
+              What to Wear
+            </h3>
+            <div className="text-left space-y-3">
+              <div>
+                <h4
+                  className="font-semibold text-sm mb-1"
+                  style={{
+                    fontFamily: 'Cinzel, serif',
+                    color: currentTheme.primary,
+                  }}
+                >
+                  Saturday
+                </h4>
+                <p
+                  className="text-sm"
+                  style={{
+                    fontFamily: 'Crimson Text, serif',
+                    color: currentTheme.dark,
+                  }}
+                >
+                  Tropical island chic - flowy dresses, linen shirts, tropical prints, dressy sandals
+                </p>
+              </div>
+              <div>
+                <h4
+                  className="font-semibold text-sm mb-1"
+                  style={{
+                    fontFamily: 'Cinzel, serif',
+                    color: currentTheme.primary,
+                  }}
+                >
+                  Other Days
+                </h4>
+                <p
+                  className="text-sm"
+                  style={{
+                    fontFamily: 'Crimson Text, serif',
+                    color: currentTheme.dark,
+                  }}
+                >
+                  Active wear for hiking, swimming, and beach activities
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
