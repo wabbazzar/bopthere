@@ -74,17 +74,25 @@
                 },
                 {
                     "start_time": "5:00 PM",
-                    "end_time": "5:30 PM",
-                    "title": "Sunset Welcome Ceremony",
-                    "description": "Welcome ceremony at sunset (sunset at 5:44 PM)",
+                    "end_time": "5:45 PM",
+                    "title": "Sunset Pictures",
+                    "description": "Pictures with guests at resort and nearby alcove (sunset at 5:44 PM)",
                     "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
                     "type": "ceremony"
                 },
                 {
-                    "start_time": "5:00 PM",
+                    "start_time": "6:00 PM",
                     "end_time": "8:00 PM",
-                    "title": "Full Hawaiian Luau",
+                    "title": "Buffet Open",
                     "description": "Traditional Hawaiian feast and celebration",
+                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
+                    "type": "reception"
+                },
+                {
+                    "start_time": "7:00 PM",
+                    "end_time": "8:00 PM",
+                    "title": "Toasts",
+                    "description": "The King in the North!",
                     "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
                     "type": "reception"
                 },
