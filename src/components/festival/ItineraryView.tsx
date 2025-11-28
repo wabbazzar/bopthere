@@ -313,9 +313,9 @@ export const ItineraryView: React.FC = () => {
           )}
 
           {/* Dress Code */}
-          <div className="mt-6 pt-6 border-t max-w-2xl mx-auto">
+          <div className="mt-6 pt-6 border-t max-w-xl mx-auto text-center">
             <h3
-              className="text-lg font-bold mb-4"
+              className="text-lg font-bold mb-5"
               style={{
                 fontFamily: 'Cinzel, serif',
                 color: currentTheme.primary,
@@ -323,10 +323,10 @@ export const ItineraryView: React.FC = () => {
             >
               What to Wear
             </h3>
-            <div className="text-left space-y-3">
+            <div className="space-y-4">
               <div>
                 <h4
-                  className="font-semibold text-sm mb-1"
+                  className="font-semibold text-sm mb-1.5"
                   style={{
                     fontFamily: 'Cinzel, serif',
                     color: currentTheme.primary,
@@ -335,7 +335,7 @@ export const ItineraryView: React.FC = () => {
                   Saturday
                 </h4>
                 <p
-                  className="text-sm"
+                  className="text-sm leading-relaxed"
                   style={{
                     fontFamily: 'Crimson Text, serif',
                     color: currentTheme.dark,
@@ -346,7 +346,7 @@ export const ItineraryView: React.FC = () => {
               </div>
               <div>
                 <h4
-                  className="font-semibold text-sm mb-1"
+                  className="font-semibold text-sm mb-1.5"
                   style={{
                     fontFamily: 'Cinzel, serif',
                     color: currentTheme.primary,
@@ -355,7 +355,7 @@ export const ItineraryView: React.FC = () => {
                   Other Days
                 </h4>
                 <p
-                  className="text-sm"
+                  className="text-sm leading-relaxed"
                   style={{
                     fontFamily: 'Crimson Text, serif',
                     color: currentTheme.dark,

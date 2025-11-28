@@ -40,15 +40,15 @@
                     "start_time": "7:00 AM",
                     "end_time": "12:00 PM",
                     "title": "Sunrise Group Hike (Group 1)",
-                    "description": "5.8 mile hike, 1,230 feet elevation gain; meet second group at Twin Falls afterwards",
+                    "description": "5.8 mile hike, 1,230 feet elevation gain; potential to meet second group at Twin Falls afterwards",
                     "location": "Kahakapao Loop Trail, HI",
                     "type": "activity",
                     "map": "https://maps.app.goo.gl/kGD8vB2Xd7MYdMNk6",
                     "eta": "42 minutes"
                 },
                 {
-                    "start_time": "10:00 AM",
-                    "end_time": "12:00 PM",
+                    "start_time": "9:00 AM",
+                    "end_time": "1:00 PM",
                     "title": "Group Hike (Group 2)",
                     "description": "Easy 1.8 miles, 357 feet elevation gain; cool waterfalls on private property",
                     "location": "Twin Falls Trail, HI",
