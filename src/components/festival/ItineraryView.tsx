@@ -25,6 +25,7 @@ interface Activity {
   description: string;
   location: string;
   map?: string;
+  alltrails?: string;
   eta?: string;
   type: 'logistics' | 'social' | 'activity' | 'food' | 'ceremony' | 'reception' | 'party' | 'rest';
 }
@@ -178,22 +179,40 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, theme }) => {
                 </span>
               </div>
             )}
-            {activity.map && (
-              <a
-                href={activity.map}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium hover:opacity-80 transition-opacity"
-                style={{
-                  backgroundColor: `${theme.primary}15`,
-                  color: theme.primary,
-                  fontFamily: 'Crimson Text, serif',
-                }}
-              >
-                <ExternalLink className="w-3 h-3" />
-                <span>View Location</span>
-              </a>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {activity.map && (
+                <a
+                  href={activity.map}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium hover:opacity-80 transition-opacity"
+                  style={{
+                    backgroundColor: `${theme.primary}15`,
+                    color: theme.primary,
+                    fontFamily: 'Crimson Text, serif',
+                  }}
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>View Location</span>
+                </a>
+              )}
+              {activity.alltrails && (
+                <a
+                  href={activity.alltrails}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium hover:opacity-80 transition-opacity"
+                  style={{
+                    backgroundColor: `${theme.primary}15`,
+                    color: theme.primary,
+                    fontFamily: 'Crimson Text, serif',
+                  }}
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>View Trail Info</span>
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>
