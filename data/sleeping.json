@@ -20,24 +20,18 @@
                     "guests": [
                         {
                             "name": "Sandy"
-                        },
-                        {
-                            "name": "Monica"
                         }
                     ],
-                    "total_persons": 2
+                    "total_persons": 1
                 },
                 {
                     "bed_id": 17,
                     "guests": [
                         {
-                            "name": "Karli"
-                        },
-                        {
-                            "name": "Neil"
+                            "name": "Monica"
                         }
                     ],
-                    "total_persons": 2
+                    "total_persons": 1
                 }
             ]
         },
@@ -48,7 +42,7 @@
                     "bed_id": 2,
                     "guests": [
                         {
-                            "name": "Heather Mom"
+                            "name": "Food Vendor"
                         }
                     ],
                     "total_persons": 1
@@ -62,13 +56,10 @@
                     "bed_id": 3,
                     "guests": [
                         {
-                            "name": "Heather Dad"
-                        },
-                        {
-                            "name": "Heather Dad +1"
+                            "name": "Kevin"
                         }
                     ],
-                    "total_persons": 2
+                    "total_persons": 1
                 }
             ]
         },
@@ -79,7 +70,7 @@
                     "bed_id": 4,
                     "guests": [
                         {
-                            "name": "Wesley Mom"
+                            "name": "Gwendyllyn"
                         }
                     ],
                     "total_persons": 1
@@ -105,10 +96,10 @@
                     "bed_id": 9,
                     "guests": [
                         {
-                            "name": "Amanda"
+                            "name": "Nat"
                         },
                         {
-                            "name": "Conrad"
+                            "name": "Neel"
                         }
                     ],
                     "total_persons": 2
@@ -139,7 +130,7 @@
                     "bed_id": 16,
                     "guests": [
                         {
-                            "name": "Wesley Dad"
+                            "name": "Keith"
                         }
                     ],
                     "total_persons": 1
@@ -153,13 +144,10 @@
                     "bed_id": 8,
                     "guests": [
                         {
-                            "name": "Rachel"
-                        },
-                        {
-                            "name": "Jason"
+                            "name": "Ling"
                         }
                     ],
-                    "total_persons": 2
+                    "total_persons": 1
                 }
             ]
         },
@@ -170,7 +158,10 @@
                     "bed_id": 18,
                     "guests": [
                         {
-                            "name": "Dillon"
+                            "name": "Karli"
+                        },
+                        {
+                            "name": "Neil"
                         }
                     ],
                     "total_persons": 2
@@ -213,10 +204,10 @@
                     "bed_id": 11,
                     "guests": [
                         {
-                            "name": "Chace"
+                            "name": "Rachel"
                         },
                         {
-                            "name": "Sienna"
+                            "name": "Jason"
                         }
                     ],
                     "total_persons": 2
@@ -272,12 +263,9 @@
                     "guests": [
                         {
                             "name": "James"
-                        },
-                        {
-                            "name": "Ryan"
                         }
                     ],
-                    "total_persons": 2
+                    "total_persons": 1
                 },
                 {
                     "bed_id": 21,
@@ -295,13 +283,10 @@
                     "bed_id": 22,
                     "guests": [
                         {
-                            "name": "Nat"
-                        },
-                        {
-                            "name": "Neel"
+                            "name": "Ryan"
                         }
                     ],
-                    "total_persons": 2
+                    "total_persons": 1
                 }
             ]
         }
@@ -309,8 +294,8 @@
     "summary": {
         "total_accommodations": 12,
         "total_beds": 22,
-        "total_guests": 43,
-        "confirmed_guests": 43,
+        "total_guests": 32,
+        "confirmed_guests": 32,
         "pending_confirmations": 0
     },
     "metadata": {
