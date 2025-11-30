@@ -16,7 +16,7 @@
                     "total_persons": 2
                 },
                 {
-                    "bed_id": 6,
+                    "bed_id": 2,
                     "guests": [
                         {
                             "name": "Sandy"
@@ -25,7 +25,7 @@
                     "total_persons": 1
                 },
                 {
-                    "bed_id": 17,
+                    "bed_id": 3,
                     "guests": [
                         {
                             "name": "Monica"
@@ -39,7 +39,7 @@
             "accommodation_type": "Villa 1",
             "beds": [
                 {
-                    "bed_id": 2,
+                    "bed_id": 4,
                     "guests": [
                         {
                             "name": "Food Vendor"
@@ -53,7 +53,7 @@
             "accommodation_type": "Villa 2",
             "beds": [
                 {
-                    "bed_id": 3,
+                    "bed_id": 5,
                     "guests": [
                         {
                             "name": "Kevin"
@@ -67,7 +67,7 @@
             "accommodation_type": "Villa 3",
             "beds": [
                 {
-                    "bed_id": 4,
+                    "bed_id": 6,
                     "guests": [
                         {
                             "name": "Gwendyllyn"
@@ -93,7 +93,7 @@
                     "total_persons": 2
                 },
                 {
-                    "bed_id": 9,
+                    "bed_id": 8,
                     "guests": [
                         {
                             "name": "Nat"
@@ -110,7 +110,7 @@
             "accommodation_type": "Villa 5",
             "beds": [
                 {
-                    "bed_id": 15,
+                    "bed_id": 9,
                     "guests": [
                         {
                             "name": "Camille"
@@ -127,7 +127,7 @@
             "accommodation_type": "Villa 6",
             "beds": [
                 {
-                    "bed_id": 16,
+                    "bed_id": 10,
                     "guests": [
                         {
                             "name": "Keith"
@@ -141,7 +141,7 @@
             "accommodation_type": "Villa 7",
             "beds": [
                 {
-                    "bed_id": 8,
+                    "bed_id": 11,
                     "guests": [
                         {
                             "name": "Ling"
@@ -155,7 +155,7 @@
             "accommodation_type": "Villa 8",
             "beds": [
                 {
-                    "bed_id": 18,
+                    "bed_id": 12,
                     "guests": [
                         {
                             "name": "Karli"
@@ -172,7 +172,7 @@
             "accommodation_type": "Villa 9",
             "beds": [
                 {
-                    "bed_id": 19,
+                    "bed_id": 13,
                     "guests": [
                         {
                             "name": "Michelle"
@@ -189,7 +189,7 @@
             "accommodation_type": "Garden Hideaway",
             "beds": [
                 {
-                    "bed_id": 10,
+                    "bed_id": 14,
                     "guests": [
                         {
                             "name": "Annie"
@@ -201,7 +201,7 @@
                     "total_persons": 2
                 },
                 {
-                    "bed_id": 11,
+                    "bed_id": 15,
                     "guests": [
                         {
                             "name": "Rachel"
@@ -218,7 +218,7 @@
             "accommodation_type": "Penthouse I",
             "beds": [
                 {
-                    "bed_id": 12,
+                    "bed_id": 16,
                     "guests": [
                         {
                             "name": "Connor"
@@ -230,7 +230,7 @@
                     "total_persons": 2
                 },
                 {
-                    "bed_id": 13,
+                    "bed_id": 17,
                     "guests": [
                         {
                             "name": "Abishai"
@@ -242,7 +242,7 @@
                     "total_persons": 2
                 },
                 {
-                    "bed_id": 14,
+                    "bed_id": 18,
                     "guests": [
                         {
                             "name": "Prashanth"
@@ -259,7 +259,7 @@
             "accommodation_type": "Penthouse II",
             "beds": [
                 {
-                    "bed_id": 20,
+                    "bed_id": 19,
                     "guests": [
                         {
                             "name": "James"
@@ -268,7 +268,7 @@
                     "total_persons": 1
                 },
                 {
-                    "bed_id": 21,
+                    "bed_id": 20,
                     "guests": [
                         {
                             "name": "Rachel"
@@ -280,7 +280,7 @@
                     "total_persons": 2
                 },
                 {
-                    "bed_id": 22,
+                    "bed_id": 21,
                     "guests": [
                         {
                             "name": "Ryan"
@@ -293,7 +293,7 @@
     },
     "summary": {
         "total_accommodations": 12,
-        "total_beds": 22,
+        "total_beds": 21,
         "total_guests": 32,
         "confirmed_guests": 32,
         "pending_confirmations": 0
