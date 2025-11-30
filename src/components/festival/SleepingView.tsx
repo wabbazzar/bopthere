@@ -254,7 +254,7 @@ export const SleepingView: React.FC = () => {
               Resort Location
             </h3>
             <p
-              className="text-base"
+              className="text-base mb-3"
               style={{
                 fontFamily: 'Crimson Text, serif',
                 color: currentTheme.dark,
@@ -269,6 +269,22 @@ export const SleepingView: React.FC = () => {
                 {sleepingData.metadata.location}
               </a>
             </p>
+            <div className="flex justify-center">
+              <a
+                href="https://makoaresorts.com/about/sitemap/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium hover:opacity-80 transition-opacity"
+                style={{
+                  backgroundColor: `${currentTheme.primary}15`,
+                  color: currentTheme.primary,
+                  fontFamily: 'Crimson Text, serif',
+                }}
+              >
+                <MapPin className="w-4 h-4" />
+                <span>View Resort Site Map</span>
+              </a>
+            </div>
           </div>
         </CardContent>
       </Card>

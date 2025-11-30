@@ -288,28 +288,46 @@ export const ItineraryView: React.FC = () => {
         </CardHeader>
         <CardContent className="text-center pb-6">
           {content.message && (
-            <p
-              className="text-base leading-relaxed max-w-2xl mx-auto py-1"
-              style={{
-                fontFamily: 'Crimson Text, serif',
-                color: currentTheme.dark,
-              }}
-            >
-              {content.link ? (
+            <div className="space-y-3">
+              <p
+                className="text-base leading-relaxed max-w-2xl mx-auto py-1"
+                style={{
+                  fontFamily: 'Crimson Text, serif',
+                  color: currentTheme.dark,
+                }}
+              >
+                {content.link ? (
+                  <a
+                    href={content.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center space-x-1 hover:underline"
+                    style={{ color: currentTheme.primary }}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>{content.message}</span>
+                  </a>
+                ) : (
+                  content.message
+                )}
+              </p>
+              <div className="flex justify-center">
                 <a
-                  href={content.link}
+                  href="https://makoaresorts.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-1 hover:underline"
-                  style={{ color: currentTheme.primary }}
+                  className="inline-flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium hover:opacity-80 transition-opacity"
+                  style={{
+                    backgroundColor: `${currentTheme.primary}15`,
+                    color: currentTheme.primary,
+                    fontFamily: 'Crimson Text, serif',
+                  }}
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>{content.message}</span>
+                  <Home className="w-4 h-4" />
+                  <span>Visit Resort Website</span>
                 </a>
-              ) : (
-                content.message
-              )}
-            </p>
+              </div>
+            </div>
           )}
 
           {/* Dress Code */}
