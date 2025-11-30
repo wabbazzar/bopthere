@@ -21,14 +21,6 @@
                     "type": "social",
                     "map": "https://maps.app.goo.gl/BM3HKDFuaSZbYWCY8",
                     "eta": "10 minute walk"
-                },
-                {
-                    "start_time": "7:00 PM",
-                    "end_time": "9:00 PM",
-                    "title": "Karaoke in Penthouse",
-                    "description": "Karaoke in the penthouse",
-                    "location": "Makoa Resorts, 2121 Ili' Ili Road, Kihei, HI",
-                    "type": "social"
                 }
             ]
         },
