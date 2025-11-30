@@ -57,13 +57,6 @@
       "super_power": "Turning visions into success"
     },
     {
-      "name": "Dad +1",
-      "occupation": "Artist",
-      "partner": "Heather Dad",
-      "bride_or_groom": "bride",
-      "super_power": "Painting life with vibrant colors"
-    },
-    {
       "name": "Wesley Mom",
       "occupation": "Math Teacher",
       "partner": null,
@@ -92,20 +85,6 @@
       "super_power": "Marrying strangers in the south east of Asia"
     },
     {
-      "name": "Amanda",
-      "occupation": "Guidance Counselor",
-      "partner": "Conrad",
-      "bride_or_groom": "bride",
-      "super_power": "Speaking the language of children"
-    },
-    {
-      "name": "Conrad",
-      "occupation": "Coach",
-      "partner": "Amanda",
-      "bride_or_groom": "bride",
-      "super_power": "Wraslin'"
-    },
-    {
       "name": "Camille",
       "occupation": "Artist",
       "partner": "Kyle",
@@ -118,20 +97,6 @@
       "partner": "Camille",
       "bride_or_groom": "groom",
       "super_power": "pwning at board games"
-    },
-    {
-      "name": "Josh",
-      "occupation": "Scientist",
-      "partner": "Crissy",
-      "bride_or_groom": "groom",
-      "super_power": "Ball sports"
-    },
-    {
-      "name": "Crissy",
-      "occupation": "Nurse",
-      "partner": "Josh",
-      "bride_or_groom": "groom",
-      "super_power": "Taking care of babies"
     },
     {
       "name": "Rachel",
@@ -174,20 +139,6 @@
       "partner": "Annie",
       "bride_or_groom": "bride",
       "super_power": "Cooking for Annie"
-    },
-    {
-      "name": "Chace",
-      "occupation": "Counsellor",
-      "partner": "Sienna",
-      "bride_or_groom": "bride",
-      "super_power": "Untroubling the troubled"
-    },
-    {
-      "name": "Sienna",
-      "occupation": "Doula",
-      "partner": "Chace",
-      "bride_or_groom": "bride",
-      "super_power": "Collecting chachkies"
     },
     {
       "name": "Connor",
@@ -272,21 +223,14 @@
       "partner": "Nat",
       "bride_or_groom": "groom",
       "super_power": "Speaking for the animals"
-    },
-    {
-      "name": "Dillon",
-      "occupation": "Attorney",
-      "partner": null,
-      "bride_or_groom": "groom",
-      "super_power": "Like Buddha, but with litigation"
     }
   ],
   "summary": {
-    "total_guests": 43,
-    "bride_side": 26,
+    "total_guests": 32,
+    "bride_side": 13,
     "groom_side": 17,
-    "couples": 20,
-    "singles": 3
+    "couples": 26,
+    "singles": 6
   },
   "metadata": {
     "created": "2024-01-01",
