@@ -84,7 +84,7 @@
         "soccer_ball": {
           "normalized_value": "Soccer ball",
           "variants": ["Soccer ball", "soccer ball", "A soccer ball"],
-          "count": 9,
+          "count": 10,
           "response_ids": [2, 4, 9, 14, 19, 22, 25, 32]
         },
         "ball": {
@@ -101,9 +101,9 @@
         },
         "rocks": {
           "normalized_value": "Rocks",
-          "variants": ["Rocks", "Pinecones"],
-          "count": 5,
-          "response_ids": [1, 5, 7, 13, 35]
+          "variants": ["Rocks"],
+          "count": 4,
+          "response_ids": [5, 7, 13, 35]
         },
         "ass": {
           "normalized_value": "Ass/Butt",
@@ -112,13 +112,11 @@
           "response_ids": [3, 8, 26, 29, 15]
         },
         "outliers": [
+          {"id": 1, "response": "pinecones"},
           {"id": 17, "response": "Football"},
           {"id": 18, "response": "puppies"},
           {"id": 20, "response": "the bucket"},
-          {"id": 21, "response": "A soccer ball"},
-          {"id": 27, "response": "Soccer"},
           {"id": 28, "response": "Puppies :("},
-          {"id": 31, "response": "Soccer"},
           {"id": 34, "response": "A Tire"}
         ]
       },
