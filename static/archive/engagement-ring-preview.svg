@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Beautiful gradient background -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#grad1)"/>
+  
+  <!-- Engagement ring emoji -->
+  <text x="600" y="250" font-family="Arial, sans-serif" font-size="150" text-anchor="middle" fill="white">💍</text>
+  
+  <!-- Title text -->
+  <text x="600" y="380" font-family="Georgia, serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white">Wesley & Heather's</text>
+  <text x="600" y="440" font-family="Georgia, serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white">Epic Wedding Quest</text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="500" font-family="Arial, sans-serif" font-size="28" text-anchor="middle" fill="#f0f0f0">Maui, Hawaii • December 5-8, 2025</text>
+</svg> 

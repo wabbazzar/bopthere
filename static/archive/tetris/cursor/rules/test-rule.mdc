@@ -1,0 +1,226 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Tetris Turbo - Strict Testing Requirements
+
+## Core Testing Principles
+
+### 1. Visual Verification Mandate
+- **NEVER** trust console.log output alone
+- **EVERY** feature must be visually verifiable in the browser DOM
+- **ALL** visual states must be captured and compared
+- **NO** feature is complete without visual confirmation
+
+### 2. Test-First Development
+- **CREATE** visual test harness before implementing any feature
+- **WRITE** visual verification tests before coding the feature
+- **VERIFY** expected visual state matches actual rendered state
+- **DOCUMENT** visual test results with screenshots or DOM snapshots
+
+## Mandatory Testing Requirements
+
+### Phase 0: Infrastructure Tests
+1. **Cache-Busting Verification**
+   - Verify all HTML files include proper meta tags
+   - Test version number updates trigger fresh loads
+   - Confirm no stale code execution
+
+2. **Visual Test Harness Validation**
+   - Test DOM state capture accuracy
+   - Verify visual diff comparison works
+   - Validate screenshot simulation functionality
+   - Confirm test result visualization
+
+### Phase 1: Game Board Tests
+1. **Grid Rendering Tests**
+   ```javascript
+   // Required visual tests:
+   - Empty 10x20 grid renders with all 200 cells
+   - Each cell is individually addressable
+   - Grid lines visible with proper glow effect
+   - Background is pure black (#000000)
+   ```
+
+2. **Cell Update Tests**
+   ```javascript
+   // Single method enforcement:
+   - Only ONE updateCell() method exists
+   - Method properly applies color and glow
+   - Batch updates work correctly
+   - No duplicate update methods
+   ```
+
+### Phase 2: Piece Rendering Tests
+1. **Shape Verification**
+   ```javascript
+   // Visual tests for each piece:
+   - I piece: 4x1 rectangle, cyan glow
+   - O piece: 2x2 square, orange glow
+   - T piece: T-shape, green glow
+   - S piece: S-shape, pink glow
+   - Z piece: Z-shape, blue glow
+   - J piece: J-shape, yellow glow
+   - L piece: L-shape, purple glow
+   ```
+
+2. **Rotation Tests**
+   ```javascript
+   // All pieces must:
+   - Rotate correctly in all 4 orientations
+   - Maintain color during rotation
+   - Update visual state immediately
+   - Handle edge case rotations
+   ```
+
+### Phase 3: Movement Tests
+1. **Collision Detection**
+   ```javascript
+   // Visual verification required:
+   - Pieces stop at board boundaries
+   - Pieces cannot overlap locked pieces
+   - Visual feedback on collision
+   - Smooth movement animation
+   ```
+
+2. **Input Response Tests**
+   ```javascript
+   // Test all controls:
+   - Left/Right/A/D: Immediate visual movement
+   - Down/S: Accelerated fall visible
+   - Up/W: Visual rotation
+   - Space: Instant drop animation
+   - P: Pause overlay appears
+   - R: Game reset visually confirmed
+   ```
+
+### Phase 4: Game Logic Tests
+1. **Line Clearing**
+   ```javascript
+   // Required visual tests:
+   - Full lines flash before clearing
+   - Explosion animation plays
+   - Lines above cascade down smoothly
+   - Score updates immediately
+   ```
+
+2. **Scoring System**
+   ```javascript
+   // Visual verification:
+   - Score displays with neon green glow
+   - Level displays with neon cyan glow
+   - Numbers update without flicker
+   - Proper formatting maintained
+   ```
+
+### Phase 5: Game State Tests
+1. **State Transitions**
+   ```javascript
+   // Test all states visually:
+   - Playing → Paused: Overlay appears
+   - Paused → Playing: Overlay disappears
+   - Playing → Game Over: End screen shows
+   - Game Over → New Game: Board clears
+   ```
+
+2. **UI Element Tests**
+   ```javascript
+   // All UI must:
+   - Have proper neon glow effects
+   - Be visible against dark background
+   - Update without visual artifacts
+   - Maintain consistent positioning
+   ```
+
+### Phase 6: Performance Tests
+1. **Frame Rate Testing**
+   ```javascript
+   // Performance requirements:
+   - Maintain 60 FPS during normal play
+   - No dropped frames during animations
+   - Smooth scrolling and movement
+   - Memory usage stays constant
+   ```
+
+2. **Browser Compatibility**
+   ```javascript
+   // Test in all browsers:
+   - Chrome: Full functionality
+   - Firefox: Full functionality
+   - Safari: Full functionality
+   - Edge: Full functionality
+   - Document any browser-specific issues
+   ```
+
+## Testing Enforcement Rules
+
+### Automatic Test Failures
+1. **Console-Only Testing** → FAIL
+2. **Missing Visual Verification** → FAIL
+3. **Multiple Methods for Same Operation** → FAIL
+4. **No Cache-Busting Headers** → FAIL
+5. **Untested Browser** → FAIL
+
+### Required Documentation
+1. **Visual Test Results**
+   - Screenshot or DOM snapshot
+   - Expected vs Actual comparison
+   - Performance metrics
+
+2. **Method Consistency**
+   - Prove single method usage
+   - Document any exceptions
+   - Show method call traces
+
+### Debugging Protocol
+When tests fail:
+1. **Check Visual State First**
+   - Inspect DOM elements
+   - Verify CSS application
+   - Check computed styles
+
+2. **Force Repaint if Needed**
+   ```javascript
+   element.offsetHeight; // Force repaint
+   ```
+
+3. **Verify Method Consistency**
+   - Search for duplicate methods
+   - Check all update paths
+   - Ensure single source of truth
+
+4. **Performance Profile**
+   - Use browser dev tools
+   - Check render performance
+   - Monitor memory usage
+
+## Critical Testing Checklist
+
+Before marking any phase complete:
+- [ ] Visual tests written and passing
+- [ ] Browser cache cleared and retested
+- [ ] All browsers tested
+- [ ] Performance metrics recorded
+- [ ] Single method pattern verified
+- [ ] No console-only tests
+- [ ] Visual artifacts documented
+- [ ] Memory leaks checked
+- [ ] Input lag measured
+- [ ] Animation smoothness verified
+
+## Test File Management
+
+### Required Test Files
+- `visual_test.html` - Main visual test harness
+- `render_verify.html` - Render pipeline tests
+- `debug_render.html` - Debugging toolkit
+
+### Cleanup Requirements
+- Remove all test files after project completion
+- Document any test discoveries in final code
+- Keep performance baseline records
+
+## Enforcement
+
+**These testing requirements are MANDATORY. No code ships without passing ALL visual tests. No exceptions.**

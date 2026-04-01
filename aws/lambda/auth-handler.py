@@ -133,7 +133,7 @@ def lambda_handler(event, context):
     try:
         if path.endswith("/login") and http_method == "POST":
             # Parse request body
-            body = json.loads(event.get("body", "{}"))
+            body = json.loads(event.get("body") or "{}")
 
             # Validate required fields
             username = body.get("username")
@@ -222,7 +222,7 @@ def lambda_handler(event, context):
                     token = auth_header[7:]  # Remove 'Bearer ' prefix
             else:
                 # POST method - check body first
-                body = json.loads(event.get("body", "{}"))
+                body = json.loads(event.get("body") or "{}")
                 token = body.get("token")
 
                 if not token:
@@ -300,7 +300,7 @@ def lambda_handler(event, context):
             
             # Also check body for token
             if not token:
-                body = json.loads(event.get("body", "{}"))
+                body = json.loads(event.get("body") or "{}")
                 token = body.get("token")
             
             if not token:
@@ -389,7 +389,7 @@ def lambda_handler(event, context):
         elif path.endswith("/register") and http_method == "POST":
             # Registration endpoint for admin user creation
             # Parse request body
-            body = json.loads(event.get("body", "{}"))
+            body = json.loads(event.get("body") or "{}")
 
             # Validate required fields
             required_fields = ["username", "password", "email", "full_name"]

@@ -1,21 +1,27 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig, type Plugin } from 'vite';
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  // Set base path for GitHub Pages deployment
-  base: '/',
-  server: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [
-    react(),
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-}));
+// Rewrite /archive/ to /archive/index.html in dev mode
+// (GitHub Pages does this natively in production)
+function archiveRewrite(): Plugin {
+	return {
+		name: 'archive-rewrite',
+		configureServer(server) {
+			server.middlewares.use((req, _res, next) => {
+				if (req.url === '/archive/' || req.url === '/archive') {
+					req.url = '/archive/index.html';
+				}
+				next();
+			});
+		}
+	};
+}
+
+export default defineConfig({
+	plugins: [archiveRewrite(), sveltekit()],
+	server: {
+		port: 5173,
+		strictPort: false,
+		allowedHosts: ['wabbazzar-ice.taila666cc.ts.net']
+	}
+});

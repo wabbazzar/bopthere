@@ -162,3 +162,8 @@ pip.conf
 # Scripts cache
 scripts/.wedding/
 .aider*
+
+# Claude Code
+.claude/skills/
+.mcp.json
+.svelte-kit/
