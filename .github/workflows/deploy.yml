@@ -36,29 +36,15 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Inject build id into service worker
-        run: |
-          SHORT_SHA=${GITHUB_SHA::8}
-          echo "self.__BUILD_ID__='${SHORT_SHA}';" | cat - public/service-worker.js > public/service-worker.js.tmp
-          mv public/service-worker.js.tmp public/service-worker.js
-
-      - name: Build (Vite)
+      - name: Build (SvelteKit)
         run: npm run build
         env:
-          VITE_API_GATEWAY_URL: ${{ secrets.VITE_API_GATEWAY_URL }}
-
-      - name: Ensure SPA fallback (404.html)
-        run: |
-          cp dist/index.html dist/404.html
-
-      - name: Include CNAME if present
-        run: |
-          if [ -f CNAME ]; then cp CNAME dist/CNAME; fi
+          PUBLIC_API_GATEWAY_URL: ${{ secrets.PUBLIC_API_GATEWAY_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: build
 
   deploy:
     name: Deploy to GitHub Pages
