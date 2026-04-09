@@ -119,7 +119,7 @@ function createChatStore() {
 						}
 						update((s) => ({ ...s, messages, pendingActions, isLoading: false }));
 					} else {
-						update((s) => ({ ...s, isLoading: false }));
+						// Send is in-flight — don't touch isLoading or it kills the thinking indicator
 					}
 				})
 				.catch(() => update((s) => ({ ...s, isLoading: false, error: 'Failed to load conversation' })));
