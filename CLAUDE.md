@@ -163,7 +163,42 @@ npm run check   # svelte-check
 - The wedding is over (Dec 2025, Maui). The archive preserves that site.
 - Current focus: travel planning, starting with China trip (Apr-May 2026)
 
-## 10. Guardian Claude
+## 10. Testing Culture — TDD Is Mandatory
+
+### Philosophy
+Every feature, fix, or refactor MUST have tests that prove it works. Not toy unit tests that check obvious things — **real integration tests that click buttons, edit fields, and verify the DOM changes**. If an agent writes code, it writes a test first or alongside.
+
+### Why This Matters for Agents
+Agents hallucinate APIs, misremember function signatures, and guess at component outputs. Tests are the ground truth. Before recommending a store method, grep for it. Before assuming a component renders a class name, run a Playwright test that checks. **Never trust code review alone — trust the browser.**
+
+### Test Types and When to Use Each
+
+| Type | Tool | Speed | Use For |
+|------|------|-------|---------|
+| **Unit tests** | Vitest (`npm test`) | ~500ms | Pure logic: store calculations, date math, string builders, service helpers |
+| **Integration E2E** | Playwright (`npm run test:e2e`) | ~17s | Real browser: clicking buttons, editing fields, verifying persistence, navigation flows |
+| **Guardian ad-hoc** | Guardian Claude daily | ~3min | Exploratory: AI navigates app, checks for console errors, visual anomalies |
+
+### Rules for Writing Tests
+
+1. **Integration tests > unit tests.** A Playwright test that clicks "Add Day" and verifies the count increased catches real bugs. A unit test that checks `1 + 1 === 2` does not.
+2. **Test the user's experience, not implementation details.** Don't test Svelte reactivity internals — test that the h1 says "China 2026" after reset.
+3. **Never use Svelte-scoped CSS class names as selectors.** Svelte 5 hashes class names. Use: `aria-label`, `role`, `[title=]`, text content, `getByRole`, `getByPlaceholder`, `data-testid`. 
+4. **Tests must break when the feature breaks.** If you can delete the feature code and the test still passes, the test is worthless.
+5. **Reset state between tests.** Use `localStorage.removeItem()` in `beforeEach` to prevent test pollution.
+6. **Verify persistence.** If data should survive navigation or reload, write a test that navigates away and back, or reloads the page.
+7. **Handle browser dialogs.** Use `page.once('dialog', d => d.accept())` BEFORE the click that triggers `confirm()`.
+8. **Force-click hidden elements.** Buttons behind `opacity: 0` (hover-reveal) need `dispatchEvent('click')` or `click({ force: true })`.
+
+### Known Patterns (from real bugs found by tests)
+
+- **Mutation leak bug:** Store defaults must be deep-cloned, not shallow-spread. `{ ...defaults }` copies references, so in-place mutations corrupt the "default" data. Always use `JSON.parse(JSON.stringify(defaults))`. This bug was caught by the Reset integration test.
+- **Svelte 5 class scoping:** `page.locator('.day-nav')` will FAIL because Svelte generates `.day-nav.s-xxxxx`. Use `button[aria-label="Next day"]` instead.
+
+### When to Append to Guardian Checklist
+After implementing any feature that adds interactive elements (buttons, forms, toggles), append a line to `tests/guardian-checklist.md` describing what Guardian Claude should verify. This is how test coverage grows automatically.
+
+## 11. Guardian Claude
 
 Automated regression protection. Runs after every `git push` (hook mode) and daily at 7:15am (daily mode).
 

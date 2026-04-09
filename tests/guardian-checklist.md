@@ -19,6 +19,15 @@ Edit this file to add new checks. Dev agent adds entries when new features are b
 - [ ] Auth flash: authenticated user never sees login form
 - [ ] Chat drawer opens/closes
 - [ ] Send/receive message (mocked or live)
+- [ ] Day View: Add/Copy/Delete buttons change day count
+- [ ] Day View: Prev/Next navigation, OOO toggle
+- [ ] Field editing: double-click opens input, Enter saves, Escape cancels
+- [ ] Field persistence: survives navigation and full page reload
+- [ ] Trip header: name edit, undo reverts, reset restores defaults, export downloads JSON
+- [ ] Week view: day cards clickable, correct count, Add Day works
+- [ ] Todos: add/edit/delete/toggle/enter-to-add all functional
+- [ ] Dashboard: trip cards render and navigate to trip page
+- [ ] No JavaScript console errors during interaction
 
 ## Ad-hoc GUI Exploration (daily only)
 

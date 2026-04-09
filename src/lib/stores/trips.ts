@@ -5,21 +5,26 @@ import { chinaTrip } from '$lib/data/china-2026';
 const STORAGE_KEY = 'hw-trips';
 const UNDO_LIMIT = 50;
 
-// Default trips keyed by id
-const defaults: Record<string, Trip> = {
+// Default trips keyed by id — deep frozen copy so mutations never leak back
+const defaults: Record<string, Trip> = JSON.parse(JSON.stringify({
 	'china-2026': chinaTrip
-};
+}));
+
+/** Deep-clone defaults so store mutations never corrupt the originals */
+function cloneDefaults(): Record<string, Trip> {
+	return JSON.parse(JSON.stringify(defaults));
+}
 
 function loadTrips(): Record<string, Trip> {
-	if (typeof localStorage === 'undefined') return { ...defaults };
+	if (typeof localStorage === 'undefined') return cloneDefaults();
 	const raw = localStorage.getItem(STORAGE_KEY);
-	if (!raw) return { ...defaults };
+	if (!raw) return cloneDefaults();
 	try {
 		const saved = JSON.parse(raw) as Record<string, Trip>;
 		// Merge: saved data wins, but include any new default trips
-		return { ...defaults, ...saved };
+		return { ...cloneDefaults(), ...saved };
 	} catch {
-		return { ...defaults };
+		return cloneDefaults();
 	}
 }
 

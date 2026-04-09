@@ -1,0 +1,572 @@
+/**
+ * Trip Integration Tests — Real browser tests that click buttons,
+ * edit fields, and verify the DOM actually changes.
+ *
+ * These are NOT unit tests. They drive a real browser against the real app.
+ * If Add/Copy/Delete buttons don't work, these tests FAIL.
+ * If field editing doesn't persist, these tests FAIL.
+ *
+ * IMPORTANT: Svelte 5 scopes CSS classes, so NEVER use class-based selectors
+ * like .day-nav or .field-row. Use aria labels, roles, text content, and
+ * data-testid attributes instead.
+ *
+ * Run: npx playwright test trip-integration.spec.ts
+ */
+import { test, expect, type Page } from '@playwright/test';
+
+const BASE_URL = 'http://localhost:5174';
+
+const TEST_USER = {
+	username: 'wesley',
+	email: 'wesleybeckner@gmail.com',
+	full_name: 'Wesley Beckner',
+	role: 'admin'
+};
+
+async function injectAuth(page: Page) {
+	await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+	await page.evaluate(async (user) => {
+		const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+		const payload = btoa(JSON.stringify({
+			username: 'wesley', role: 'admin',
+			exp: Math.floor(Date.now() / 1000) + 86400
+		})).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+		const enc = new TextEncoder();
+		const key = await crypto.subtle.importKey(
+			'raw', enc.encode('your-secret-key-change-in-production'),
+			{ name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+		);
+		const sig = await crypto.subtle.sign('HMAC', key, enc.encode(`${header}.${payload}`));
+		const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
+			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+		const jwt = `${header}.${payload}.${signature}`;
+		localStorage.setItem('hw-auth-token', jwt);
+		localStorage.setItem('hw-auth-user', JSON.stringify(user));
+	}, TEST_USER);
+}
+
+/** Reset trip data to defaults via localStorage (must call after injectAuth) */
+async function resetTripData(page: Page) {
+	await page.evaluate(() => {
+		localStorage.removeItem('hw-trips');
+		localStorage.removeItem('hw-trip-view-china-2026');
+		localStorage.removeItem('hw-trip-todos-china-2026');
+	});
+}
+
+/** Navigate to trip page in day view */
+async function goToDayView(page: Page) {
+	await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
+	await page.waitForSelector('h1', { timeout: 10000 });
+	// Click the "Day" tab
+	await page.getByRole('tab', { name: 'Day' }).click();
+	await page.waitForSelector('button[aria-label="Next day"]', { timeout: 5000 });
+}
+
+/** Navigate to trip page in week view */
+async function goToWeekView(page: Page) {
+	await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
+	await page.waitForSelector('h1', { timeout: 10000 });
+	await page.getByRole('tab', { name: 'Week' }).click();
+	await page.waitForSelector('button:has-text("+ Add day")', { timeout: 5000 });
+}
+
+/** Get the "Day X of Y" text content */
+async function getDayInfo(page: Page) {
+	// The subtitle shows "Day X of Y" — find it by text pattern
+	const subtitle = page.locator('text=/Day \\d+ of \\d+/');
+	const text = await subtitle.textContent();
+	const match = text!.match(/Day (\d+) of (\d+)/);
+	return { current: parseInt(match![1]), total: parseInt(match![2]) };
+}
+
+/** Get the day title text (e.g., "Wed 04-22 · Shanghai") */
+async function getDayTitle(page: Page) {
+	// The nav title is between the prev/next buttons
+	const prevBtn = page.locator('button[aria-label="Previous day"]');
+	const nextBtn = page.locator('button[aria-label="Next day"]');
+	// The title is the sibling between these buttons
+	const titleArea = prevBtn.locator('..').locator('>> div').first();
+	return await titleArea.textContent();
+}
+
+// ─── DAY VIEW: ADD / COPY / DELETE BUTTONS ─────────────────────
+
+test.describe('Day View — Add/Copy/Delete buttons', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Add Day button increases day count by 1', async ({ page }) => {
+		await goToDayView(page);
+		const { total: initialTotal } = await getDayInfo(page);
+
+		await page.getByRole('button', { name: '+ Add' }).click();
+
+		const { total: newTotal } = await getDayInfo(page);
+		expect(newTotal).toBe(initialTotal + 1);
+	});
+
+	test('Copy Day button duplicates current day', async ({ page }) => {
+		await goToDayView(page);
+		const { total: initialTotal } = await getDayInfo(page);
+
+		await page.getByRole('button', { name: 'Copy' }).click();
+
+		const { total: newTotal } = await getDayInfo(page);
+		expect(newTotal).toBe(initialTotal + 1);
+	});
+
+	test('Delete Day button removes a day after confirmation', async ({ page }) => {
+		await goToDayView(page);
+		const { total: initialTotal } = await getDayInfo(page);
+
+		page.on('dialog', dialog => dialog.accept());
+		await page.getByRole('button', { name: 'Del' }).click();
+
+		const { total: newTotal } = await getDayInfo(page);
+		expect(newTotal).toBe(initialTotal - 1);
+	});
+
+	test('Delete Day button is disabled when only 1 day remains', async ({ page }) => {
+		await goToDayView(page);
+		page.on('dialog', dialog => dialog.accept());
+
+		let { total } = await getDayInfo(page);
+		while (total > 1) {
+			await page.getByRole('button', { name: 'Del' }).click();
+			await page.waitForTimeout(300);
+			({ total } = await getDayInfo(page));
+		}
+
+		await expect(page.getByRole('button', { name: 'Del' })).toBeDisabled();
+	});
+
+	test('Delete Day dismissed on cancel does NOT remove day', async ({ page }) => {
+		await goToDayView(page);
+		const { total: initialTotal } = await getDayInfo(page);
+
+		page.on('dialog', dialog => dialog.dismiss());
+		await page.getByRole('button', { name: 'Del' }).click();
+
+		const { total: newTotal } = await getDayInfo(page);
+		expect(newTotal).toBe(initialTotal);
+	});
+});
+
+// ─── DAY VIEW: NAVIGATION ──────────────────────────────────────
+
+test.describe('Day View — Navigation', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Previous/Next arrows navigate between days', async ({ page }) => {
+		await goToDayView(page);
+
+		const { current: initial } = await getDayInfo(page);
+		expect(initial).toBe(1);
+
+		await page.click('button[aria-label="Next day"]');
+		const { current: afterNext } = await getDayInfo(page);
+		expect(afterNext).toBe(2);
+
+		await page.click('button[aria-label="Previous day"]');
+		const { current: afterPrev } = await getDayInfo(page);
+		expect(afterPrev).toBe(1);
+	});
+
+	test('Previous button is disabled on first day', async ({ page }) => {
+		await goToDayView(page);
+		await expect(page.locator('button[aria-label="Previous day"]')).toBeDisabled();
+	});
+
+	test('OOO toggle flips badge', async ({ page }) => {
+		await goToDayView(page);
+
+		// Day 1 (Shanghai) starts with ooo=false
+		const oooBtn = page.getByRole('button', { name: /OOO/ });
+		await oooBtn.click();
+
+		// After click, should contain the "OOO" badge (bold/highlighted version)
+		// The component renders either a badge-warn span or a faint text
+		// We check the button contains a span with "OOO" text that is styled as a badge
+		await expect(oooBtn.locator('span').first()).toBeVisible();
+		const badgeText = await oooBtn.locator('span').first().textContent();
+		expect(badgeText).toContain('OOO');
+
+		// Click again to toggle off
+		await oooBtn.click();
+		await page.waitForTimeout(200);
+	});
+});
+
+// ─── FIELD EDITING (ExpandableField) ────────────────────────────
+
+test.describe('Field Editing — Double-click to edit', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Double-click on a field opens edit input', async ({ page }) => {
+		await goToDayView(page);
+
+		// Find a field by its label then double-click the value area
+		// The Notes field has title="Double-click to edit"
+		const editableFields = page.locator('[title="Double-click to edit"]');
+		const notesField = editableFields.last();
+		await notesField.dblclick();
+
+		// An input should appear within the field area
+		const editInput = page.locator('input[type="text"]').first();
+		await expect(editInput).toBeVisible();
+	});
+
+	test('Editing a field and pressing Enter saves the value', async ({ page }) => {
+		await goToDayView(page);
+
+		// Double-click the Travel field (has "Land at 5PM" on day 1)
+		const travelField = page.locator('[title="Double-click to edit"]').first();
+		await travelField.dblclick();
+
+		const editInput = page.locator('input[type="text"]').first();
+		await editInput.fill('NEW TRAVEL VALUE 12345');
+		await editInput.press('Enter');
+
+		// Verify the value persisted in the DOM
+		await expect(page.locator('text=NEW TRAVEL VALUE 12345')).toBeVisible();
+	});
+
+	test('Editing a field and pressing Escape cancels without saving', async ({ page }) => {
+		await goToDayView(page);
+
+		// Get initial travel text
+		const travelField = page.locator('[title="Double-click to edit"]').first();
+		const originalText = await travelField.textContent();
+
+		await travelField.dblclick();
+		const editInput = page.locator('input[type="text"]').first();
+		await editInput.fill('SHOULD NOT SAVE');
+		await editInput.press('Escape');
+
+		// Value should revert to original
+		await expect(page.locator('[title="Double-click to edit"]').first()).toContainText(originalText!.trim());
+	});
+
+	test('Edited field value persists after navigating away and back', async ({ page }) => {
+		await goToDayView(page);
+
+		// Edit the Notes field on Day 1 (last editable field)
+		const notesField = page.locator('[title="Double-click to edit"]').last();
+		await notesField.dblclick();
+		const editInput = page.locator('input[type="text"]').first();
+		await editInput.fill('PERSISTENT NOTE ABCDE');
+		await editInput.press('Enter');
+
+		// Navigate to Day 2
+		await page.click('button[aria-label="Next day"]');
+		await page.waitForTimeout(300);
+
+		// Navigate back to Day 1
+		await page.click('button[aria-label="Previous day"]');
+		await page.waitForTimeout(300);
+
+		// Value should still be there
+		await expect(page.locator('text=PERSISTENT NOTE ABCDE')).toBeVisible();
+	});
+
+	test('Edited field value persists after full page reload', async ({ page }) => {
+		await goToDayView(page);
+
+		// Edit notes field
+		const notesField = page.locator('[title="Double-click to edit"]').last();
+		await notesField.dblclick();
+		const editInput = page.locator('input[type="text"]').first();
+		await editInput.fill('SURVIVES RELOAD XYZ');
+		await editInput.press('Enter');
+		await page.waitForTimeout(500);
+
+		// Full page reload
+		await page.reload({ waitUntil: 'domcontentloaded' });
+		await page.waitForSelector('h1', { timeout: 10000 });
+		// Switch back to day view
+		await page.getByRole('tab', { name: 'Day' }).click();
+		await page.waitForSelector('button[aria-label="Next day"]', { timeout: 5000 });
+
+		// Notes field should still have our value
+		await expect(page.locator('text=SURVIVES RELOAD XYZ')).toBeVisible();
+	});
+});
+
+// ─── TRIP HEADER — Undo / Export / Reset / Name Edit ────────────
+
+test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Double-click trip name opens editor, Enter saves', async ({ page }) => {
+		await goToDayView(page);
+
+		const tripName = page.locator('h1');
+		const originalName = await tripName.textContent();
+		await tripName.dblclick();
+
+		// Input should appear (the name editor has no specific role, find by context)
+		const nameInput = page.locator('input[type="text"]').first();
+		await expect(nameInput).toBeVisible();
+
+		await nameInput.fill('Test Trip Name 999');
+		await nameInput.press('Enter');
+
+		await expect(page.locator('h1')).toContainText('Test Trip Name 999');
+
+		// Undo should revert
+		await page.getByRole('button', { name: 'Undo' }).click();
+		await expect(page.locator('h1')).toContainText(originalName!.trim());
+	});
+
+	test('Reset button reverts all changes after confirmation', async ({ page }) => {
+		await goToDayView(page);
+
+		const tripName = page.locator('h1');
+		const originalName = await tripName.textContent();
+		await tripName.dblclick();
+		const nameInput = page.locator('input[type="text"]').first();
+		await nameInput.fill('CHANGED NAME');
+		await nameInput.press('Enter');
+		await expect(page.locator('h1')).toContainText('CHANGED NAME');
+
+		// Set up dialog handler BEFORE clicking reset
+		page.once('dialog', dialog => dialog.accept());
+		await page.getByRole('button', { name: 'Reset' }).click();
+		// Wait for Svelte reactivity to process the reset
+		await page.waitForTimeout(500);
+
+		await expect(page.locator('h1')).toContainText(originalName!.trim(), { timeout: 5000 });
+	});
+
+	test('Export button triggers file download', async ({ page }) => {
+		await goToDayView(page);
+
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('button', { name: 'Export' }).click();
+		const download = await downloadPromise;
+
+		expect(download.suggestedFilename()).toBe('china-2026.json');
+	});
+});
+
+// ─── WEEK VIEW → DAY VIEW FLOW ─────────────────────────────────
+
+test.describe('Week View — Day Card Interaction', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Clicking a day card switches to day view for that day', async ({ page }) => {
+		await goToWeekView(page);
+
+		// Day cards have cursor=pointer and contain date info like "Wed 04-22"
+		const firstDayCard = page.locator('[cursor="pointer"]').first();
+		// More reliable: click the first card text showing a date
+		await page.locator('text=/\\w{3} \\d{2}-\\d{2}/').first().click();
+
+		// Should now be in day view — verify by presence of Next/Prev buttons
+		await expect(page.locator('button[aria-label="Next day"]')).toBeVisible({ timeout: 5000 });
+		const { current } = await getDayInfo(page);
+		expect(current).toBe(1);
+	});
+
+	test('Week view shows correct number of day cards', async ({ page }) => {
+		await goToWeekView(page);
+
+		// Count elements that contain date patterns like "Wed 04-22"
+		const dayLabels = page.locator('text=/^\\w{3} \\d{2}-\\d{2}$/');
+		const count = await dayLabels.count();
+		expect(count).toBeGreaterThan(0);
+
+		// Should match the "X days" label
+		const daysText = await page.locator('text=/\\d+ days/').textContent();
+		const expectedCount = parseInt(daysText!.match(/(\d+)/)![1]);
+		expect(count).toBe(expectedCount);
+	});
+
+	test('Add Day in week view adds a card', async ({ page }) => {
+		await goToWeekView(page);
+
+		const dayLabels = page.locator('text=/^\\w{3} \\d{2}-\\d{2}$/');
+		const initialCount = await dayLabels.count();
+
+		await page.getByRole('button', { name: '+ Add day' }).click();
+
+		const newCount = await dayLabels.count();
+		expect(newCount).toBe(initialCount + 1);
+	});
+});
+
+// ─── VIEW TOGGLE ────────────────────────────────────────────────
+
+test.describe('View Toggle', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Week/Day toggle switches views', async ({ page }) => {
+		await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
+		await page.waitForSelector('h1', { timeout: 10000 });
+
+		// Click Day tab
+		await page.getByRole('tab', { name: 'Day' }).click();
+		await expect(page.locator('button[aria-label="Next day"]')).toBeVisible({ timeout: 5000 });
+
+		// Click Week tab
+		await page.getByRole('tab', { name: 'Week' }).click();
+		await expect(page.getByRole('button', { name: '+ Add day' })).toBeVisible({ timeout: 5000 });
+	});
+});
+
+// ─── TODOS SECTION ──────────────────────────────────────────────
+
+test.describe('Todos Section', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Add a todo item', async ({ page }) => {
+		await goToDayView(page);
+
+		await page.getByPlaceholder('Add a task...').fill('Pack passport');
+		await page.getByRole('button', { name: 'Add', exact: true }).click();
+
+		await expect(page.locator('text=Pack passport')).toBeVisible();
+	});
+
+	test('Toggle todo checkbox marks item done', async ({ page }) => {
+		await goToDayView(page);
+
+		const firstCheckbox = page.getByRole('checkbox').first();
+		await firstCheckbox.check();
+		expect(await firstCheckbox.isChecked()).toBe(true);
+
+		await firstCheckbox.uncheck();
+		expect(await firstCheckbox.isChecked()).toBe(false);
+	});
+
+	test('Delete todo removes it from list', async ({ page }) => {
+		await goToDayView(page);
+
+		// Count todos via checkboxes (only todos have checkboxes)
+		const checkboxes = page.getByRole('checkbox');
+		const initialCount = await checkboxes.count();
+		expect(initialCount).toBeGreaterThan(0);
+
+		// The ✕ delete buttons are opacity:0 until hover — use dispatchEvent to bypass
+		const firstDeleteBtn = page.locator('button').filter({ hasText: '\u2715' }).first();
+		await firstDeleteBtn.dispatchEvent('click');
+
+		await page.waitForTimeout(300);
+		const newCount = await checkboxes.count();
+		expect(newCount).toBe(initialCount - 1);
+	});
+
+	test('Double-click todo text to edit', async ({ page }) => {
+		await goToDayView(page);
+
+		// Todo items have title="Double-click to edit"
+		const firstTodo = page.locator('ul li [title="Double-click to edit"]').first();
+		await firstTodo.dblclick();
+
+		const editInput = page.locator('ul li input[type="text"]');
+		await expect(editInput).toBeVisible();
+
+		await editInput.fill('EDITED TODO ITEM');
+		await editInput.press('Enter');
+
+		await expect(page.locator('text=EDITED TODO ITEM')).toBeVisible();
+	});
+
+	test('Add todo via Enter key', async ({ page }) => {
+		await goToDayView(page);
+
+		await page.getByPlaceholder('Add a task...').fill('Buy souvenirs');
+		await page.getByPlaceholder('Add a task...').press('Enter');
+
+		await expect(page.locator('text=Buy souvenirs')).toBeVisible();
+	});
+});
+
+// ─── DASHBOARD → TRIP FLOW ──────────────────────────────────────
+
+test.describe('Dashboard — Trip Navigation', () => {
+	test('Dashboard shows at least one trip card', async ({ page }) => {
+		await injectAuth(page);
+		await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded' });
+		await page.waitForTimeout(2000);
+
+		const tripLinks = page.locator('a[href*="/trip/"]');
+		await expect(tripLinks.first()).toBeVisible({ timeout: 5000 });
+		expect(await tripLinks.count()).toBeGreaterThanOrEqual(1);
+	});
+
+	test('Clicking trip card navigates to trip page', async ({ page }) => {
+		await injectAuth(page);
+		await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded' });
+		await page.waitForTimeout(2000);
+
+		await page.locator('a[href*="/trip/"]').first().click();
+		await page.waitForURL('**/trip/**', { timeout: 5000 });
+		await expect(page.locator('h1')).toBeVisible({ timeout: 5000 });
+	});
+});
+
+// ─── CONSOLE ERRORS ─────────────────────────────────────────────
+
+test.describe('No JavaScript Errors', () => {
+	test('Trip page has no console errors during interaction', async ({ page }) => {
+		const errors: string[] = [];
+		page.on('console', msg => {
+			if (msg.type() === 'error') errors.push(msg.text());
+		});
+
+		await injectAuth(page);
+		await goToDayView(page);
+
+		// Click through actions
+		await page.getByRole('button', { name: '+ Add' }).click();
+		await page.click('button[aria-label="Next day"]');
+		await page.click('button[aria-label="Previous day"]');
+
+		// Edit a field
+		const editableField = page.locator('[title="Double-click to edit"]').first();
+		await editableField.dblclick();
+		const input = page.locator('input[type="text"]').first();
+		if (await input.isVisible()) {
+			await input.fill('test');
+			await input.press('Enter');
+		}
+
+		// Toggle view
+		await page.getByRole('tab', { name: 'Week' }).click();
+		await page.waitForTimeout(500);
+		await page.getByRole('tab', { name: 'Day' }).click();
+
+		// Filter out known benign errors
+		const realErrors = errors.filter(e =>
+			!e.includes('favicon') &&
+			!e.includes('chat') &&
+			!e.includes('api.heatherandwesley') &&
+			!e.includes('ERR_CONNECTION')
+		);
+
+		expect(realErrors).toEqual([]);
+	});
+});
