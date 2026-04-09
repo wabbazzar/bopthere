@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
 	testDir: './tests',
-	testMatch: 'chat-e2e.spec.ts',
+	testIgnore: ['**/e2e/**', '**/unit/**'],
 	timeout: 120000,
 	workers: 1,
 	use: { headless: true },

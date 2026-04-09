@@ -1,0 +1,9 @@
+[Unit]
+Description=Guardian Claude daily run for H&W travel app
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/wabbazzar/code/heatherandwesley
+ExecStart=/bin/bash /home/wabbazzar/code/heatherandwesley/scripts/guardian-claude.sh daily
+Environment=HOME=/home/wabbazzar
+Environment=PATH=/home/wabbazzar/.local/bin:/usr/local/bin:/usr/bin:/bin

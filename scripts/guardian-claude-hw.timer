@@ -1,0 +1,9 @@
+[Unit]
+Description=Guardian Claude daily 7:15am timer for H&W
+
+[Timer]
+OnCalendar=*-*-* 07:15:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

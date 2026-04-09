@@ -162,3 +162,29 @@ npm run check   # svelte-check
 - Function first, aesthetics later (skinnable architecture)
 - The wedding is over (Dec 2025, Maui). The archive preserves that site.
 - Current focus: travel planning, starting with China trip (Apr-May 2026)
+
+## 10. Guardian Claude
+
+Automated regression protection. Runs after every `git push` (hook mode) and daily at 7:15am (daily mode).
+
+| File | Purpose |
+|------|---------|
+| `scripts/guardian-claude.sh` | Launcher (modes, budget, notifications) |
+| `scripts/guardian-claude-prompt.md` | Autonomous agent instructions |
+| `tests/guardian-checklist.md` | Permanent regression guards (dev agent appends here) |
+| `.claude/hooks/post-push-guardian.sh` | PostToolUse hook (git push trigger) |
+| `tmp/guardian-result.json` | Last run results |
+| `tmp/guardian-last-run.log` | Last run full output |
+
+### Running manually
+```bash
+bash scripts/guardian-claude.sh hook   # Fast: script checks + vitest (~60s)
+bash scripts/guardian-claude.sh daily  # Full: scripts + vitest + Playwright + GUI + DB (~3-5min)
+```
+
+### Test commands
+```bash
+npm test              # vitest unit tests
+npm run test:e2e      # Playwright E2E tests
+npm run check         # svelte-check + TypeScript
+```
