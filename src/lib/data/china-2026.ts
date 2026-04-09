@@ -80,8 +80,8 @@ const days: TripDay[] = [
 		notes: 'Near National Forest Park',
 		ooo: true,
 		mapLinks: [
-			{ label: 'Hotel to Train Station', from: 'Hyatt Regency Metropolitan Chongqing', to: 'Chongqing East Railway Station' },
-			{ label: 'Station to Homestay', from: 'Zhangjiajie West Railway Station', to: 'Qishi Li Cave Homestay, Wulingyuan, Zhangjiajie' }
+			{ label: 'Hotel to Train Station', from: 'Hyatt Regency Metropolitan Chongqing', to: 'Chongqing North Railway Station' },
+			{ label: 'Station to Homestay', from: '\u5f20\u5bb6\u754c\u897f\u7ad9', to: 'Qishi Li Cave Homestay, Wulingyuan, Zhangjiajie' }
 		]
 	},
 	{
