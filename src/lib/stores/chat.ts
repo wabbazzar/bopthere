@@ -48,14 +48,11 @@ function createChatStore() {
 	return {
 		subscribe,
 
-		async open(tripId: string, trip: Trip) {
+		open(tripId: string, trip: Trip) {
 			update((s) => ({ ...s, isOpen: true, activeTripId: tripId, activeTrip: trip, isLoading: true, error: null }));
-			try {
-				const messages = await chatService.getConversation(tripId);
-				update((s) => ({ ...s, messages, isLoading: false }));
-			} catch {
-				update((s) => ({ ...s, isLoading: false, error: 'Failed to load conversation' }));
-			}
+			chatService.getConversation(tripId)
+				.then((messages) => update((s) => ({ ...s, messages, isLoading: false })))
+				.catch(() => update((s) => ({ ...s, isLoading: false, error: 'Failed to load conversation' })));
 			startPolling();
 		},
 

@@ -14,27 +14,47 @@ function headers(): Record<string, string> {
 }
 
 export async function getConversation(tripId: string): Promise<ChatMessage[]> {
-	const res = await fetch(`${API_URL}/api/chat/conversations/${tripId}`, { headers: headers() });
-	if (!res.ok) throw new Error('Failed to load conversation');
-	const data = await res.json();
-	return data.messages || [];
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 8000);
+	try {
+		const res = await fetch(`${API_URL}/api/chat/conversations/${tripId}`, {
+			headers: headers(),
+			signal: controller.signal
+		});
+		clearTimeout(timeout);
+		if (!res.ok) throw new Error('Failed to load conversation');
+		const data = await res.json();
+		return data.messages || [];
+	} catch (e) {
+		clearTimeout(timeout);
+		throw e;
+	}
 }
 
 export async function sendMessage(tripId: string, trip: Trip, message: string): Promise<ChatMessage> {
-	const res = await fetch(`${API_URL}/api/chat/messages`, {
-		method: 'POST',
-		headers: headers(),
-		body: JSON.stringify({
-			tripId,
-			message,
-			systemPrompt: buildSystemPrompt(trip)
-		})
-	});
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({ detail: 'Chat request failed' }));
-		throw new Error(err.detail || 'Chat request failed');
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 60000);
+	try {
+		const res = await fetch(`${API_URL}/api/chat/messages`, {
+			method: 'POST',
+			headers: headers(),
+			signal: controller.signal,
+			body: JSON.stringify({
+				tripId,
+				message,
+				systemPrompt: buildSystemPrompt(trip)
+			})
+		});
+		clearTimeout(timeout);
+		if (!res.ok) {
+			const err = await res.json().catch(() => ({ detail: 'Chat request failed' }));
+			throw new Error(err.detail || 'Chat request failed');
+		}
+		return await res.json();
+	} catch (e) {
+		clearTimeout(timeout);
+		throw e;
 	}
-	return await res.json();
 }
 
 export async function clearConversation(tripId: string): Promise<void> {

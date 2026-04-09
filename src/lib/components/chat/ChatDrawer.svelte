@@ -6,10 +6,16 @@
 	let inputValue = '';
 	let messagesEl: HTMLElement;
 
-	$: if ($chat.messages.length && messagesEl) {
-		tick().then(() => {
-			messagesEl.scrollTop = messagesEl.scrollHeight;
-		});
+	// Only scroll when message count changes, not on every store update
+	let prevMsgCount = 0;
+	$: {
+		const count = $chat.messages.length;
+		if (count > prevMsgCount && messagesEl) {
+			prevMsgCount = count;
+			tick().then(() => {
+				if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
+			});
+		}
 	}
 
 	function handleSend() {
