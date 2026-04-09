@@ -2,6 +2,7 @@ import { PUBLIC_CHAT_API_URL } from '$env/static/public';
 import { getToken } from '$lib/services/auth';
 import type { Trip } from '$lib/types/trip';
 import type { ChatMessage } from '$lib/types/chat';
+import { getProfile } from '$lib/data/destination-vibes';
 
 const API_URL = PUBLIC_CHAT_API_URL;
 
@@ -104,7 +105,43 @@ Guidelines:
 - Consider the location for each day when suggesting
 - Be aware of travel days vs full days
 - Keep suggestions concise and actionable
-- For restaurants, include cuisine type and price range
+- For restaurants, include cuisine type and price range (local currency + USD)
+- For activities, include entry fee if any and how to get there
 - Consider proximity to their accommodation
-- Use markdown formatting sparingly (bold for names is fine)`;
+- Use markdown formatting sparingly (bold for names is fine)
+
+When giving activity/restaurant suggestions:
+- Give exactly 2-3 specific options
+- For each: name, 1-sentence why it fits, estimated time needed
+- Include a search link: [Reviews](https://www.google.com/search?q=PLACE+NAME+CITY+reviews)
+- Be opinionated — rank with a clear #1 pick`;
+}
+
+export function buildSuggestionMessage(
+	trip: Trip,
+	dayIndex: number,
+	slot: 'morning' | 'afternoon' | 'evening',
+	energy: string,
+	interest: string
+): string {
+	const day = trip.days[dayIndex];
+	if (!day) return '';
+
+	const profile = getProfile(day.location);
+	const knownFor = profile.knownFor.length ? `\nThis area is known for: ${profile.knownFor.join(', ')}.` : '';
+
+	// Build adjacent activity context
+	const adjacent: string[] = [];
+	if (slot !== 'morning' && day.morning) adjacent.push(`Morning: ${day.morning}`);
+	if (slot !== 'afternoon') {
+		if (day.morning && slot === 'evening') adjacent.push(`Morning: ${day.morning}`);
+		if (day.afternoon) adjacent.push(`Afternoon: ${day.afternoon}`);
+	}
+	if (slot !== 'evening' && day.evening) adjacent.push(`Evening: ${day.evening}`);
+	if (day.travel) adjacent.push(`Travel: ${day.travel}`);
+	const adjacentCtx = adjacent.length ? `\nAlready planned: ${adjacent.join('; ')}.` : '';
+
+	return `Suggest 2-3 ${slot} options for ${day.dayOfWeek} ${day.date} in ${day.location}.
+Vibe: ${energy} energy, ${interest} focus.${knownFor}${adjacentCtx}
+Include review links for each suggestion.`;
 }

@@ -1,8 +1,23 @@
 <script lang="ts">
 	import type { Trip } from '$lib/types/trip';
 	import { trips } from '$lib/stores/trips';
+	import { chat } from '$lib/stores/chat';
 	import ExpandableField from './ExpandableField.svelte';
+	import SuggestPopover from './SuggestPopover.svelte';
 	import MapLinks from './MapLinks.svelte';
+
+	let suggestTarget: { field: string; element: HTMLElement } | null = null;
+
+	function handleSuggest(e: CustomEvent<{ field: string; element: HTMLElement }>) {
+		suggestTarget = e.detail;
+	}
+
+	function handleSuggestSubmit(e: CustomEvent<{ energy: string; interest: string }>) {
+		if (!suggestTarget || !day) return;
+		const { energy, interest } = e.detail;
+		chat.sendSuggestion(tripId, trip, currentDayIndex, suggestTarget.field as 'morning' | 'afternoon' | 'evening', energy, interest);
+		suggestTarget = null;
+	}
 
 	export let trip: Trip;
 	export let tripId: string;
@@ -100,9 +115,9 @@
 			<div class="px-4 py-1">
 				<ExpandableField label="Travel" value={day.travel} field="travel" dayIndex={currentDayIndex} {tripId} icon={'\u2708'} />
 				<ExpandableField label="Stay" value={day.accommodation} field="accommodation" dayIndex={currentDayIndex} {tripId} icon={'\u{1F3E8}'} />
-				<ExpandableField label="Morning" value={day.morning} field="morning" dayIndex={currentDayIndex} {tripId} />
-				<ExpandableField label="Afternoon" value={day.afternoon} field="afternoon" dayIndex={currentDayIndex} {tripId} />
-				<ExpandableField label="Evening" value={day.evening} field="evening" dayIndex={currentDayIndex} {tripId} />
+				<ExpandableField label="Morning" value={day.morning} field="morning" dayIndex={currentDayIndex} {tripId} suggestable on:suggest={handleSuggest} />
+				<ExpandableField label="Afternoon" value={day.afternoon} field="afternoon" dayIndex={currentDayIndex} {tripId} suggestable on:suggest={handleSuggest} />
+				<ExpandableField label="Evening" value={day.evening} field="evening" dayIndex={currentDayIndex} {tripId} suggestable on:suggest={handleSuggest} />
 				<ExpandableField label="Notes" value={day.notes} field="notes" dayIndex={currentDayIndex} {tripId} />
 			</div>
 			{#if day.mapLinks?.length}
@@ -131,6 +146,16 @@
 				</button>
 			</div>
 		</div>
+	{/if}
+
+	{#if suggestTarget && day}
+		<SuggestPopover
+			location={day.location}
+			slot={suggestTarget.field}
+			anchor={suggestTarget.element}
+			on:submit={handleSuggestSubmit}
+			on:close={() => (suggestTarget = null)}
+		/>
 	{/if}
 </div>
 

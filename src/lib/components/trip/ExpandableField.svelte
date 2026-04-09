@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { trips } from '$lib/stores/trips';
+	import { createEventDispatcher } from 'svelte';
 	import type { TripDay } from '$lib/types/trip';
 
 	export let label: string;
@@ -8,6 +9,10 @@
 	export let dayIndex: number;
 	export let tripId: string;
 	export let icon = '';
+	export let suggestable = false;
+
+	const dispatch = createEventDispatcher();
+	let fieldRowEl: HTMLElement;
 
 	let expanded = false;
 	let editing = false;
@@ -37,7 +42,7 @@
 	}
 </script>
 
-<div class="field-row">
+<div class="field-row" bind:this={fieldRowEl}>
 	<div class="field-label">
 		{#if icon}<span class="field-icon">{icon}</span>{/if}
 		{label}
@@ -56,6 +61,14 @@
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="field-text" class:truncate={!expanded && isLong} on:dblclick={startEdit} title="Double-click to edit">
 				{displayValue}
+				{#if suggestable && !value}
+					<button class="suggest-trigger" on:click|stopPropagation={() => dispatch('suggest', { field, element: fieldRowEl })} aria-label="Get suggestions">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/>
+							<path d="M18 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/>
+						</svg>
+					</button>
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -107,6 +120,25 @@
 	}
 	.field-text {
 		cursor: text;
+	}
+	.suggest-trigger {
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: var(--ink-faint);
+		opacity: 0.35;
+		padding: 0.125rem;
+		margin-left: 0.375rem;
+		vertical-align: middle;
+		transition: opacity 150ms ease, color 150ms ease;
+		display: inline-flex;
+	}
+	.suggest-trigger:hover {
+		opacity: 1;
+		color: var(--accent);
+	}
+	@media (hover: none) {
+		.suggest-trigger { opacity: 0.55; }
 	}
 	.field-chevron {
 		background: none;

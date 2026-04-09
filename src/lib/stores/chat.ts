@@ -104,6 +104,20 @@ function createChatStore() {
 			}
 		},
 
+		sendSuggestion(tripId: string, trip: Trip, dayIndex: number, slot: 'morning' | 'afternoon' | 'evening', energy: string, interest: string) {
+			const message = chatService.buildSuggestionMessage(trip, dayIndex, slot, energy, interest);
+			if (!message) return;
+
+			// Open drawer if not open
+			const state = get({ subscribe });
+			if (!state.isOpen) {
+				this.open(tripId, trip);
+			}
+
+			// Small delay to let drawer render before sending
+			setTimeout(() => this.send(message), 300);
+		},
+
 		async clear() {
 			const state = get({ subscribe });
 			if (!state.activeTripId) return;
