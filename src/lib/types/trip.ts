@@ -11,6 +11,15 @@ export interface TripDay {
 	ooo: boolean;
 }
 
+export interface Booking {
+	type: 'flight' | 'hotel';
+	label: string;
+	date: string;
+	confirmation?: string;
+	details: string[];
+	ticketUrl?: string;
+}
+
 export interface Trip {
 	id: string;
 	name: string;
@@ -19,4 +28,5 @@ export interface Trip {
 	destinations: string[];
 	days: TripDay[];
 	links: string[];
+	bookings?: Booking[];
 }

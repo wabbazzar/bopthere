@@ -7,6 +7,7 @@
 	import WeekView from '$lib/components/trip/WeekView.svelte';
 	import DayView from '$lib/components/trip/DayView.svelte';
 	import LinksSection from '$lib/components/trip/LinksSection.svelte';
+	import BookingsSection from '$lib/components/trip/BookingsSection.svelte';
 	import TodosSection from '$lib/components/trip/TodosSection.svelte';
 
 	$: tripId = $page.params.id as string;
@@ -45,7 +46,13 @@
 		<DayView {trip} {tripId} bind:currentDayIndex />
 	{/if}
 
-	<div class="mt-8 grid md:grid-cols-2 gap-6">
+	{#if trip.bookings?.length}
+		<div class="mt-8">
+			<BookingsSection bookings={trip.bookings} />
+		</div>
+	{/if}
+
+	<div class="mt-6 grid md:grid-cols-2 gap-6">
 		<LinksSection {trip} {tripId} />
 		<TodosSection {tripId} />
 	</div>

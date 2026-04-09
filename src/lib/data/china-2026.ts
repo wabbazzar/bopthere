@@ -10,7 +10,7 @@ const days: TripDay[] = [
 		afternoon: '',
 		evening: 'Check in hotel, explore city',
 		accommodation: 'Kimpton IHG',
-		notes: '',
+		notes: '$35/night post credits, free breakfast',
 		ooo: false
 	},
 	{
@@ -22,7 +22,7 @@ const days: TripDay[] = [
 		afternoon: '',
 		evening: '',
 		accommodation: 'Kimpton IHG',
-		notes: '',
+		notes: '$35/night post credits, free breakfast',
 		ooo: true
 	},
 	{
@@ -33,8 +33,8 @@ const days: TripDay[] = [
 		morning: '',
 		afternoon: '',
 		evening: '',
-		accommodation: 'Voco Chongqing',
-		notes: '',
+		accommodation: 'Hyatt Regency Metro',
+		notes: '8K points, $0',
 		ooo: false
 	},
 	{
@@ -45,8 +45,8 @@ const days: TripDay[] = [
 		morning: '',
 		afternoon: '',
 		evening: '',
-		accommodation: 'Voco Chongqing',
-		notes: '',
+		accommodation: 'Hyatt Regency Metro',
+		notes: '8K points, $0',
 		ooo: false
 	},
 	{
@@ -57,31 +57,31 @@ const days: TripDay[] = [
 		morning: '',
 		afternoon: '',
 		evening: '',
-		accommodation: 'Voco Chongqing',
-		notes: '',
+		accommodation: 'Hyatt Regency Metro',
+		notes: '8K points, $0',
 		ooo: true
 	},
 	{
 		date: '2026-04-27',
 		dayOfWeek: 'Mon',
-		location: 'Chongqing',
-		travel: 'Full Day',
+		location: 'Zhangjiajie',
+		travel: 'Half Day CQ / Half Day ZJJ',
 		morning: '',
-		afternoon: '',
-		evening: '',
-		accommodation: 'Voco Chongqing',
-		notes: '',
+		afternoon: 'Bullet Train over to ZJJ',
+		evening: 'Check in hotel',
+		accommodation: 'Qishi Li Cave Homestay',
+		notes: 'Near National Forest Park',
 		ooo: true
 	},
 	{
 		date: '2026-04-28',
 		dayOfWeek: 'Tue',
 		location: 'Zhangjiajie',
-		travel: 'Morning bullet train',
+		travel: '',
 		morning: '',
 		afternoon: '',
 		evening: '',
-		accommodation: 'Wulingyuan',
+		accommodation: 'Qishi Li Cave Homestay',
 		notes: '',
 		ooo: true
 	},
@@ -93,20 +93,20 @@ const days: TripDay[] = [
 		morning: '',
 		afternoon: '',
 		evening: '',
-		accommodation: 'Wulingyuan',
-		notes: '',
+		accommodation: 'ZJJ City Hotel (TBD)',
+		notes: 'Hampton by Hilton recommended',
 		ooo: true
 	},
 	{
 		date: '2026-04-30',
 		dayOfWeek: 'Thu',
-		location: 'Zhangjiajie',
-		travel: 'Late night from Zhangjiajie to SH 8:35PM',
+		location: 'Zhangjiajie / Shanghai',
+		travel: 'Late night ZJJ to SH 8:35PM',
 		morning: '',
 		afternoon: '',
 		evening: '',
-		accommodation: 'hotel',
-		notes: '',
+		accommodation: 'The Shanghai EDITION',
+		notes: '16K points, $0',
 		ooo: true
 	},
 	{
@@ -117,8 +117,8 @@ const days: TripDay[] = [
 		morning: '',
 		afternoon: '',
 		evening: '',
-		accommodation: '24 hr spa',
-		notes: '',
+		accommodation: 'The Shanghai EDITION',
+		notes: '16K points, $0',
 		ooo: false
 	},
 	{
@@ -135,15 +135,17 @@ const days: TripDay[] = [
 	}
 ];
 
+// bookings removed from git history
+
 export const chinaTrip: Trip = {
 	id: 'china-2026',
 	name: 'China 2026',
 	startDate: '2026-04-22',
 	endDate: '2026-05-02',
 	destinations: ['Shanghai', 'Chongqing', 'Zhangjiajie'],
-	days,
+	days
 	links: [
-		'https://us.trip.com/hotels/detail/?hotelId=97132394&checkIn=2026-04-28&checkOut=2026-04-30&adult=2',
-		'https://us.trip.com/hotels/zhangjiajie-hotel-detail-1766751/no-5-valley-inn/?cityId=27&checkIn=2026-04-28&checkOut=2026-04-30&adult=2'
+		'https://www.hyatt.com/shop/rooms/ckgro?location=Hyatt+Regency+Metropolitan+Chongqing&checkinDate=2026-04-24&checkoutDate=2026-04-27&rooms=1&adults=2',
+		'https://www.hilton.com/en/book/reservation/rooms/?ctyhocn=DYGZAHX&arrivalDate=2026-04-29&departureDate=2026-04-30&room1NumAdults=2'
 	]
 };
