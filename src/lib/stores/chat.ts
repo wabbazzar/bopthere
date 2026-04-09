@@ -1,7 +1,9 @@
 import { writable, get } from 'svelte/store';
-import type { ChatMessage } from '$lib/types/chat';
+import type { ChatMessage, TripUpdate } from '$lib/types/chat';
 import type { Trip } from '$lib/types/trip';
 import * as chatService from '$lib/services/chat';
+import { parseTripUpdates } from '$lib/services/chat-actions';
+import { trips } from '$lib/stores/trips';
 
 interface ChatState {
 	messages: ChatMessage[];
@@ -10,7 +12,27 @@ interface ChatState {
 	activeTripId: string | null;
 	activeTrip: Trip | null;
 	error: string | null;
+	thinkingMessage: string | null;
+	/** Maps message ID → pending updates parsed from that message */
+	pendingActions: Record<string, TripUpdate[]>;
+	/** Set of message IDs whose actions have been applied */
+	appliedActions: Set<string>;
 }
+
+const THINKING_MESSAGES = [
+	'Thinking about your trip…',
+	'Checking flight times…',
+	'Consulting the guidebook…',
+	'Mapping out options…',
+	'Weighing the best picks…',
+	'Scouring local reviews…',
+	'Crunching travel logistics…',
+	'Packing recommendations…',
+	'Cross-referencing your itinerary…',
+	'Almost there…',
+];
+
+const THINKING_ROTATE_MS = 3000;
 
 function createChatStore() {
 	const { subscribe, set, update } = writable<ChatState>({
@@ -19,11 +41,35 @@ function createChatStore() {
 		isLoading: false,
 		activeTripId: null,
 		activeTrip: null,
-		error: null
+		error: null,
+		thinkingMessage: null,
+		pendingActions: {},
+		appliedActions: new Set<string>()
 	});
 
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let sendInFlight = false;
+	let thinkingInterval: ReturnType<typeof setInterval> | null = null;
+	let thinkingIndex = 0;
+
+	function startThinking() {
+		stopThinking();
+		thinkingIndex = 0;
+		update((s) => ({ ...s, thinkingMessage: THINKING_MESSAGES[0] }));
+		thinkingInterval = setInterval(() => {
+			thinkingIndex = (thinkingIndex + 1) % THINKING_MESSAGES.length;
+			update((s) => ({ ...s, thinkingMessage: THINKING_MESSAGES[thinkingIndex] }));
+		}, THINKING_ROTATE_MS);
+	}
+
+	function stopThinking() {
+		if (thinkingInterval) {
+			clearInterval(thinkingInterval);
+			thinkingInterval = null;
+		}
+		thinkingIndex = 0;
+		update((s) => ({ ...s, thinkingMessage: null }));
+	}
 
 	function startPolling() {
 		stopPolling();
@@ -106,13 +152,23 @@ function createChatStore() {
 				error: null
 			}));
 
+			startThinking();
+
 			try {
 				const assistantMsg = await chatService.sendMessage(state.activeTripId, state.activeTrip, message);
-				update((s) => ({
-					...s,
-					messages: [...s.messages, assistantMsg],
-					isLoading: false
-				}));
+				const actions = parseTripUpdates(assistantMsg.content);
+				update((s) => {
+					const pendingActions = { ...s.pendingActions };
+					if (actions.length > 0) {
+						pendingActions[assistantMsg.id] = actions;
+					}
+					return {
+						...s,
+						messages: [...s.messages, assistantMsg],
+						isLoading: false,
+						pendingActions
+					};
+				});
 			} catch (e) {
 				update((s) => ({
 					...s,
@@ -121,6 +177,7 @@ function createChatStore() {
 				}));
 			} finally {
 				sendInFlight = false;
+				stopThinking();
 			}
 		},
 
@@ -141,6 +198,32 @@ function createChatStore() {
 			setTimeout(() => this.send(message), 300);
 		},
 
+		applyActions(messageId: string) {
+			const state = get({ subscribe });
+			const actions = state.pendingActions[messageId];
+			if (!actions || !state.activeTripId) return;
+
+			for (const action of actions) {
+				trips.updateDayField(state.activeTripId, action.dayIndex, action.field, action.value);
+			}
+
+			update((s) => {
+				const pendingActions = { ...s.pendingActions };
+				delete pendingActions[messageId];
+				const appliedActions = new Set(s.appliedActions);
+				appliedActions.add(messageId);
+				return { ...s, pendingActions, appliedActions };
+			});
+		},
+
+		dismissActions(messageId: string) {
+			update((s) => {
+				const pendingActions = { ...s.pendingActions };
+				delete pendingActions[messageId];
+				return { ...s, pendingActions };
+			});
+		},
+
 		async clear() {
 			const state = get({ subscribe });
 			if (!state.activeTripId) return;
@@ -151,3 +234,4 @@ function createChatStore() {
 }
 
 export const chat = createChatStore();
+export { THINKING_MESSAGES, THINKING_ROTATE_MS };

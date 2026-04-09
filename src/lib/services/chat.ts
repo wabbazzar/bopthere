@@ -77,7 +77,7 @@ function buildSystemPrompt(trip: Trip): string {
 			if (d.afternoon) parts.push(`  PM: ${d.afternoon}`);
 			if (d.evening) parts.push(`  EVE: ${d.evening}`);
 			if (d.notes) parts.push(`  Notes: ${d.notes}`);
-			if (d.ooo) parts.push(`  [Wesley working remotely]`);
+			if (d.ooo) parts.push(`  [Heather OOO]`);
 			return parts.join('\n');
 		})
 		.join('\n\n');
@@ -114,7 +114,23 @@ When giving activity/restaurant suggestions:
 - Give exactly 2-3 specific options
 - For each: name, 1-sentence why it fits, estimated time needed
 - Include a search link: [Reviews](https://www.google.com/search?q=PLACE+NAME+CITY+reviews)
-- Be opinionated — rank with a clear #1 pick`;
+- Be opinionated — rank with a clear #1 pick
+
+UPDATING THE TRIP:
+When the user asks you to add, change, or fill in trip details (e.g. "put Din Tai Fung in the evening slot for day 3", "change the hotel on day 5"), include a TRIP_UPDATE block at the END of your response. The block MUST be valid JSON wrapped in triple-backtick fences:
+
+\`\`\`TRIP_UPDATE
+[{"dayIndex": 2, "field": "evening", "value": "Din Tai Fung — soup dumplings, walk from hotel"}]
+\`\`\`
+
+Rules:
+- dayIndex is 0-based (Day 1 = index 0)
+- field must be one of: morning, afternoon, evening, travel, accommodation, notes, location
+- value is always a string
+- You may include multiple updates in one array
+- Always explain what you're updating in plain text BEFORE the block
+- If the user's request is ambiguous (which day? which slot?), ASK — don't guess
+- Never emit a TRIP_UPDATE unless the user explicitly asks to change the itinerary`;
 }
 
 export function buildSuggestionMessage(

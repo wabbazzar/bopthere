@@ -48,3 +48,10 @@ Edit this file to add new checks. Dev agent adds entries when new features are b
 ## Context From Dev Agent
 
 _Dev agent appends new checks here as features are built._
+
+- [ ] Chat thinking indicator: after sending a message, `[aria-label="Thinking indicator"]` with `.thinking-text` appears while waiting for response
+- [ ] Chat thinking indicator: text rotates to a different message after ~3 seconds
+- [ ] Chat thinking indicator: disappears after response arrives or on error
+- [ ] Chat TRIP_UPDATE: response with TRIP_UPDATE block shows Apply/Dismiss buttons, not raw JSON
+- [ ] Chat TRIP_UPDATE: Apply button updates trip data in localStorage and shows "Applied to trip" badge
+- [ ] Chat TRIP_UPDATE: Dismiss button removes action block without modifying trip data

@@ -38,7 +38,7 @@ const days: TripDay[] = [
 		evening: '',
 		accommodation: 'Hyatt Regency Metro',
 		notes: '8K points, $0',
-		ooo: false,
+		ooo: true,
 		mapLinks: [
 			{ label: 'Hotel to Pudong Airport', from: 'Kimpton Qiantan Shanghai', to: 'Shanghai Pudong International Airport Terminal 2' },
 			{ label: 'Jiangbei Airport to Hotel', from: 'Chongqing Jiangbei International Airport Terminal 3', to: 'Hyatt Regency Metropolitan Chongqing' }
@@ -54,7 +54,7 @@ const days: TripDay[] = [
 		evening: '',
 		accommodation: 'Hyatt Regency Metro',
 		notes: '8K points, $0',
-		ooo: false
+		ooo: true
 	},
 	{
 		date: '2026-04-26',

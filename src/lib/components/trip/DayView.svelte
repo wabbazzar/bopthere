@@ -118,7 +118,7 @@
 		<div class="day-actions">
 			<button class="day-action-btn" on:click={toggleOoo}>
 				{#if day.ooo}
-					<span class="badge badge-warn">OOO</span>
+					<span class="badge badge-warn">Heather OOO</span>
 				{:else}
 					<span class="text-xs" style="color: var(--ink-faint)">OOO</span>
 				{/if}

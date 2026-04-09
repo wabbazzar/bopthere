@@ -51,7 +51,7 @@
 				{day.dayOfWeek} {formatDate(day.date)}
 			</span>
 			{#if day.ooo}
-				<span class="badge badge-warn text-xs">OOO</span>
+				<span class="badge badge-warn text-xs">Heather OOO</span>
 			{/if}
 		</div>
 		{#if editingField === 'location'}

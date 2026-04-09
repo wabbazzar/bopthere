@@ -61,12 +61,21 @@
 			{/if}
 
 			{#each $chat.messages as message (message.id)}
-				<ChatMessage {message} />
+				<ChatMessage
+					{message}
+					pendingActions={$chat.pendingActions[message.id]}
+					applied={$chat.appliedActions.has(message.id)}
+				/>
 			{/each}
 
 			{#if $chat.isLoading}
-				<div class="typing">
+				<div class="typing" aria-label="Thinking indicator">
 					<span class="dot"></span><span class="dot"></span><span class="dot"></span>
+					{#if $chat.thinkingMessage}
+						{#key $chat.thinkingMessage}
+							<span class="thinking-text">{$chat.thinkingMessage}</span>
+						{/key}
+					{/if}
 				</div>
 			{/if}
 
@@ -228,9 +237,23 @@
 
 	.typing {
 		display: flex;
+		align-items: center;
 		gap: 0.3rem;
 		padding: 0.625rem 0.875rem;
 		align-self: flex-start;
+	}
+
+	.thinking-text {
+		font-size: 0.78rem;
+		color: var(--ink-faint);
+		margin-left: 0.35rem;
+		font-style: italic;
+		animation: fadeSwap 300ms ease;
+	}
+
+	@keyframes fadeSwap {
+		from { opacity: 0; transform: translateY(2px); }
+		to { opacity: 1; transform: translateY(0); }
 	}
 
 	.dot {

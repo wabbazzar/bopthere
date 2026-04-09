@@ -19,15 +19,17 @@ export const auth = {
 		const token = authService.getToken();
 
 		if (storedUser && token) {
-			update((s) => ({ ...s, user: storedUser, token, isAuthenticated: true, isLoading: true }));
+			// Trust localStorage immediately — no loading screen for returning users
+			set({ user: storedUser, token, isAuthenticated: true, isLoading: false });
 
-			// Verify token is still valid in background
-			const verified = await authService.verifyToken();
-			if (verified) {
-				set({ user: verified, token, isAuthenticated: true, isLoading: false });
-			} else {
-				set({ user: null, token: null, isAuthenticated: false, isLoading: false });
-			}
+			// Verify token in background; log out only if expired/invalid
+			authService.verifyToken().then((verified) => {
+				if (verified) {
+					update((s) => ({ ...s, user: verified }));
+				} else {
+					set({ user: null, token: null, isAuthenticated: false, isLoading: false });
+				}
+			});
 		} else {
 			set({ ...initialState, isLoading: false });
 		}
