@@ -106,7 +106,7 @@
 
 	.drawer {
 		position: fixed;
-		bottom: env(safe-area-inset-bottom, 0px);
+		bottom: 0;
 		left: 0;
 		right: 0;
 		height: 50dvh;
@@ -200,7 +200,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.5rem 0.75rem;
-		padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+		padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
 		border-top: 1px solid var(--border);
 		background: var(--surface-raised);
 		flex-shrink: 0;
