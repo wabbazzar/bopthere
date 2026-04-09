@@ -101,11 +101,10 @@ ${bookingsSummary}
 
 Guidelines:
 - Suggest specific places with names, not generic advice
-- Consider the location for each day
+- Consider the location for each day when suggesting
 - Be aware of travel days vs full days
-- Note days where Wesley is working remotely (Heather may explore solo)
 - Keep suggestions concise and actionable
 - For restaurants, include cuisine type and price range
-- Consider proximity to their accommodation for each day
+- Consider proximity to their accommodation
 - Use markdown formatting sparingly (bold for names is fine)`;
 }
