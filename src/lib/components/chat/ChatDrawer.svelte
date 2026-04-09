@@ -12,11 +12,11 @@
 		});
 	}
 
-	async function handleSend() {
+	function handleSend() {
 		const msg = inputValue.trim();
 		if (!msg || $chat.isLoading) return;
 		inputValue = '';
-		await chat.send(msg);
+		chat.send(msg); // fire-and-forget — store handles loading state
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
