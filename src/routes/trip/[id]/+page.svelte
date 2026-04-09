@@ -15,9 +15,21 @@
 	let activeView: 'week' | 'day' = 'week';
 	let currentDayIndex = 0;
 
+	const DAY_KEY_PREFIX = 'hw-trip-day-';
+
 	onMount(() => {
 		trips.init();
+		const saved = localStorage.getItem(DAY_KEY_PREFIX + tripId);
+		if (saved !== null) {
+			const idx = parseInt(saved, 10);
+			const maxIdx = (trip?.days?.length ?? 1) - 1;
+			if (!isNaN(idx) && idx >= 0) currentDayIndex = Math.min(idx, maxIdx);
+		}
 	});
+
+	$: if (tripId && typeof localStorage !== 'undefined') {
+		localStorage.setItem(DAY_KEY_PREFIX + tripId, String(currentDayIndex));
+	}
 
 	function handleSelectDay(e: CustomEvent<number>) {
 		currentDayIndex = e.detail;
