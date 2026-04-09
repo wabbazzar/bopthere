@@ -195,8 +195,32 @@ Agents hallucinate APIs, misremember function signatures, and guess at component
 - **Mutation leak bug:** Store defaults must be deep-cloned, not shallow-spread. `{ ...defaults }` copies references, so in-place mutations corrupt the "default" data. Always use `JSON.parse(JSON.stringify(defaults))`. This bug was caught by the Reset integration test.
 - **Svelte 5 class scoping:** `page.locator('.day-nav')` will FAIL because Svelte generates `.day-nav.s-xxxxx`. Use `button[aria-label="Next day"]` instead.
 
-### When to Append to Guardian Checklist
-After implementing any feature that adds interactive elements (buttons, forms, toggles), append a line to `tests/guardian-checklist.md` describing what Guardian Claude should verify. This is how test coverage grows automatically.
+### Dev Agent Responsibilities (THIS MEANS YOU)
+
+When you change UI components, stores, services, or API integrations:
+
+1. **Write tests alongside the code.** Vitest for pure logic, Playwright for anything the user clicks or sees. No PR without tests.
+2. **Update `tests/guardian-checklist.md`** if you add new interactive elements, API endpoints, or data flows. Guardian Claude reads this checklist — if it's not listed, it's not guarded.
+3. **Run `npm test` before committing.** The pre-commit hook will block you if vitest fails. Don't try to skip it.
+4. **Run `npm run test:e2e` for UI changes.** The pre-commit hook only runs vitest (fast). Playwright tests are your responsibility to run for component changes.
+5. **After push, check `tmp/guardian-result.json`.** Guardian Claude runs automatically on push. If it fails, fix it before moving on.
+
+### What triggers guardian checklist updates
+
+| You changed... | Update checklist with... |
+|---------------|------------------------|
+| New button/form/toggle | What it does, how to verify it works |
+| New API endpoint | Health check URL and expected status code |
+| Store logic (trips, chat, auth) | What invariants to check (e.g., "reset restores defaults") |
+| Data persistence | What should survive reload |
+| Mobile-specific behavior | Viewport size + what to verify |
+
+### Hooks (automatic, don't disable)
+
+| Hook | Trigger | What it does |
+|------|---------|-------------|
+| `pre-commit-tests.sh` | `git commit` | Runs `npx vitest run`, blocks commit if tests fail |
+| `post-push-guardian.sh` | `git push` | Launches Guardian Claude in hook mode (background) |
 
 ## 11. Guardian Claude
 
@@ -207,7 +231,9 @@ Automated regression protection. Runs after every `git push` (hook mode) and dai
 | `scripts/guardian-claude.sh` | Launcher (modes, budget, notifications) |
 | `scripts/guardian-claude-prompt.md` | Autonomous agent instructions |
 | `tests/guardian-checklist.md` | Permanent regression guards (dev agent appends here) |
-| `.claude/hooks/post-push-guardian.sh` | PostToolUse hook (git push trigger) |
+| `.claude/hooks/pre-commit-tests.sh` | PreToolUse hook (blocks commit if vitest fails) |
+| `.claude/hooks/post-push-guardian.sh` | PostToolUse hook (git push triggers guardian) |
+| `.claude/settings.json` | Hook registration (pre-commit + post-push) |
 | `tmp/guardian-result.json` | Last run results |
 | `tmp/guardian-last-run.log` | Last run full output |
 
