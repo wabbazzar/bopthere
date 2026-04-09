@@ -91,71 +91,6 @@ async function getDayTitle(page: Page) {
 	return await titleArea.textContent();
 }
 
-// ─── DAY VIEW: ADD / COPY / DELETE BUTTONS ─────────────────────
-
-test.describe('Day View — Add/Copy/Delete buttons', () => {
-	test.beforeEach(async ({ page }) => {
-		await injectAuth(page);
-		await resetTripData(page);
-	});
-
-	test('Add Day button increases day count by 1', async ({ page }) => {
-		await goToDayView(page);
-		const { total: initialTotal } = await getDayInfo(page);
-
-		await page.getByRole('button', { name: '+ Add' }).click();
-
-		const { total: newTotal } = await getDayInfo(page);
-		expect(newTotal).toBe(initialTotal + 1);
-	});
-
-	test('Copy Day button duplicates current day', async ({ page }) => {
-		await goToDayView(page);
-		const { total: initialTotal } = await getDayInfo(page);
-
-		await page.getByRole('button', { name: 'Copy' }).click();
-
-		const { total: newTotal } = await getDayInfo(page);
-		expect(newTotal).toBe(initialTotal + 1);
-	});
-
-	test('Delete Day button removes a day after confirmation', async ({ page }) => {
-		await goToDayView(page);
-		const { total: initialTotal } = await getDayInfo(page);
-
-		page.on('dialog', dialog => dialog.accept());
-		await page.getByRole('button', { name: 'Del' }).click();
-
-		const { total: newTotal } = await getDayInfo(page);
-		expect(newTotal).toBe(initialTotal - 1);
-	});
-
-	test('Delete Day button is disabled when only 1 day remains', async ({ page }) => {
-		await goToDayView(page);
-		page.on('dialog', dialog => dialog.accept());
-
-		let { total } = await getDayInfo(page);
-		while (total > 1) {
-			await page.getByRole('button', { name: 'Del' }).click();
-			await page.waitForTimeout(300);
-			({ total } = await getDayInfo(page));
-		}
-
-		await expect(page.getByRole('button', { name: 'Del' })).toBeDisabled();
-	});
-
-	test('Delete Day dismissed on cancel does NOT remove day', async ({ page }) => {
-		await goToDayView(page);
-		const { total: initialTotal } = await getDayInfo(page);
-
-		page.on('dialog', dialog => dialog.dismiss());
-		await page.getByRole('button', { name: 'Del' }).click();
-
-		const { total: newTotal } = await getDayInfo(page);
-		expect(newTotal).toBe(initialTotal);
-	});
-});
-
 // ─── DAY VIEW: NAVIGATION ──────────────────────────────────────
 
 test.describe('Day View — Navigation', () => {
@@ -206,20 +141,20 @@ test.describe('Day View — Navigation', () => {
 
 // ─── FIELD EDITING (ExpandableField) ────────────────────────────
 
-test.describe('Field Editing — Double-click to edit', () => {
+test.describe('Field Editing — Tap to edit', () => {
 	test.beforeEach(async ({ page }) => {
 		await injectAuth(page);
 		await resetTripData(page);
 	});
 
-	test('Double-click on a field opens edit input', async ({ page }) => {
+	test('Tap on a field opens edit input', async ({ page }) => {
 		await goToDayView(page);
 
 		// Find a field by its label then double-click the value area
-		// The Notes field has title="Double-click to edit"
-		const editableFields = page.locator('[title="Double-click to edit"]');
+		// The Notes field has title="Tap to edit"
+		const editableFields = page.locator('[title="Tap to edit"]');
 		const notesField = editableFields.last();
-		await notesField.dblclick();
+		await notesField.click();
 
 		// An input should appear within the field area
 		const editInput = page.locator('input[type="text"]').first();
@@ -229,9 +164,9 @@ test.describe('Field Editing — Double-click to edit', () => {
 	test('Editing a field and pressing Enter saves the value', async ({ page }) => {
 		await goToDayView(page);
 
-		// Double-click the Travel field (has "Land at 5PM" on day 1)
-		const travelField = page.locator('[title="Double-click to edit"]').first();
-		await travelField.dblclick();
+		// Tap the Travel field (has "Land at 5PM" on day 1)
+		const travelField = page.locator('[title="Tap to edit"]').first();
+		await travelField.click();
 
 		const editInput = page.locator('input[type="text"]').first();
 		await editInput.fill('NEW TRAVEL VALUE 12345');
@@ -245,24 +180,24 @@ test.describe('Field Editing — Double-click to edit', () => {
 		await goToDayView(page);
 
 		// Get initial travel text
-		const travelField = page.locator('[title="Double-click to edit"]').first();
+		const travelField = page.locator('[title="Tap to edit"]').first();
 		const originalText = await travelField.textContent();
 
-		await travelField.dblclick();
+		await travelField.click();
 		const editInput = page.locator('input[type="text"]').first();
 		await editInput.fill('SHOULD NOT SAVE');
 		await editInput.press('Escape');
 
 		// Value should revert to original
-		await expect(page.locator('[title="Double-click to edit"]').first()).toContainText(originalText!.trim());
+		await expect(page.locator('[title="Tap to edit"]').first()).toContainText(originalText!.trim());
 	});
 
 	test('Edited field value persists after navigating away and back', async ({ page }) => {
 		await goToDayView(page);
 
 		// Edit the Notes field on Day 1 (last editable field)
-		const notesField = page.locator('[title="Double-click to edit"]').last();
-		await notesField.dblclick();
+		const notesField = page.locator('[title="Tap to edit"]').last();
+		await notesField.click();
 		const editInput = page.locator('input[type="text"]').first();
 		await editInput.fill('PERSISTENT NOTE ABCDE');
 		await editInput.press('Enter');
@@ -283,8 +218,8 @@ test.describe('Field Editing — Double-click to edit', () => {
 		await goToDayView(page);
 
 		// Edit notes field
-		const notesField = page.locator('[title="Double-click to edit"]').last();
-		await notesField.dblclick();
+		const notesField = page.locator('[title="Tap to edit"]').last();
+		await notesField.click();
 		const editInput = page.locator('input[type="text"]').first();
 		await editInput.fill('SURVIVES RELOAD XYZ');
 		await editInput.press('Enter');
@@ -310,12 +245,12 @@ test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {
 		await resetTripData(page);
 	});
 
-	test('Double-click trip name opens editor, Enter saves', async ({ page }) => {
+	test('Tap trip name opens editor, Enter saves', async ({ page }) => {
 		await goToDayView(page);
 
 		const tripName = page.locator('h1');
 		const originalName = await tripName.textContent();
-		await tripName.dblclick();
+		await tripName.click();
 
 		// Input should appear (the name editor has no specific role, find by context)
 		const nameInput = page.locator('input[type="text"]').first();
@@ -336,7 +271,7 @@ test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {
 
 		const tripName = page.locator('h1');
 		const originalName = await tripName.textContent();
-		await tripName.dblclick();
+		await tripName.click();
 		const nameInput = page.locator('input[type="text"]').first();
 		await nameInput.fill('CHANGED NAME');
 		await nameInput.press('Enter');
@@ -478,12 +413,12 @@ test.describe('Todos Section', () => {
 		expect(newCount).toBe(initialCount - 1);
 	});
 
-	test('Double-click todo text to edit', async ({ page }) => {
+	test('Tap todo text to edit', async ({ page }) => {
 		await goToDayView(page);
 
-		// Todo items have title="Double-click to edit"
-		const firstTodo = page.locator('ul li [title="Double-click to edit"]').first();
-		await firstTodo.dblclick();
+		// Todo items have title="Tap to edit"
+		const firstTodo = page.locator('ul li [title="Tap to edit"]').first();
+		await firstTodo.click();
 
 		const editInput = page.locator('ul li input[type="text"]');
 		await expect(editInput).toBeVisible();
@@ -541,13 +476,14 @@ test.describe('No JavaScript Errors', () => {
 		await goToDayView(page);
 
 		// Click through actions
-		await page.getByRole('button', { name: '+ Add' }).click();
+		// Navigate between days
+		await page.click('button[aria-label="Next day"]');
 		await page.click('button[aria-label="Next day"]');
 		await page.click('button[aria-label="Previous day"]');
 
 		// Edit a field
-		const editableField = page.locator('[title="Double-click to edit"]').first();
-		await editableField.dblclick();
+		const editableField = page.locator('[title="Tap to edit"]').first();
+		await editableField.click();
 		const input = page.locator('input[type="text"]').first();
 		if (await input.isVisible()) {
 			await input.fill('test');

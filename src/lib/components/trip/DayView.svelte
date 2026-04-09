@@ -64,17 +64,6 @@
 		trips.updateDayField(tripId, currentDayIndex, 'ooo', !day.ooo);
 	}
 
-	function addDayAfter() { trips.addDay(tripId, currentDayIndex); }
-	function duplicateDay() { trips.duplicateDay(tripId, currentDayIndex); }
-	function deleteDay() {
-		if (totalDays <= 1) return;
-		if (confirm(`Delete ${day.dayOfWeek} ${day.date}?`)) {
-			trips.deleteDay(tripId, currentDayIndex);
-			if (currentDayIndex >= trip.days.length) {
-				currentDayIndex = trip.days.length - 1;
-			}
-		}
-	}
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -134,17 +123,6 @@
 					<span class="text-xs" style="color: var(--ink-faint)">OOO</span>
 				{/if}
 			</button>
-			<div class="flex gap-1">
-				<button class="day-action-btn" on:click={addDayAfter} title="Add day after">
-					<span class="text-xs" style="color: var(--ink-muted)">+ Add</span>
-				</button>
-				<button class="day-action-btn" on:click={duplicateDay} title="Duplicate">
-					<span class="text-xs" style="color: var(--ink-muted)">Copy</span>
-				</button>
-				<button class="day-action-btn" on:click={deleteDay} title="Delete" disabled={totalDays <= 1}>
-					<span class="text-xs" style="color: var(--danger)">Del</span>
-				</button>
-			</div>
 		</div>
 	{/if}
 

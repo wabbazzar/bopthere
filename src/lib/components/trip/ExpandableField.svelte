@@ -59,7 +59,7 @@
 			/>
 		{:else}
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="field-text" class:truncate={!expanded && isLong} on:dblclick={startEdit} title="Double-click to edit">
+			<div class="field-text" class:truncate={!expanded && isLong} on:click={startEdit} title="Tap to edit">
 				{displayValue}
 				{#if suggestable && !value}
 					<button class="suggest-trigger" on:click|stopPropagation={() => dispatch('suggest', { field, element: fieldRowEl })} aria-label="Get suggestions">

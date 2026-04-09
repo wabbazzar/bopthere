@@ -97,8 +97,8 @@
 						class="flex-1 cursor-text transition-colors"
 						class:line-through={todo.done}
 						style:color={todo.done ? 'var(--ink-faint)' : 'var(--ink)'}
-						on:dblclick={() => startTodoEdit(i)}
-						title="Double-click to edit"
+						on:click={() => startTodoEdit(i)}
+						title="Tap to edit"
 					>
 						{todo.text}
 					</span>

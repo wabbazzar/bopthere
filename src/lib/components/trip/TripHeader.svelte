@@ -62,8 +62,8 @@
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<h1
 			class="font-display text-2xl md:text-3xl font-semibold cursor-text"
-			on:dblclick={() => startEdit('name')}
-			title="Double-click to edit"
+			on:click={() => startEdit('name')}
+			title="Tap to edit"
 		>
 			{trip.name}
 		</h1>

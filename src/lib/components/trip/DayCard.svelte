@@ -64,8 +64,8 @@
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<span
 				class="font-semibold text-sm truncate cursor-text"
-				on:dblclick|stopPropagation={() => startEdit('location')}
-				title={day.location || 'Double-click to add location'}
+				on:click|stopPropagation={() => startEdit('location')}
+				title={day.location || 'Tap to add location'}
 			>
 				{day.location || '\u2014'}
 			</span>
@@ -77,13 +77,13 @@
 		<div class="flex gap-3 mt-2 text-xs" style="color: var(--ink-muted)">
 			{#if day.travel}
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<span class="truncate cursor-text" on:dblclick|stopPropagation={() => startEdit('travel')} title={day.travel}>
+				<span class="truncate cursor-text" on:click|stopPropagation={() => startEdit('travel')} title={day.travel}>
 					{'\u2708'} {day.travel}
 				</span>
 			{/if}
 			{#if day.accommodation}
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<span class="truncate cursor-text ml-auto" on:dblclick|stopPropagation={() => startEdit('accommodation')} title={day.accommodation}>
+				<span class="truncate cursor-text ml-auto" on:click|stopPropagation={() => startEdit('accommodation')} title={day.accommodation}>
 					{'\u{1F3E8}'} {day.accommodation}
 				</span>
 			{/if}
@@ -94,15 +94,15 @@
 	{#if hasActivities}
 		<div class="grid grid-cols-3 gap-2 mt-2 text-xs" style="color: var(--ink-faint)">
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<span class="truncate cursor-text" on:dblclick|stopPropagation={() => startEdit('morning')} title={day.morning || 'Morning'}>
+			<span class="truncate cursor-text" on:click|stopPropagation={() => startEdit('morning')} title={day.morning || 'Morning'}>
 				<span style="color: var(--ink-muted)">AM</span> {day.morning || '\u2014'}
 			</span>
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<span class="truncate cursor-text" on:dblclick|stopPropagation={() => startEdit('afternoon')} title={day.afternoon || 'Afternoon'}>
+			<span class="truncate cursor-text" on:click|stopPropagation={() => startEdit('afternoon')} title={day.afternoon || 'Afternoon'}>
 				<span style="color: var(--ink-muted)">PM</span> {day.afternoon || '\u2014'}
 			</span>
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<span class="truncate cursor-text" on:dblclick|stopPropagation={() => startEdit('evening')} title={day.evening || 'Evening'}>
+			<span class="truncate cursor-text" on:click|stopPropagation={() => startEdit('evening')} title={day.evening || 'Evening'}>
 				<span style="color: var(--ink-muted)">EVE</span> {day.evening || '\u2014'}
 			</span>
 		</div>
