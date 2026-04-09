@@ -4,6 +4,8 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import ChatFab from '$lib/components/chat/ChatFab.svelte';
+	import ChatDrawer from '$lib/components/chat/ChatDrawer.svelte';
 
 	onMount(() => {
 		auth.init();
@@ -61,6 +63,8 @@
 			<slot />
 		</main>
 	</div>
+	<ChatFab />
+	<ChatDrawer />
 {:else}
 	<slot />
 {/if}

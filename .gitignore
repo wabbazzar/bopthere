@@ -167,3 +167,4 @@ scripts/.wedding/
 .claude/skills/
 .mcp.json
 .svelte-kit/
+server/data/

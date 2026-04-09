@@ -40,6 +40,7 @@ jobs:
         run: npm run build
         env:
           PUBLIC_API_GATEWAY_URL: ${{ secrets.PUBLIC_API_GATEWAY_URL }}
+          PUBLIC_CHAT_API_URL: https://api.heatherandwesley.com
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
