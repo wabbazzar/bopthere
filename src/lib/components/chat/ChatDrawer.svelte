@@ -106,11 +106,11 @@
 
 	.drawer {
 		position: fixed;
-		bottom: 0;
+		bottom: env(safe-area-inset-bottom, 0px);
 		left: 0;
 		right: 0;
-		height: 70dvh;
-		max-height: 600px;
+		height: 50dvh;
+		max-height: 450px;
 		background: var(--surface);
 		border-top: 1px solid var(--border);
 		border-radius: 1rem 1rem 0 0;
@@ -123,10 +123,11 @@
 
 	@media (min-width: 640px) {
 		.drawer {
-			max-width: 480px;
+			max-width: 420px;
 			right: 1.5rem;
 			left: auto;
-			border-radius: 1rem 1rem 0 0;
+			height: 60dvh;
+			max-height: 560px;
 		}
 	}
 
@@ -134,7 +135,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.75rem 1rem;
+		padding: 0.5rem 0.75rem;
 		border-bottom: 1px solid var(--border);
 		flex-shrink: 0;
 	}
@@ -177,9 +178,10 @@
 	.drawer-messages {
 		flex: 1;
 		overflow-y: auto;
-		padding: 1rem;
+		padding: 0.75rem;
 		display: flex;
 		flex-direction: column;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.empty-state {
@@ -195,9 +197,10 @@
 
 	.drawer-input {
 		display: flex;
+		align-items: center;
 		gap: 0.5rem;
-		padding: 0.75rem 1rem;
-		padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+		padding: 0.5rem 0.75rem;
+		padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
 		border-top: 1px solid var(--border);
 		background: var(--surface-raised);
 		flex-shrink: 0;
@@ -205,18 +208,20 @@
 
 	.drawer-input input {
 		flex: 1;
-		font-size: 0.875rem;
-		padding: 0.5rem 0.75rem;
+		min-width: 0;
+		font-size: 0.85rem;
+		padding: 0.5rem 0.625rem;
 	}
 
 	.send-btn {
-		width: 2.5rem;
-		height: 2.5rem;
+		width: 2.25rem;
+		height: 2.25rem;
+		min-width: 2.25rem;
 		padding: 0;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 1.1rem;
+		font-size: 1rem;
 		flex-shrink: 0;
 		border-radius: 50%;
 	}
