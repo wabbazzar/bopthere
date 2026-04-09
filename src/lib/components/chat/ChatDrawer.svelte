@@ -209,7 +209,7 @@
 	.drawer-input input {
 		flex: 1;
 		min-width: 0;
-		font-size: 0.85rem;
+		font-size: 1rem; /* >=16px prevents iOS auto-zoom on focus */
 		padding: 0.5rem 0.625rem;
 	}
 
