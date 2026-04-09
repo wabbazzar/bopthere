@@ -31,6 +31,9 @@
 	<title>H&W Travel</title>
 </svelte:head>
 
+{#if $isLoading || $isAuthenticated}
+	<!-- Show nothing while checking auth or redirecting to dashboard -->
+{:else}
 <div class="min-h-screen flex items-center justify-center relative overflow-hidden">
 	<!-- Background art -->
 	<div
@@ -81,3 +84,4 @@
 		</div>
 	</div>
 </div>
+{/if}
