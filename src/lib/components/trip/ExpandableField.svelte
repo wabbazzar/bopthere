@@ -18,7 +18,7 @@
 	let editing = false;
 	let editValue = '';
 
-	$: isLong = value.length > 40;
+	$: isLong = value.length > 100;
 	$: displayValue = value || '\u2014';
 
 	function toggle() {
@@ -59,7 +59,7 @@
 			/>
 		{:else}
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="field-text" class:truncate={!expanded && isLong} on:click={startEdit} title="Tap to edit">
+			<div class="field-text" class:clamped={!expanded && isLong} on:click={startEdit} title="Tap to edit">
 				{displayValue}
 				{#if suggestable && !value}
 					<button class="suggest-trigger" on:click|stopPropagation={() => dispatch('suggest', { field, element: fieldRowEl })} aria-label="Get suggestions">
@@ -120,6 +120,13 @@
 	}
 	.field-text {
 		cursor: text;
+		word-break: break-word;
+	}
+	.clamped {
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 	}
 	.suggest-trigger {
 		background: none;
