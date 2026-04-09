@@ -2,6 +2,7 @@
 	import type { Trip } from '$lib/types/trip';
 	import { trips } from '$lib/stores/trips';
 	import ExpandableField from './ExpandableField.svelte';
+	import MapLinks from './MapLinks.svelte';
 
 	export let trip: Trip;
 	export let tripId: string;
@@ -104,6 +105,9 @@
 				<ExpandableField label="Evening" value={day.evening} field="evening" dayIndex={currentDayIndex} {tripId} />
 				<ExpandableField label="Notes" value={day.notes} field="notes" dayIndex={currentDayIndex} {tripId} />
 			</div>
+			{#if day.mapLinks?.length}
+				<MapLinks mapLinks={day.mapLinks} />
+			{/if}
 		</div>
 
 		<!-- Actions bar -->

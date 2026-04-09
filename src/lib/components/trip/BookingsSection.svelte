@@ -42,11 +42,18 @@
 						{#each booking.details as detail}
 							<p class="booking-detail">{detail}</p>
 						{/each}
-						{#if booking.ticketUrl}
-							<a href={booking.ticketUrl} target="_blank" rel="noopener" class="booking-ticket">
-								View ticket ↗
-							</a>
-						{/if}
+						<div class="booking-links">
+							{#if booking.ticketUrl}
+								<a href={booking.ticketUrl} target="_blank" rel="noopener" class="booking-ticket">
+									View ticket ↗
+								</a>
+							{/if}
+							{#if booking.bookingUrl}
+								<a href={booking.bookingUrl} target="_blank" rel="noopener" class="booking-ticket booking-link">
+									Booking page ↗
+								</a>
+							{/if}
+						</div>
 					</div>
 				{/if}
 			</li>
@@ -147,5 +154,19 @@
 
 	.booking-ticket:hover {
 		color: var(--accent-hover);
+	}
+
+	.booking-links {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.booking-link {
+		color: var(--ink-muted);
+	}
+
+	.booking-link:hover {
+		color: var(--accent);
 	}
 </style>

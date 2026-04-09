@@ -1,3 +1,9 @@
+export interface MapLink {
+	label: string;
+	from: string;
+	to: string;
+}
+
 export interface TripDay {
 	date: string;
 	dayOfWeek: string;
@@ -9,6 +15,7 @@ export interface TripDay {
 	accommodation: string;
 	notes: string;
 	ooo: boolean;
+	mapLinks?: MapLink[];
 }
 
 export interface Booking {
@@ -18,6 +25,7 @@ export interface Booking {
 	confirmation?: string;
 	details: string[];
 	ticketUrl?: string;
+	bookingUrl?: string;
 }
 
 export interface Trip {

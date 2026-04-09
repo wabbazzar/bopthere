@@ -6,7 +6,6 @@
 	import ViewToggle from '$lib/components/trip/ViewToggle.svelte';
 	import WeekView from '$lib/components/trip/WeekView.svelte';
 	import DayView from '$lib/components/trip/DayView.svelte';
-	import LinksSection from '$lib/components/trip/LinksSection.svelte';
 	import BookingsSection from '$lib/components/trip/BookingsSection.svelte';
 	import TodosSection from '$lib/components/trip/TodosSection.svelte';
 
@@ -52,8 +51,7 @@
 		</div>
 	{/if}
 
-	<div class="mt-6 grid md:grid-cols-2 gap-6">
-		<LinksSection {trip} {tripId} />
+	<div class="mt-6">
 		<TodosSection {tripId} />
 	</div>
 {:else}

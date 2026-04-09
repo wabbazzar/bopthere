@@ -11,7 +11,10 @@ const days: TripDay[] = [
 		evening: 'Check in hotel, explore city',
 		accommodation: 'Kimpton IHG',
 		notes: '$35/night post credits, free breakfast',
-		ooo: false
+		ooo: false,
+		mapLinks: [
+			{ label: 'Airport to Hotel', from: 'Shanghai Pudong International Airport', to: 'Kimpton Da An Shanghai, Yan An Xi Lu, Shanghai' }
+		]
 	},
 	{
 		date: '2026-04-23',
@@ -35,7 +38,11 @@ const days: TripDay[] = [
 		evening: '',
 		accommodation: 'Hyatt Regency Metro',
 		notes: '8K points, $0',
-		ooo: false
+		ooo: false,
+		mapLinks: [
+			{ label: 'Hotel to Pudong Airport', from: 'Kimpton Da An Shanghai, Yan An Xi Lu, Shanghai', to: 'Shanghai Pudong International Airport Terminal 2' },
+			{ label: 'Jiangbei Airport to Hotel', from: 'Chongqing Jiangbei International Airport Terminal 3', to: 'Hyatt Regency Chongqing, Nanbin Lu, Chongqing' }
+		]
 	},
 	{
 		date: '2026-04-25',
@@ -71,7 +78,11 @@ const days: TripDay[] = [
 		evening: 'Check in hotel',
 		accommodation: 'Qishi Li Cave Homestay',
 		notes: 'Near National Forest Park',
-		ooo: true
+		ooo: true,
+		mapLinks: [
+			{ label: 'Hotel to Train Station', from: 'Hyatt Regency Chongqing, Nanbin Lu, Chongqing', to: 'Chongqing North Railway Station' },
+			{ label: 'Station to Homestay', from: 'Zhangjiajie Railway Station', to: 'Qishi Li Cave Homestay, Zhangjiajie' }
+		]
 	},
 	{
 		date: '2026-04-28',
@@ -95,7 +106,10 @@ const days: TripDay[] = [
 		evening: '',
 		accommodation: 'ZJJ City Hotel (TBD)',
 		notes: 'Hampton by Hilton recommended',
-		ooo: true
+		ooo: true,
+		mapLinks: [
+			{ label: 'Homestay to City Hotel', from: 'Qishi Li Cave Homestay, Zhangjiajie', to: 'Hampton by Hilton Zhangjiajie' }
+		]
 	},
 	{
 		date: '2026-04-30',
@@ -107,7 +121,11 @@ const days: TripDay[] = [
 		evening: '',
 		accommodation: 'The Shanghai EDITION',
 		notes: '16K points, $0',
-		ooo: true
+		ooo: true,
+		mapLinks: [
+			{ label: 'Hotel to Hehua Airport', from: 'Hampton by Hilton Zhangjiajie', to: 'Zhangjiajie Hehua International Airport' },
+			{ label: 'Pudong Airport to Hotel', from: 'Shanghai Pudong International Airport Terminal 1', to: 'The Shanghai EDITION, 199 Nanjing Road East, Shanghai' }
+		]
 	},
 	{
 		date: '2026-05-01',
@@ -131,7 +149,10 @@ const days: TripDay[] = [
 		evening: '',
 		accommodation: '',
 		notes: 'Travel Back',
-		ooo: false
+		ooo: false,
+		mapLinks: [
+			{ label: 'Hotel to Airport', from: 'The Shanghai EDITION, 199 Nanjing Road East, Shanghai', to: 'Shanghai Pudong International Airport' }
+		]
 	}
 ];
 
@@ -144,8 +165,5 @@ export const chinaTrip: Trip = {
 	endDate: '2026-05-02',
 	destinations: ['Shanghai', 'Chongqing', 'Zhangjiajie'],
 	days
-	links: [
-		'https://www.hyatt.com/shop/rooms/ckgro?location=Hyatt+Regency+Metropolitan+Chongqing&checkinDate=2026-04-24&checkoutDate=2026-04-27&rooms=1&adults=2',
-		'https://www.hilton.com/en/book/reservation/rooms/?ctyhocn=DYGZAHX&arrivalDate=2026-04-29&departureDate=2026-04-30&room1NumAdults=2'
-	]
+	links: []
 };
