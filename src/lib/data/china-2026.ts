@@ -13,7 +13,7 @@ const days: TripDay[] = [
 		notes: '$35/night post credits, free breakfast',
 		ooo: false,
 		mapLinks: [
-			{ label: 'Airport to Hotel', from: 'Shanghai Pudong International Airport', to: 'Kimpton Da An Shanghai, Yan An Xi Lu, Shanghai' }
+			{ label: 'Airport to Hotel', from: 'Shanghai Pudong International Airport', to: 'Kimpton Qiantan Shanghai' }
 		]
 	},
 	{
@@ -40,8 +40,8 @@ const days: TripDay[] = [
 		notes: '8K points, $0',
 		ooo: false,
 		mapLinks: [
-			{ label: 'Hotel to Pudong Airport', from: 'Kimpton Da An Shanghai, Yan An Xi Lu, Shanghai', to: 'Shanghai Pudong International Airport Terminal 2' },
-			{ label: 'Jiangbei Airport to Hotel', from: 'Chongqing Jiangbei International Airport Terminal 3', to: 'Hyatt Regency Chongqing, Nanbin Lu, Chongqing' }
+			{ label: 'Hotel to Pudong Airport', from: 'Kimpton Qiantan Shanghai', to: 'Shanghai Pudong International Airport Terminal 2' },
+			{ label: 'Jiangbei Airport to Hotel', from: 'Chongqing Jiangbei International Airport Terminal 3', to: 'Hyatt Regency Metropolitan Chongqing' }
 		]
 	},
 	{
@@ -80,8 +80,8 @@ const days: TripDay[] = [
 		notes: 'Near National Forest Park',
 		ooo: true,
 		mapLinks: [
-			{ label: 'Hotel to Train Station', from: 'Hyatt Regency Chongqing, Nanbin Lu, Chongqing', to: 'Chongqing North Railway Station' },
-			{ label: 'Station to Homestay', from: 'Zhangjiajie Railway Station', to: 'Qishi Li Cave Homestay, Zhangjiajie' }
+			{ label: 'Hotel to Train Station', from: 'Hyatt Regency Metropolitan Chongqing', to: 'Chongqing East Railway Station' },
+			{ label: 'Station to Homestay', from: 'Zhangjiajie West Railway Station', to: 'Qishi Li Cave Homestay, Wulingyuan, Zhangjiajie' }
 		]
 	},
 	{
@@ -108,7 +108,7 @@ const days: TripDay[] = [
 		notes: 'Hampton by Hilton recommended',
 		ooo: true,
 		mapLinks: [
-			{ label: 'Homestay to City Hotel', from: 'Qishi Li Cave Homestay, Zhangjiajie', to: 'Hampton by Hilton Zhangjiajie' }
+			{ label: 'Homestay to City Hotel', from: 'Qishi Li Cave Homestay, Wulingyuan, Zhangjiajie', to: 'Hampton by Hilton Zhangjiajie Tianmen Mountain' }
 		]
 	},
 	{
@@ -123,7 +123,7 @@ const days: TripDay[] = [
 		notes: '16K points, $0',
 		ooo: true,
 		mapLinks: [
-			{ label: 'Hotel to Hehua Airport', from: 'Hampton by Hilton Zhangjiajie', to: 'Zhangjiajie Hehua International Airport' },
+			{ label: 'Hotel to Hehua Airport', from: 'Hampton by Hilton Zhangjiajie Tianmen Mountain', to: 'Zhangjiajie Hehua International Airport' },
 			{ label: 'Pudong Airport to Hotel', from: 'Shanghai Pudong International Airport Terminal 1', to: 'The Shanghai EDITION, 199 Nanjing Road East, Shanghai' }
 		]
 	},

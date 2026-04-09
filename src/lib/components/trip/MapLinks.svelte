@@ -3,10 +3,10 @@
 
 	export let mapLinks: MapLink[];
 
-	function appleMapUrl(from: string, to: string): string {
-		const saddr = encodeURIComponent(from);
-		const daddr = encodeURIComponent(to);
-		return `https://maps.apple.com/?saddr=${saddr}&daddr=${daddr}`;
+	function googleMapsUrl(from: string, to: string): string {
+		const origin = encodeURIComponent(from);
+		const destination = encodeURIComponent(to);
+		return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
 	}
 </script>
 
@@ -23,7 +23,7 @@
 		<div class="map-links">
 			{#each mapLinks as link}
 				<a
-					href={appleMapUrl(link.from, link.to)}
+					href={googleMapsUrl(link.from, link.to)}
 					target="_blank"
 					rel="noopener"
 					class="map-link"
