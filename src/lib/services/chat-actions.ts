@@ -4,13 +4,18 @@ const VALID_FIELDS = new Set([
 	'morning', 'afternoon', 'evening', 'travel', 'accommodation', 'notes', 'location'
 ]);
 
-const TRIP_UPDATE_RE = /```TRIP_UPDATE\s*\n([\s\S]*?)```/g;
+// Match triple-backtick TRIP_UPDATE blocks with flexible whitespace
+// Handles: ```TRIP_UPDATE\n...\n```, ```TRIP_UPDATE \r\n...\r\n```, etc.
+function getTripUpdateRegex(): RegExp {
+	return /```TRIP_UPDATE\s*[\r\n]+([\s\S]*?)```/g;
+}
 
 export function parseTripUpdates(content: string): TripUpdate[] {
 	const updates: TripUpdate[] = [];
+	const re = getTripUpdateRegex();
 	let match: RegExpExecArray | null;
 
-	while ((match = TRIP_UPDATE_RE.exec(content)) !== null) {
+	while ((match = re.exec(content)) !== null) {
 		try {
 			const parsed = JSON.parse(match[1]);
 			const items = Array.isArray(parsed) ? parsed : [parsed];
@@ -33,14 +38,9 @@ export function parseTripUpdates(content: string): TripUpdate[] {
 		}
 	}
 
-	// Reset regex lastIndex for reuse
-	TRIP_UPDATE_RE.lastIndex = 0;
-
 	return updates;
 }
 
 export function stripTripUpdateBlocks(content: string): string {
-	const stripped = content.replace(TRIP_UPDATE_RE, '').trim();
-	TRIP_UPDATE_RE.lastIndex = 0;
-	return stripped;
+	return content.replace(getTripUpdateRegex(), '').trim();
 }

@@ -108,7 +108,16 @@ function createChatStore() {
 				.then((messages) => {
 					// Don't overwrite if a send started while we were loading
 					if (!sendInFlight) {
-						update((s) => ({ ...s, messages, isLoading: false }));
+						// Re-parse any TRIP_UPDATE blocks from history so users
+						// can still apply actions from a previous session
+						const pendingActions: Record<string, import('$lib/types/chat').TripUpdate[]> = {};
+						for (const m of messages) {
+							if (m.role === 'assistant') {
+								const actions = parseTripUpdates(m.content);
+								if (actions.length > 0) pendingActions[m.id] = actions;
+							}
+						}
+						update((s) => ({ ...s, messages, pendingActions, isLoading: false }));
 					} else {
 						update((s) => ({ ...s, isLoading: false }));
 					}
