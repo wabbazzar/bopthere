@@ -22,7 +22,16 @@
 		const msg = inputValue.trim();
 		if (!msg || $chat.isLoading) return;
 		inputValue = '';
-		chat.send(msg); // fire-and-forget — store handles loading state
+		if (textareaEl) textareaEl.style.height = 'auto';
+		chat.send(msg);
+	}
+
+	let textareaEl: HTMLTextAreaElement;
+
+	function autoResize() {
+		if (!textareaEl) return;
+		textareaEl.style.height = 'auto';
+		textareaEl.style.height = Math.min(textareaEl.scrollHeight, 120) + 'px';
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -87,14 +96,16 @@
 		</div>
 
 		<div class="drawer-input">
-			<input
-				type="text"
+			<textarea
+				bind:this={textareaEl}
 				bind:value={inputValue}
 				on:keydown={handleKeydown}
+				on:input={autoResize}
 				placeholder="Ask about your trip..."
 				class="input-themed"
 				disabled={$chat.isLoading}
-			/>
+				rows="1"
+			></textarea>
 			<button
 				class="btn-primary send-btn"
 				on:click={handleSend}
@@ -217,11 +228,16 @@
 		flex-shrink: 0;
 	}
 
-	.drawer-input input {
+	.drawer-input textarea {
 		flex: 1;
 		min-width: 0;
 		font-size: 1rem; /* >=16px prevents iOS auto-zoom on focus */
 		padding: 0.5rem 0.625rem;
+		resize: none;
+		overflow-y: auto;
+		line-height: 1.4;
+		max-height: 120px;
+		font-family: inherit;
 	}
 
 	.send-btn {
