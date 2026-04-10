@@ -179,10 +179,9 @@ test.describe('Chat E2E', () => {
 	});
 
 	test('7 - Live Claude API', async ({ page }) => {
-		const token = await navigateAuthenticated(page, '/trip/china-2026');
-		await page.request.delete(`${CHAT_API}/api/chat/conversations/china-2026`, {
-			headers: { Authorization: `Bearer ${token}` }
-		}).catch(() => {});
+		// DO NOT clear the china-2026 conversation — it's the user's real chat history.
+		// Just send a message and verify Claude responds.
+		await navigateAuthenticated(page, '/trip/china-2026');
 
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible();
@@ -193,10 +192,10 @@ test.describe('Chat E2E', () => {
 		await page.waitForTimeout(300);
 		await cdpClick(page, '.send-btn');
 
-		await expect(page.locator('.msg--user').first()).toBeVisible({ timeout: 10000 });
-		await expect(page.locator('.msg--assistant').first()).toBeVisible({ timeout: 60000 });
+		await expect(page.locator('.msg--user').last()).toBeVisible({ timeout: 10000 });
+		await expect(page.locator('.msg--assistant').last()).toBeVisible({ timeout: 60000 });
 
-		const text = await page.locator('.msg--assistant').first().textContent();
+		const text = await page.locator('.msg--assistant').last().textContent();
 		expect(text!.length).toBeGreaterThan(0);
 		console.log('  Live response:', text);
 		await page.screenshot({ path: 'test-results/05-live.png' });
