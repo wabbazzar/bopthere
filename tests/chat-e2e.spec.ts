@@ -179,25 +179,29 @@ test.describe('Chat E2E', () => {
 	});
 
 	test('7 - Live Claude API', async ({ page }) => {
-		// DO NOT clear the china-2026 conversation — it's the user's real chat history.
-		// Just send a message and verify Claude responds.
-		await navigateAuthenticated(page, '/trip/china-2026');
+		// Use a throwaway trip ID so test messages never pollute the user's real conversation.
+		// Clean up the test conversation when done.
+		const TEST_TRIP = 'guardian-test';
+		const token = await navigateAuthenticated(page, '/trip/china-2026');
 
-		await page.locator('button[aria-label="Trip assistant"]').click();
-		await expect(page.locator('.drawer')).toBeVisible();
+		// Send a message directly via API (not through the UI) to avoid clobbering china-2026
+		const res = await page.request.post(`${CHAT_API}/api/chat/messages`, {
+			headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+			data: {
+				tripId: TEST_TRIP,
+				message: 'Say exactly: test-ok',
+				systemPrompt: 'You are a test assistant. Follow instructions exactly.'
+			}
+		});
 
-		const input = page.locator('.drawer-input input');
-		await input.click();
-		await page.keyboard.type('Say exactly: test-ok');
-		await page.waitForTimeout(300);
-		await cdpClick(page, '.send-btn');
+		expect(res.status()).toBe(200);
+		const body = await res.json();
+		expect(body.content.length).toBeGreaterThan(0);
+		console.log('  Live response:', body.content);
 
-		await expect(page.locator('.msg--user').last()).toBeVisible({ timeout: 10000 });
-		await expect(page.locator('.msg--assistant').last()).toBeVisible({ timeout: 60000 });
-
-		const text = await page.locator('.msg--assistant').last().textContent();
-		expect(text!.length).toBeGreaterThan(0);
-		console.log('  Live response:', text);
-		await page.screenshot({ path: 'test-results/05-live.png' });
+		// Clean up — delete the test conversation so it doesn't accumulate
+		await page.request.delete(`${CHAT_API}/api/chat/conversations/${TEST_TRIP}`, {
+			headers: { Authorization: `Bearer ${token}` }
+		}).catch(() => {});
 	});
 });
