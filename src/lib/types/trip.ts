@@ -24,7 +24,7 @@ export interface Booking {
 	date: string;
 	confirmation?: string;
 	details: string[];
-	ticketUrl?: string;
+	ticketUrl?: string | string[];
 	bookingUrl?: string;
 }
 

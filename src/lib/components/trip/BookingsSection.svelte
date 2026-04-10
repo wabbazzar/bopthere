@@ -44,9 +44,12 @@
 						{/each}
 						<div class="booking-links">
 							{#if booking.ticketUrl}
-								<a href={booking.ticketUrl} target="_blank" rel="noopener" class="booking-ticket">
-									View ticket ↗
-								</a>
+								{@const urls = Array.isArray(booking.ticketUrl) ? booking.ticketUrl : [booking.ticketUrl]}
+								{#each urls as url, j}
+									<a href={url} target="_blank" rel="noopener" class="booking-ticket">
+										{urls.length > 1 ? `Ticket ${j + 1} ↗` : 'View ticket ↗'}
+									</a>
+								{/each}
 							{/if}
 							{#if booking.bookingUrl}
 								<a href={booking.bookingUrl} target="_blank" rel="noopener" class="booking-ticket booking-link">
