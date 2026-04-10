@@ -5,6 +5,7 @@
 	import ExpandableField from './ExpandableField.svelte';
 	import SuggestPopover from './SuggestPopover.svelte';
 	import MapLinks from './MapLinks.svelte';
+	import MiniCalendar from './MiniCalendar.svelte';
 
 	let suggestTarget: { field: string; element: HTMLElement } | null = null;
 
@@ -75,6 +76,8 @@
 	on:touchend={onTouchEnd}
 >
 	{#if day}
+		<MiniCalendar {trip} bind:currentDayIndex />
+
 		<!-- Navigation bar -->
 		<div class="day-nav">
 			<button class="nav-arrow" on:click={prev} disabled={currentDayIndex === 0} aria-label="Previous day">
