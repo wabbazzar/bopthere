@@ -55,3 +55,7 @@ _Dev agent appends new checks here as features are built._
 - [ ] Chat TRIP_UPDATE: response with TRIP_UPDATE block shows Apply/Dismiss buttons, not raw JSON
 - [ ] Chat TRIP_UPDATE: Apply button updates trip data in localStorage and shows "Applied to trip" badge
 - [ ] Chat TRIP_UPDATE: Dismiss button removes action block without modifying trip data
+- [ ] Chat MAP_LINKS: response with MAP_LINKS block shows tappable preview links + Apply/Dismiss buttons
+- [ ] Chat MAP_LINKS: Apply button saves mapLinks to trip day, shows "Directions added" badge
+- [ ] Chat MAP_LINKS: chained links show "Full day route" composite multi-stop link
+- [ ] MapLinks component: multi-stop "Full day route" renders when links chain together

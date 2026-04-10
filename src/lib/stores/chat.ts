@@ -1,8 +1,8 @@
 import { writable, get } from 'svelte/store';
-import type { ChatMessage, TripUpdate } from '$lib/types/chat';
+import type { ChatMessage, TripUpdate, MapLinksAction } from '$lib/types/chat';
 import type { Trip } from '$lib/types/trip';
 import * as chatService from '$lib/services/chat';
-import { parseTripUpdates } from '$lib/services/chat-actions';
+import { parseTripUpdates, parseMapLinksActions } from '$lib/services/chat-actions';
 import { trips } from '$lib/stores/trips';
 
 interface ChatState {
@@ -13,10 +13,10 @@ interface ChatState {
 	activeTrip: Trip | null;
 	error: string | null;
 	thinkingMessage: string | null;
-	/** Maps message ID → pending updates parsed from that message */
 	pendingActions: Record<string, TripUpdate[]>;
-	/** Set of message IDs whose actions have been applied */
 	appliedActions: Set<string>;
+	pendingMapLinks: Record<string, MapLinksAction[]>;
+	appliedMapLinks: Set<string>;
 }
 
 const THINKING_MESSAGES = [
@@ -44,7 +44,9 @@ function createChatStore() {
 		error: null,
 		thinkingMessage: null,
 		pendingActions: {},
-		appliedActions: new Set<string>()
+		appliedActions: new Set<string>(),
+		pendingMapLinks: {},
+		appliedMapLinks: new Set<string>()
 	});
 
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -110,14 +112,17 @@ function createChatStore() {
 					if (!sendInFlight) {
 						// Re-parse any TRIP_UPDATE blocks from history so users
 						// can still apply actions from a previous session
-						const pendingActions: Record<string, import('$lib/types/chat').TripUpdate[]> = {};
+						const pendingActions: Record<string, TripUpdate[]> = {};
+						const pendingMapLinks: Record<string, MapLinksAction[]> = {};
 						for (const m of messages) {
 							if (m.role === 'assistant') {
 								const actions = parseTripUpdates(m.content);
 								if (actions.length > 0) pendingActions[m.id] = actions;
+								const mapActions = parseMapLinksActions(m.content);
+								if (mapActions.length > 0) pendingMapLinks[m.id] = mapActions;
 							}
 						}
-						update((s) => ({ ...s, messages, pendingActions, isLoading: false }));
+						update((s) => ({ ...s, messages, pendingActions, pendingMapLinks, isLoading: false }));
 					} else {
 						// Send is in-flight — don't touch isLoading or it kills the thinking indicator
 					}
@@ -166,16 +171,18 @@ function createChatStore() {
 			try {
 				const assistantMsg = await chatService.sendMessage(state.activeTripId, state.activeTrip, message);
 				const actions = parseTripUpdates(assistantMsg.content);
+				const mapActions = parseMapLinksActions(assistantMsg.content);
 				update((s) => {
 					const pendingActions = { ...s.pendingActions };
-					if (actions.length > 0) {
-						pendingActions[assistantMsg.id] = actions;
-					}
+					const pendingMapLinks = { ...s.pendingMapLinks };
+					if (actions.length > 0) pendingActions[assistantMsg.id] = actions;
+					if (mapActions.length > 0) pendingMapLinks[assistantMsg.id] = mapActions;
 					return {
 						...s,
 						messages: [...s.messages, assistantMsg],
 						isLoading: false,
-						pendingActions
+						pendingActions,
+						pendingMapLinks
 					};
 				});
 			} catch (e) {
@@ -230,6 +237,32 @@ function createChatStore() {
 				const pendingActions = { ...s.pendingActions };
 				delete pendingActions[messageId];
 				return { ...s, pendingActions };
+			});
+		},
+
+		applyMapLinks(messageId: string) {
+			const state = get({ subscribe });
+			const actions = state.pendingMapLinks[messageId];
+			if (!actions || !state.activeTripId) return;
+
+			for (const action of actions) {
+				trips.setDayMapLinks(state.activeTripId, action.dayIndex, action.mapLinks);
+			}
+
+			update((s) => {
+				const pendingMapLinks = { ...s.pendingMapLinks };
+				delete pendingMapLinks[messageId];
+				const appliedMapLinks = new Set(s.appliedMapLinks);
+				appliedMapLinks.add(messageId);
+				return { ...s, pendingMapLinks, appliedMapLinks };
+			});
+		},
+
+		dismissMapLinks(messageId: string) {
+			update((s) => {
+				const pendingMapLinks = { ...s.pendingMapLinks };
+				delete pendingMapLinks[messageId];
+				return { ...s, pendingMapLinks };
 			});
 		},
 

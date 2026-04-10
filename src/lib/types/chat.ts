@@ -12,6 +12,11 @@ export interface TripUpdate {
 	value: string;
 }
 
+export interface MapLinksAction {
+	dayIndex: number;
+	mapLinks: import('$lib/types/trip').MapLink[];
+}
+
 export type SuggestionType = 'activity' | 'restaurant';
 export type Vibe = string;
 

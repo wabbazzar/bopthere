@@ -4,10 +4,19 @@
 	export let mapLinks: MapLink[];
 
 	function googleMapsUrl(from: string, to: string): string {
-		const origin = encodeURIComponent(from);
-		const destination = encodeURIComponent(to);
-		return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+		return `https://www.google.com/maps/dir/${encodeURIComponent(from)}/${encodeURIComponent(to)}`;
 	}
+
+	function multiStopUrl(): string | null {
+		if (mapLinks.length < 2) return null;
+		for (let i = 0; i < mapLinks.length - 1; i++) {
+			if (mapLinks[i].to !== mapLinks[i + 1].from) return null;
+		}
+		const stops = [mapLinks[0].from, ...mapLinks.map(l => l.to)];
+		return `https://www.google.com/maps/dir/${stops.map(s => encodeURIComponent(s)).join('/')}`;
+	}
+
+	$: fullRouteUrl = multiStopUrl();
 </script>
 
 {#if mapLinks?.length}
@@ -41,6 +50,25 @@
 					<span class="map-link-arrow">↗</span>
 				</a>
 			{/each}
+			{#if fullRouteUrl}
+				<a
+					href={fullRouteUrl}
+					target="_blank"
+					rel="noopener"
+					class="map-link map-link--composite"
+				>
+					<span class="map-link-icon">
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+						</svg>
+					</span>
+					<span class="map-link-text">
+						<span class="map-link-label">Full day route</span>
+						<span class="map-link-route">{mapLinks.length + 1} stops</span>
+					</span>
+					<span class="map-link-arrow">↗</span>
+				</a>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -131,5 +159,9 @@
 
 	.map-link:hover .map-link-arrow {
 		color: var(--accent);
+	}
+
+	.map-link--composite {
+		border-style: dashed;
 	}
 </style>

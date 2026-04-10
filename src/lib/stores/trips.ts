@@ -1,5 +1,5 @@
 import { writable, get } from 'svelte/store';
-import type { Trip, TripDay } from '$lib/types/trip';
+import type { Trip, TripDay, MapLink } from '$lib/types/trip';
 import { chinaTrip } from '$lib/data/china-2026';
 
 const STORAGE_KEY = 'hw-trips';
@@ -252,6 +252,17 @@ function createTripsStore() {
 		},
 
 		// Undo
+		setDayMapLinks(id: string, dayIndex: number, mapLinks: MapLink[]) {
+			update((trips) => {
+				const trip = trips[id];
+				if (!trip || !trip.days[dayIndex]) return trips;
+				snapshot(trips);
+				trip.days[dayIndex].mapLinks = mapLinks;
+				saveTrips(trips);
+				return { ...trips };
+			});
+		},
+
 		undo() {
 			const prev = undoStack.pop();
 			if (!prev) return;

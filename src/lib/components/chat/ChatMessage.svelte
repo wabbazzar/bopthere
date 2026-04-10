@@ -1,11 +1,13 @@
 <script lang="ts">
-	import type { ChatMessage, TripUpdate } from '$lib/types/chat';
+	import type { ChatMessage, TripUpdate, MapLinksAction } from '$lib/types/chat';
 	import { chat } from '$lib/stores/chat';
-	import { stripTripUpdateBlocks } from '$lib/services/chat-actions';
+	import { stripAllActionBlocks } from '$lib/services/chat-actions';
 
 	export let message: ChatMessage;
 	export let pendingActions: TripUpdate[] | undefined = undefined;
 	export let applied = false;
+	export let pendingMapLinks: MapLinksAction[] | undefined = undefined;
+	export let mapLinksApplied = false;
 
 	const FIELD_LABELS: Record<string, string> = {
 		morning: 'Morning',
@@ -23,44 +25,41 @@
 	}
 
 	function displayContent(content: string): string {
-		return stripTripUpdateBlocks(content);
+		return stripAllActionBlocks(content);
+	}
+
+	function googleMapsUrl(from: string, to: string): string {
+		return `https://www.google.com/maps/dir/${encodeURIComponent(from)}/${encodeURIComponent(to)}`;
+	}
+
+	function multiStopUrl(action: MapLinksAction): string | null {
+		const links = action.mapLinks;
+		if (links.length < 2) return null;
+		// Check if links chain: link[n].to === link[n+1].from
+		for (let i = 0; i < links.length - 1; i++) {
+			if (links[i].to !== links[i + 1].from) return null;
+		}
+		const stops = [links[0].from, ...links.map(l => l.to)];
+		return `https://www.google.com/maps/dir/${stops.map(s => encodeURIComponent(s)).join('/')}`;
 	}
 
 	function renderMarkdown(text: string): string {
-		// Escape HTML first to prevent XSS
 		let html = text
 			.replace(/&/g, '&amp;')
 			.replace(/</g, '&lt;')
 			.replace(/>/g, '&gt;');
 
-		// Links: [text](url)
 		html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
 			'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-		// Bold: **text**
 		html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-		// Italic: *text* (but not inside already-processed bold)
 		html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
-
-		// Inline code: `code`
 		html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-		// Numbered lists: lines starting with "1. ", "2. " etc.
 		html = html.replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
-
-		// Bullet lists: lines starting with "- " or "* "
 		html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
-
-		// Wrap consecutive <li> in <ul>
 		html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
-
-		// Newlines to <br> (but not inside <ul> blocks)
 		html = html.replace(/\n/g, '<br>');
-		// Clean up <br> right after </ul> or before <ul>
 		html = html.replace(/<br><ul>/g, '<ul>');
 		html = html.replace(/<\/ul><br>/g, '</ul>');
-		// Clean up <br> between list items
 		html = html.replace(/<\/li><br><li>/g, '</li><li>');
 
 		return html;
@@ -94,6 +93,45 @@
 		{#if applied}
 			<div class="action-applied" aria-label="Trip updates applied">
 				Applied to trip
+			</div>
+		{/if}
+
+		{#if pendingMapLinks && pendingMapLinks.length > 0}
+			{#each pendingMapLinks as action}
+				<div class="action-block" aria-label="Map link actions">
+					<div class="action-summary">
+						<div class="map-links-header">Day {action.dayIndex + 1} — Directions</div>
+						{#each action.mapLinks as link}
+							<div class="map-link-preview">
+								<a href={googleMapsUrl(link.from, link.to)} target="_blank" rel="noopener noreferrer" class="map-link-anchor">
+									{link.label} ↗
+								</a>
+								<span class="map-link-route">{link.from} → {link.to}</span>
+							</div>
+						{/each}
+						{#if multiStopUrl(action)}
+							<div class="map-link-preview map-link-composite">
+								<a href={multiStopUrl(action)} target="_blank" rel="noopener noreferrer" class="map-link-anchor">
+									Full day route ↗
+								</a>
+							</div>
+						{/if}
+					</div>
+					<div class="action-buttons">
+						<button class="action-btn action-apply" on:click={() => chat.applyMapLinks(message.id)} aria-label="Apply map links">
+							Apply to trip
+						</button>
+						<button class="action-btn action-dismiss" on:click={() => chat.dismissMapLinks(message.id)} aria-label="Dismiss map links">
+							Dismiss
+						</button>
+					</div>
+				</div>
+			{/each}
+		{/if}
+
+		{#if mapLinksApplied}
+			<div class="action-applied" aria-label="Map links applied">
+				Directions added to trip
 			</div>
 		{/if}
 	</div>
@@ -234,5 +272,36 @@
 		font-size: 0.75rem;
 		color: var(--ink-faint);
 		font-style: italic;
+	}
+
+	.map-links-header {
+		font-weight: 600;
+		font-size: 0.78rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.map-link-preview {
+		padding: 0.25rem 0;
+	}
+
+	.map-link-anchor {
+		display: inline-block;
+		font-size: 0.78rem;
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.map-link-route {
+		display: block;
+		font-size: 0.65rem;
+		color: var(--ink-faint);
+		word-break: break-word;
+	}
+
+	.map-link-composite {
+		margin-top: 0.25rem;
+		padding-top: 0.25rem;
+		border-top: 1px dotted var(--border);
 	}
 </style>

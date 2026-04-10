@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseTripUpdates, stripTripUpdateBlocks } from '$lib/services/chat-actions';
+import { parseTripUpdates, stripTripUpdateBlocks, parseMapLinksActions, stripMapLinksBlocks, stripAllActionBlocks } from '$lib/services/chat-actions';
 
 describe('chat-actions', () => {
 	describe('parseTripUpdates', () => {
@@ -74,6 +74,74 @@ describe('chat-actions', () => {
 		it('removes multiple blocks', () => {
 			const content = 'Text\n```TRIP_UPDATE\n[]\n```\nMore\n```TRIP_UPDATE\n[]\n```';
 			expect(stripTripUpdateBlocks(content)).toBe('Text\n\nMore');
+		});
+	});
+
+	describe('parseMapLinksActions', () => {
+		it('parses a single map links action', () => {
+			const content = '```MAP_LINKS\n{"dayIndex": 7, "mapLinks": [{"label": "Hotel to Mountain", "from": "Hampton by Hilton", "to": "Tianmen Mountain"}]}\n```';
+			const actions = parseMapLinksActions(content);
+			expect(actions).toHaveLength(1);
+			expect(actions[0].dayIndex).toBe(7);
+			expect(actions[0].mapLinks).toHaveLength(1);
+			expect(actions[0].mapLinks[0]).toEqual({ label: 'Hotel to Mountain', from: 'Hampton by Hilton', to: 'Tianmen Mountain' });
+		});
+
+		it('parses multiple map links in one action', () => {
+			const content = '```MAP_LINKS\n{"dayIndex": 7, "mapLinks": [{"label": "A to B", "from": "A", "to": "B"}, {"label": "B to C", "from": "B", "to": "C"}]}\n```';
+			const actions = parseMapLinksActions(content);
+			expect(actions).toHaveLength(1);
+			expect(actions[0].mapLinks).toHaveLength(2);
+		});
+
+		it('rejects empty mapLinks array', () => {
+			const content = '```MAP_LINKS\n{"dayIndex": 0, "mapLinks": []}\n```';
+			expect(parseMapLinksActions(content)).toHaveLength(0);
+		});
+
+		it('rejects missing label', () => {
+			const content = '```MAP_LINKS\n{"dayIndex": 0, "mapLinks": [{"from": "A", "to": "B"}]}\n```';
+			expect(parseMapLinksActions(content)).toHaveLength(0);
+		});
+
+		it('rejects empty from string', () => {
+			const content = '```MAP_LINKS\n{"dayIndex": 0, "mapLinks": [{"label": "X", "from": "", "to": "B"}]}\n```';
+			expect(parseMapLinksActions(content)).toHaveLength(0);
+		});
+
+		it('rejects negative dayIndex', () => {
+			const content = '```MAP_LINKS\n{"dayIndex": -1, "mapLinks": [{"label": "X", "from": "A", "to": "B"}]}\n```';
+			expect(parseMapLinksActions(content)).toHaveLength(0);
+		});
+
+		it('handles malformed JSON', () => {
+			const content = '```MAP_LINKS\n{broken json\n```';
+			expect(parseMapLinksActions(content)).toHaveLength(0);
+		});
+
+		it('returns empty for content with no MAP_LINKS block', () => {
+			expect(parseMapLinksActions('just text')).toHaveLength(0);
+		});
+
+		it('only extracts label/from/to (no extra fields)', () => {
+			const content = '```MAP_LINKS\n{"dayIndex": 0, "mapLinks": [{"label": "X", "from": "A", "to": "B", "extra": "bad"}]}\n```';
+			const actions = parseMapLinksActions(content);
+			expect(actions).toHaveLength(1);
+			expect(actions[0].mapLinks[0]).toEqual({ label: 'X', from: 'A', to: 'B' });
+		});
+	});
+
+	describe('stripMapLinksBlocks', () => {
+		it('removes MAP_LINKS block', () => {
+			const content = 'Here are directions.\n\n```MAP_LINKS\n{"dayIndex": 0, "mapLinks": []}\n```';
+			expect(stripMapLinksBlocks(content)).toBe('Here are directions.');
+		});
+	});
+
+	describe('stripAllActionBlocks', () => {
+		it('strips both TRIP_UPDATE and MAP_LINKS', () => {
+			const content = 'Text\n```TRIP_UPDATE\n[]\n```\nMore\n```MAP_LINKS\n{}\n```\nEnd';
+			expect(stripAllActionBlocks(content)).toBe('Text\n\nMore\n\nEnd');
 		});
 	});
 });

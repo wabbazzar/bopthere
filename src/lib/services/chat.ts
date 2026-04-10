@@ -78,6 +78,7 @@ function buildSystemPrompt(trip: Trip): string {
 			if (d.evening) parts.push(`  EVE: ${d.evening}`);
 			if (d.notes) parts.push(`  Notes: ${d.notes}`);
 			if (d.ooo) parts.push(`  [Heather OOO]`);
+			if (d.mapLinks?.length) parts.push(`  Maps: ${d.mapLinks.map(l => l.label).join(', ')}`);
 			return parts.join('\n');
 		})
 		.join('\n\n');
@@ -130,7 +131,27 @@ Rules:
 - You may include multiple updates in one array
 - Always explain what you're updating in plain text BEFORE the block
 - If the user's request is ambiguous (which day? which slot?), ASK — don't guess
-- Never emit a TRIP_UPDATE unless the user explicitly asks to change the itinerary`;
+- Never emit a TRIP_UPDATE unless the user explicitly asks to change the itinerary
+
+ADDING MAP LINKS:
+When the user asks for directions, map links, or a route for a day, include a MAP_LINKS block at the END of your response (after any TRIP_UPDATE blocks). The block MUST be valid JSON wrapped in triple-backtick fences:
+
+\`\`\`MAP_LINKS
+{"dayIndex": 7, "mapLinks": [
+  {"label": "Hotel to Tianmen Mountain", "from": "Hampton by Hilton Zhangjiajie Tianmen Mountain", "to": "Tianmen Mountain National Park"},
+  {"label": "Tianmen to Glass Bridge", "from": "Tianmen Mountain National Park", "to": "Zhangjiajie Grand Canyon Glass Bridge"}
+]}
+\`\`\`
+
+Rules:
+- dayIndex is 0-based (Day 1 = index 0)
+- Use specific place names that Google Maps can resolve (full hotel names, landmark names, addresses)
+- For a full day in one city, create links that chain together (link N's "to" = link N+1's "from") so the app can build a connected multi-stop route
+- For inter-city transport (flights, trains), a single from→to link is fine
+- label should be short and descriptive
+- Always use the accommodation name from the itinerary as start/end points when relevant
+- The user will see clickable Google Maps preview links before applying — use precise names
+- Never emit MAP_LINKS unless the user explicitly asks for maps, directions, or a route`;
 }
 
 export function buildSuggestionMessage(
