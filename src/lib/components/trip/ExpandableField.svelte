@@ -139,13 +139,22 @@
 		vertical-align: middle;
 		transition: opacity 150ms ease, color 150ms ease;
 		display: inline-flex;
+		animation: sparkle-bob 2.6s ease-in-out infinite;
 	}
 	.suggest-trigger:hover {
 		opacity: 1;
 		color: var(--accent);
+		animation-play-state: paused;
 	}
 	@media (hover: none) {
 		.suggest-trigger { opacity: 0.55; }
+	}
+	@keyframes sparkle-bob {
+		0%, 100% { transform: translateY(0); }
+		50%      { transform: translateY(-3px); }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.suggest-trigger { animation: none; }
 	}
 	.field-chevron {
 		background: none;
