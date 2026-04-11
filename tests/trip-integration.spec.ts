@@ -261,8 +261,9 @@ test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {
 
 		await expect(page.locator('h1')).toContainText('Test Trip Name 999');
 
-		// Undo should revert
-		await page.getByRole('button', { name: 'Undo' }).click();
+		// Undo lives in the Trip actions menu now — open it first
+		await page.getByRole('button', { name: 'Trip actions' }).click();
+		await page.getByRole('menuitem', { name: 'Undo' }).click();
 		await expect(page.locator('h1')).toContainText(originalName!.trim());
 	});
 
@@ -277,9 +278,11 @@ test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {
 		await nameInput.press('Enter');
 		await expect(page.locator('h1')).toContainText('CHANGED NAME');
 
+		// Reset lives in the Trip actions menu now — open it first
+		await page.getByRole('button', { name: 'Trip actions' }).click();
 		// Set up dialog handler BEFORE clicking reset
 		page.once('dialog', dialog => dialog.accept());
-		await page.getByRole('button', { name: 'Reset' }).click();
+		await page.getByRole('menuitem', { name: 'Reset' }).click();
 		// Wait for Svelte reactivity to process the reset
 		await page.waitForTimeout(500);
 
@@ -289,8 +292,10 @@ test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {
 	test('Export button triggers file download', async ({ page }) => {
 		await goToDayView(page);
 
+		// Export lives in the Trip actions menu now — open it first
+		await page.getByRole('button', { name: 'Trip actions' }).click();
 		const downloadPromise = page.waitForEvent('download');
-		await page.getByRole('button', { name: 'Export' }).click();
+		await page.getByRole('menuitem', { name: 'Export' }).click();
 		const download = await downloadPromise;
 
 		expect(download.suggestedFilename()).toBe('china-2026.json');

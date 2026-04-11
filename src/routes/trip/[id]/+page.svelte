@@ -49,33 +49,29 @@
 {#if trip}
 	<TripHeader {trip} {tripId} />
 
-	<div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
-		<div class="flex items-center gap-2">
-			<ViewToggle bind:activeView {tripId} />
-			<div class="jump-nav" role="group" aria-label="Jump to section">
-				{#if trip.bookings?.length}
-					<button
-						type="button"
-						class="jump-btn"
-						on:click={() => scrollToSection('bookings-section')}
-						aria-label="Jump to bookings"
-					>
-						Bookings
-					</button>
-				{/if}
+	<div class="view-row">
+		<ViewToggle bind:activeView {tripId} />
+		<div class="jump-nav" role="group" aria-label="Jump to section">
+			{#if trip.bookings?.length}
 				<button
 					type="button"
-					class="jump-btn"
-					on:click={() => scrollToSection('todos-section')}
-					aria-label="Jump to todos"
+					class="jump-link"
+					on:click={() => scrollToSection('bookings-section')}
+					aria-label="Jump to bookings"
 				>
-					Todos
+					Bookings
 				</button>
-			</div>
+				<span class="jump-sep" aria-hidden="true">·</span>
+			{/if}
+			<button
+				type="button"
+				class="jump-link"
+				on:click={() => scrollToSection('todos-section')}
+				aria-label="Jump to todos"
+			>
+				Todos
+			</button>
 		</div>
-		{#if activeView === 'week'}
-			<span class="text-xs" style="color: var(--ink-faint)">{trip.days.length} days</span>
-		{/if}
 	</div>
 
 	{#if activeView === 'week'}
@@ -98,29 +94,42 @@
 {/if}
 
 <style>
+	.view-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+	}
 	.jump-nav {
 		display: inline-flex;
-		gap: 0.25rem;
+		align-items: center;
+		gap: 0.125rem;
 	}
-	.jump-btn {
-		padding: 0.5rem 0.875rem;
+	.jump-link {
+		padding: 0.5rem 0.5rem;
 		font-family: var(--font-display);
-		font-size: 0.7rem;
+		font-size: 0.65rem;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--ink-muted);
+		letter-spacing: 0.1em;
+		color: var(--ink-faint);
 		background: transparent;
-		border: 1px solid var(--border);
+		border: none;
 		border-radius: var(--radius);
 		cursor: pointer;
-		transition: background 150ms ease, color 150ms ease;
+		transition: color 150ms ease, background 150ms ease;
 		min-height: 44px;
 		display: inline-flex;
 		align-items: center;
 	}
-	.jump-btn:hover {
-		background: var(--accent-muted);
+	.jump-link:hover {
 		color: var(--ink);
+		background: var(--accent-muted);
+	}
+	.jump-sep {
+		color: var(--ink-faint);
+		font-size: 0.65rem;
+		margin: 0 0.125rem;
 	}
 	.scroll-mt-4 {
 		scroll-margin-top: 1rem;
