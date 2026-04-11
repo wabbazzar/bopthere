@@ -36,5 +36,4 @@ export interface Trip {
 	destinations: string[];
 	days: TripDay[];
 	links: string[];
-	bookings?: Booking[];
 }

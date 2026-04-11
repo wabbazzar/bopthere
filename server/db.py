@@ -1,11 +1,13 @@
-"""SQLite persistence for chat conversations."""
+"""SQLite persistence for chat conversations and trip bookings."""
 
 import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "data" / "chat.db"
+DATA_DIR = Path(__file__).parent / "data"
+DB_PATH = DATA_DIR / "chat.db"
+TICKETS_DIR = DATA_DIR / "tickets"
 
 
 def get_db() -> sqlite3.Connection:
@@ -17,6 +19,13 @@ def get_db() -> sqlite3.Connection:
         CREATE TABLE IF NOT EXISTS conversations (
             trip_id TEXT PRIMARY KEY,
             messages_json TEXT NOT NULL DEFAULT '[]',
+            updated_at TEXT NOT NULL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS trip_bookings (
+            trip_id TEXT PRIMARY KEY,
+            bookings_json TEXT NOT NULL DEFAULT '[]',
             updated_at TEXT NOT NULL
         )
     """)
@@ -45,3 +54,29 @@ def delete_conversation(trip_id: str):
     conn = get_db()
     conn.execute("DELETE FROM conversations WHERE trip_id = ?", (trip_id,))
     conn.commit()
+
+
+def get_bookings(trip_id: str) -> list[dict]:
+    conn = get_db()
+    row = conn.execute(
+        "SELECT bookings_json FROM trip_bookings WHERE trip_id = ?", (trip_id,)
+    ).fetchone()
+    return json.loads(row["bookings_json"]) if row else []
+
+
+def save_bookings(trip_id: str, bookings: list[dict]):
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO trip_bookings (trip_id, bookings_json, updated_at) VALUES (?, ?, ?)",
+        (trip_id, json.dumps(bookings), datetime.now().isoformat()),
+    )
+    conn.commit()
+
+
+def ticket_path(trip_id: str, name: str) -> Path:
+    """Resolve an attachment path, rejecting anything outside the per-trip dir."""
+    base = (TICKETS_DIR / trip_id).resolve()
+    target = (base / name).resolve()
+    if not str(target).startswith(str(base) + "/") and target != base:
+        raise ValueError("attachment path escapes tickets dir")
+    return target

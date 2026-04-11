@@ -3,6 +3,7 @@ import { getToken } from '$lib/services/auth';
 import type { Trip } from '$lib/types/trip';
 import type { ChatMessage } from '$lib/types/chat';
 import { getProfile } from '$lib/data/destination-vibes';
+import { getCachedBookings } from '$lib/services/bookings';
 
 const API_URL = PUBLIC_CHAT_API_URL;
 
@@ -83,7 +84,7 @@ function buildSystemPrompt(trip: Trip): string {
 		})
 		.join('\n\n');
 
-	const bookingsSummary = (trip.bookings || [])
+	const bookingsSummary = getCachedBookings(trip.id)
 		.map((b) => {
 			const conf = b.confirmation ? ` — Conf: ${b.confirmation}` : '';
 			return `${b.type.toUpperCase()}: ${b.label} (${b.date})${conf}\n  ${b.details.join(', ')}`;

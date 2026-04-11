@@ -1,17 +1,28 @@
 """Chat proxy — routes browser requests through Claude Code CLI (uses Max plan)."""
 
 import asyncio
+import hashlib
+import hmac
 import json
 import os
+import time
 import uuid
 from datetime import datetime
+from pathlib import Path
 
 import jwt
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from db import get_conversation, save_conversation, delete_conversation
+from db import (
+    delete_conversation,
+    get_bookings,
+    get_conversation,
+    save_conversation,
+    ticket_path,
+)
 
 app = FastAPI(title="H&W Chat Proxy", docs_url=None, redoc_url=None)
 
@@ -132,6 +143,73 @@ async def clear_conv(trip_id: str, authorization: str | None = Header(None)):
     verify_token(authorization)
     delete_conversation(trip_id)
     return {"ok": True}
+
+
+# ── Bookings ──────────────────────────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/bookings")
+async def list_bookings(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    return {"tripId": trip_id, "bookings": get_bookings(trip_id)}
+
+
+class SignAttachmentRequest(BaseModel):
+    name: str
+
+
+def _attachment_sig(trip_id: str, name: str, expires_at: int) -> str:
+    msg = f"{trip_id}|{name}|{expires_at}".encode()
+    return hmac.new(JWT_SECRET.encode(), msg, hashlib.sha256).hexdigest()
+
+
+@app.post("/api/trips/{trip_id}/attachments/sign")
+async def sign_attachment(
+    trip_id: str,
+    req: SignAttachmentRequest,
+    authorization: str | None = Header(None),
+):
+    """Return a short-lived signed URL for an attachment.
+
+    Clients call this before opening a PDF so the open can be a plain GET
+    without an Authorization header (browsers can't attach headers to
+    <a>-style navigations or window.open calls).
+    """
+    verify_token(authorization)
+    try:
+        path = ticket_path(trip_id, req.name)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid attachment name")
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Attachment not found")
+    expires_at = int(time.time()) + 120  # 120s window
+    sig = _attachment_sig(trip_id, req.name, expires_at)
+    return {
+        "url": f"/api/trips/{trip_id}/attachments/{req.name}?exp={expires_at}&sig={sig}"
+    }
+
+
+@app.get("/api/trips/{trip_id}/attachments/{name}")
+async def get_attachment(trip_id: str, name: str, exp: int, sig: str):
+    """Serve a PDF given a valid short-lived signature. No Bearer required."""
+    now = int(time.time())
+    if now > exp:
+        raise HTTPException(status_code=401, detail="Signature expired")
+    expected = _attachment_sig(trip_id, name, exp)
+    if not hmac.compare_digest(expected, sig):
+        raise HTTPException(status_code=401, detail="Invalid signature")
+    try:
+        path = ticket_path(trip_id, name)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid attachment name")
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Attachment not found")
+    return FileResponse(
+        path,
+        media_type="application/pdf",
+        filename=name,
+        headers={"Content-Disposition": f'inline; filename="{name}"'},
+    )
 
 
 @app.get("/health")

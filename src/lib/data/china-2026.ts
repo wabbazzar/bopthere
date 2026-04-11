@@ -156,7 +156,10 @@ const days: TripDay[] = [
 	}
 ];
 
-// bookings removed from git history
+// Bookings are NOT stored in this file — they contain sensitive data
+// (confirmation numbers, eTickets, etc.) and live in SQLite on the FastAPI
+// backend (server/db.py::trip_bookings). The frontend fetches them via
+// src/lib/services/bookings.ts::getBookings(tripId).
 
 export const chinaTrip: Trip = {
 	id: 'china-2026',
@@ -164,6 +167,6 @@ export const chinaTrip: Trip = {
 	startDate: '2026-04-22',
 	endDate: '2026-05-02',
 	destinations: ['Shanghai', 'Chongqing', 'Zhangjiajie'],
-	days
+	days,
 	links: []
 };

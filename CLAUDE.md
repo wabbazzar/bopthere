@@ -18,7 +18,8 @@ Never kill the dev server. If it crashes, restart it immediately.
 - **Frontend**: SvelteKit 2, Svelte 5, TypeScript
 - **Styling**: Tailwind CSS (minimal now, designed to be skinned later)
 - **Build**: Vite, `@sveltejs/adapter-static` (GitHub Pages)
-- **Auth Backend**: AWS Lambda (Python 3.11) + API Gateway + DynamoDB
+- **App Backend**: FastAPI (Python) on `wabbazzar-ice`, in-repo at `server/`, SQLite persistence
+- **Auth Backend**: AWS Lambda (Python 3.11) + API Gateway + DynamoDB (legacy — being migrated to wabbazzar-ice)
 - **Deployment**: GitHub Pages with custom domain
 
 ### Key Directories
@@ -34,12 +35,36 @@ src/
     stores/auth.ts     # Svelte auth store
     types/             # TypeScript types
     data/              # Trip data (static for now)
-aws/lambda/            # Lambda function source
+server/                # FastAPI backend — runs on wabbazzar-ice
+  chat_proxy.py        # FastAPI app (chat + bookings endpoints)
+  db.py                # SQLite helpers (chat.db)
+  data/                # SQLite DB + ticket PDFs (GITIGNORED — contains secrets)
+  hw-chat.service      # systemd unit
+  requirements.txt
+aws/lambda/            # Lambda function source (legacy auth only)
 infrastructure/        # Terraform configs (legacy, prefer Makefile)
 static/archive/        # Archived wedding site (served at /archive/)
 src-react-archive/     # Old React source (reference only)
 public/app-uploads/    # Image assets
 ```
+
+### FastAPI Backend (`server/`)
+
+Lives inside this repo and runs on `wabbazzar-ice` as a systemd service:
+- **Service unit**: `server/hw-chat.service` (user unit, `systemctl --user status hw-chat`)
+- **Bind**: `127.0.0.1:8089` — reverse-proxied by nginx to `https://api.heatherandwesley.com`
+- **Auth**: same HS256 JWT as the frontend (Bearer token in `Authorization` header)
+- **Persistence**: single SQLite file at `server/data/chat.db` (WAL mode)
+- **LLM**: shells out to the local Claude Code CLI (`CLAUDE_BIN`, uses Max plan OAuth) — NOT the Anthropic API, NOT AWS Bedrock
+- **Sensitive storage**: `server/data/` is gitignored and holds both the SQLite DB and any booking PDFs. Nothing in there should be committed.
+
+**Endpoints (current)**:
+- `GET /health` — liveness
+- `GET /api/chat/conversations/{trip_id}` — fetch chat history
+- `POST /api/chat/messages` — send a message, get a Claude reply
+- `DELETE /api/chat/conversations/{trip_id}` — clear history
+
+**AWS migration direction**: new backend work goes into `server/`, NOT into Lambda. The only thing still on AWS is the legacy auth flow. Do not add new AWS resources — put new features on wabbazzar-ice.
 
 ### API Gateway
 - **Correct API ID**: `emwkjk2c9d`

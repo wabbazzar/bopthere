@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { Booking } from '$lib/types/trip';
+	import { signTicketUrl } from '$lib/services/bookings';
 
 	export let bookings: Booking[];
+	export let tripId: string;
 
 	let expandedIndex: number | null = null;
 
@@ -12,6 +14,25 @@
 	function formatDate(d: string) {
 		const date = new Date(d + 'T12:00:00');
 		return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+	}
+
+	/**
+	 * Open a ticket PDF via a short-lived signed URL.
+	 *
+	 * We open a blank tab synchronously from the click handler so popup
+	 * blockers don't flag it, then redirect it once the sign call resolves.
+	 */
+	async function openTicket(name: string, e: MouseEvent) {
+		e.preventDefault();
+		const newWin = window.open('about:blank', '_blank');
+		try {
+			const url = await signTicketUrl(tripId, name);
+			if (newWin) newWin.location.href = url;
+			else window.location.href = url;
+		} catch (err) {
+			if (newWin) newWin.close();
+			console.error('Failed to open ticket', err);
+		}
 	}
 </script>
 
@@ -44,10 +65,14 @@
 						{/each}
 						<div class="booking-links">
 							{#if booking.ticketUrl}
-								{@const urls = Array.isArray(booking.ticketUrl) ? booking.ticketUrl : [booking.ticketUrl]}
-								{#each urls as url, j}
-									<a href={url} target="_blank" rel="noopener" class="booking-ticket">
-										{urls.length > 1 ? `Ticket ${j + 1} ↗` : 'View ticket ↗'}
+								{@const names = Array.isArray(booking.ticketUrl) ? booking.ticketUrl : [booking.ticketUrl]}
+								{#each names as name, j}
+									<a
+										href="#"
+										on:click={(e) => openTicket(name, e)}
+										class="booking-ticket"
+									>
+										{names.length > 1 ? `Ticket ${j + 1} ↗` : 'View ticket ↗'}
 									</a>
 								{/each}
 							{/if}

@@ -8,12 +8,19 @@
 	import DayView from '$lib/components/trip/DayView.svelte';
 	import BookingsSection from '$lib/components/trip/BookingsSection.svelte';
 	import TodosSection from '$lib/components/trip/TodosSection.svelte';
+	import { getBookings } from '$lib/services/bookings';
+	import type { Booking } from '$lib/types/trip';
 
 	$: tripId = $page.params.id as string;
 	$: trip = $trips[tripId];
 
 	let activeView: 'week' | 'day' = 'week';
 	let currentDayIndex = 0;
+
+	// Bookings are now served from the FastAPI backend (wabbazzar-ice),
+	// not bundled into the repo. `null` = still loading, `[]` = no bookings.
+	let bookings: Booking[] | null = null;
+	let bookingsError: string | null = null;
 
 	const DAY_KEY_PREFIX = 'hw-trip-day-';
 
@@ -26,6 +33,19 @@
 			if (!isNaN(idx) && idx >= 0) currentDayIndex = Math.min(idx, maxIdx);
 		}
 	});
+
+	$: if (tripId) loadBookings(tripId);
+
+	async function loadBookings(id: string) {
+		bookings = null;
+		bookingsError = null;
+		try {
+			bookings = await getBookings(id);
+		} catch (e) {
+			bookingsError = e instanceof Error ? e.message : 'Failed to load bookings';
+			bookings = [];
+		}
+	}
 
 	$: if (tripId && typeof localStorage !== 'undefined') {
 		localStorage.setItem(DAY_KEY_PREFIX + tripId, String(currentDayIndex));
@@ -56,7 +76,7 @@
 	<div class="view-row">
 		<ViewToggle bind:activeView {tripId} />
 		<div class="jump-nav" role="group" aria-label="Jump to section">
-			{#if trip.bookings?.length}
+			{#if bookings && bookings.length > 0}
 				<button
 					type="button"
 					class="jump-link"
@@ -84,9 +104,11 @@
 		<DayView {trip} {tripId} bind:currentDayIndex />
 	{/if}
 
-	{#if trip.bookings?.length}
+	{#if bookings === null}
+		<div class="mt-8 text-sm" style="color: var(--ink-faint)">Loading bookings…</div>
+	{:else if bookings.length > 0}
 		<div id="bookings-section" class="section-wrap mt-8 scroll-mt-4">
-			<BookingsSection bookings={trip.bookings} />
+			<BookingsSection {bookings} {tripId} />
 			<button
 				type="button"
 				class="back-to-top"
