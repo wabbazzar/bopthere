@@ -69,3 +69,34 @@
 		</a>
 	{/each}
 </div>
+
+<p class="section-label mb-4 mt-10">Past Trips</p>
+
+<div class="grid gap-4 max-w-2xl">
+	<a
+		href="/archive/"
+		rel="external"
+		data-sveltekit-reload
+		aria-label="Open wedding archive"
+		class="card block p-5 no-underline group"
+	>
+		<div class="flex items-start justify-between">
+			<div>
+				<h2 class="font-display text-xl font-semibold" style="color: var(--ink)">
+					Wedding Archive
+				</h2>
+				<p class="text-sm mt-1" style="color: var(--ink-muted)">
+					2025-12 {'\u00B7'} Maui, Hawaii
+				</p>
+				<p class="text-sm mt-1" style="color: var(--ink-faint)">
+					RSVPs, photos, bingo, leaderboard
+				</p>
+			</div>
+			<div class="text-right shrink-0 ml-4">
+				<span class="badge" style="color: var(--ink-faint); background: var(--accent-muted)">
+					Archive
+				</span>
+			</div>
+		</div>
+	</a>
+</div>

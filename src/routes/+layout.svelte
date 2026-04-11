@@ -36,15 +36,6 @@
 					H&W
 				</a>
 				<a href="/dashboard" class="text-sm no-underline" style="color: var(--ink-muted)">Trips</a>
-				<a
-					href="/archive/"
-					rel="external"
-					data-sveltekit-reload
-					class="text-sm no-underline"
-					style="color: var(--ink-faint)"
-				>
-					Wedding Archive
-				</a>
 			</nav>
 			<div class="flex gap-4 items-center">
 				<span class="text-sm" style="color: var(--ink-muted)">
