@@ -67,12 +67,12 @@
 </script>
 
 <div class="card p-5">
-	<div class="flex items-center justify-between mb-3">
-		<p class="section-label">To Do</p>
-		<span class="text-xs" style="color: var(--ink-faint)">
-			{todos.filter((t) => t.done).length}/{todos.length}
-		</span>
-	</div>
+	<p class="section-label mb-3">
+		To Do
+		{#if todos.length > 0}
+			<span class="todo-count">{todos.filter((t) => t.done).length}/{todos.length}</span>
+		{/if}
+	</p>
 
 	{#if todos.length > 0}
 		<div class="w-full h-1 rounded-full mb-3" style="background: var(--border)">
@@ -122,3 +122,16 @@
 		<button on:click={addTodo} class="btn-primary text-xs px-3 py-1">Add</button>
 	</div>
 </div>
+
+<style>
+	.todo-count {
+		margin-left: 0.5rem;
+		font-family: var(--font-body);
+		font-size: 0.7rem;
+		font-weight: 400;
+		letter-spacing: 0.02em;
+		text-transform: none;
+		color: var(--ink-faint);
+		font-variant-numeric: tabular-nums;
+	}
+</style>

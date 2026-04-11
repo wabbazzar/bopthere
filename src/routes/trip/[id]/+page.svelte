@@ -180,10 +180,12 @@
 	}
 	.back-to-top {
 		position: absolute;
-		top: 0;
-		right: 0;
-		width: 32px;
-		height: 32px;
+		/* sit inside the card's p-5 padding so the button lives within
+		   the box frame and the bob animation can't clip the border */
+		top: 0.875rem;
+		right: 0.875rem;
+		width: 30px;
+		height: 30px;
 		border-radius: 999px;
 		border: 1px solid var(--border);
 		background: var(--surface);
@@ -192,7 +194,8 @@
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
-		transition: color 150ms ease, background 150ms ease, border-color 150ms ease, transform 150ms ease;
+		z-index: 2;
+		transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
 		animation: bob 2.6s ease-in-out infinite;
 	}
 	.back-to-top:hover {
@@ -202,11 +205,11 @@
 		animation-play-state: paused;
 	}
 	.back-to-top:active {
-		transform: translateY(0) scale(0.96);
+		transform: translateY(0) scale(0.94);
 	}
 	@keyframes bob {
 		0%, 100% { transform: translateY(0); }
-		50%      { transform: translateY(-3px); }
+		50%      { transform: translateY(-2px); }
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.back-to-top { animation: none; }
