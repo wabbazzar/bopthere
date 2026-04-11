@@ -15,17 +15,40 @@ function cloneDefaults(): Record<string, Trip> {
 	return JSON.parse(JSON.stringify(defaults));
 }
 
+/**
+ * Derive the header destinations list from day locations, excluding split-day
+ * locations like "Zhangjiajie / Shanghai" — those transit/overlap days already
+ * show up individually and their component cities already have dedicated days.
+ */
+function computeDestinations(days: TripDay[]): string[] {
+	return [
+		...new Set(
+			days
+				.map((d) => d.location)
+				.filter((loc): loc is string => Boolean(loc) && !loc.includes('/'))
+		)
+	];
+}
+
 function loadTrips(): Record<string, Trip> {
-	if (typeof localStorage === 'undefined') return cloneDefaults();
+	if (typeof localStorage === 'undefined') return normalize(cloneDefaults());
 	const raw = localStorage.getItem(STORAGE_KEY);
-	if (!raw) return cloneDefaults();
+	if (!raw) return normalize(cloneDefaults());
 	try {
 		const saved = JSON.parse(raw) as Record<string, Trip>;
 		// Merge: saved data wins, but include any new default trips
-		return { ...cloneDefaults(), ...saved };
+		return normalize({ ...cloneDefaults(), ...saved });
 	} catch {
-		return cloneDefaults();
+		return normalize(cloneDefaults());
 	}
+}
+
+/** Recompute derived fields (destinations) for every trip — heals legacy state */
+function normalize(trips: Record<string, Trip>): Record<string, Trip> {
+	for (const trip of Object.values(trips)) {
+		trip.destinations = computeDestinations(trip.days);
+	}
+	return trips;
 }
 
 function saveTrips(trips: Record<string, Trip>) {
@@ -109,8 +132,7 @@ function createTripsStore() {
 				}
 
 				// Auto-update destinations from unique locations
-				const locs = [...new Set(trip.days.map((d) => d.location).filter(Boolean))];
-				trip.destinations = locs;
+				trip.destinations = computeDestinations(trip.days);
 
 				saveTrips(trips);
 				return { ...trips };
@@ -174,8 +196,7 @@ function createTripsStore() {
 					trip.startDate = dates[0];
 					trip.endDate = dates[dates.length - 1];
 				}
-				const locs = [...new Set(trip.days.map((d) => d.location).filter(Boolean))];
-				trip.destinations = locs;
+				trip.destinations = computeDestinations(trip.days);
 
 				saveTrips(trips);
 				return { ...trips };

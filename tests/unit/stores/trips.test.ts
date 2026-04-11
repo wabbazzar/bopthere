@@ -32,6 +32,24 @@ describe('trips store', () => {
 			expect(trip.destinations.length).toBeGreaterThanOrEqual(1);
 		});
 
+		it('excludes split-day locations like "A / B" from destinations', () => {
+			// China-2026 has a "Zhangjiajie / Shanghai" transit day; it must not
+			// bleed into the header destinations list.
+			const trip = getTrip();
+			for (const d of trip.destinations) {
+				expect(d.includes('/')).toBe(false);
+			}
+			// And a dedicated component day should still be there
+			expect(trip.destinations).toContain('Shanghai');
+			expect(trip.destinations).toContain('Zhangjiajie');
+		});
+
+		it('editing a day location to a split-day value does not add it to destinations', () => {
+			trips.updateDayField('china-2026', 0, 'location', 'Osaka / Kyoto');
+			const trip = getTrip();
+			expect(trip.destinations).not.toContain('Osaka / Kyoto');
+		});
+
 		it('sets boolean fields like ooo', () => {
 			trips.updateDayField('china-2026', 0, 'ooo', true);
 			expect(getTrip().days[0].ooo).toBe(true);
