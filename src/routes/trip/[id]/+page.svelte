@@ -40,6 +40,10 @@
 		const el = document.getElementById(id);
 		if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 	}
+
+	function scrollToTop() {
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 </script>
 
 <svelte:head>
@@ -81,13 +85,49 @@
 	{/if}
 
 	{#if trip.bookings?.length}
-		<div id="bookings-section" class="mt-8 scroll-mt-4">
+		<div id="bookings-section" class="section-wrap mt-8 scroll-mt-4">
 			<BookingsSection bookings={trip.bookings} />
+			<button
+				type="button"
+				class="back-to-top"
+				on:click={scrollToTop}
+				aria-label="Back to top"
+				title="Back to top"
+			>
+				<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+					<path
+						d="M6 15l6-6 6 6"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.25"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</button>
 		</div>
 	{/if}
 
-	<div id="todos-section" class="mt-6 scroll-mt-4">
+	<div id="todos-section" class="section-wrap mt-6 scroll-mt-4">
 		<TodosSection {tripId} />
+		<button
+			type="button"
+			class="back-to-top"
+			on:click={scrollToTop}
+			aria-label="Back to top"
+			title="Back to top"
+		>
+			<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+				<path
+					d="M6 15l6-6 6 6"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.25"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				/>
+			</svg>
+		</button>
 	</div>
 {:else}
 	<p>Trip not found.</p>
@@ -133,5 +173,42 @@
 	}
 	.scroll-mt-4 {
 		scroll-margin-top: 1rem;
+	}
+
+	.section-wrap {
+		position: relative;
+	}
+	.back-to-top {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 32px;
+		height: 32px;
+		border-radius: 999px;
+		border: 1px solid var(--border);
+		background: var(--surface);
+		color: var(--ink-faint);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: color 150ms ease, background 150ms ease, border-color 150ms ease, transform 150ms ease;
+		animation: bob 2.6s ease-in-out infinite;
+	}
+	.back-to-top:hover {
+		color: var(--ink);
+		background: var(--accent-muted);
+		border-color: var(--accent);
+		animation-play-state: paused;
+	}
+	.back-to-top:active {
+		transform: translateY(0) scale(0.96);
+	}
+	@keyframes bob {
+		0%, 100% { transform: translateY(0); }
+		50%      { transform: translateY(-3px); }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.back-to-top { animation: none; }
 	}
 </style>
