@@ -186,11 +186,44 @@ function createChatStore() {
 					};
 				});
 			} catch (e) {
-				update((s) => ({
-					...s,
-					isLoading: false,
-					error: e instanceof Error ? e.message : 'Something went wrong'
-				}));
+				// Backgrounding a mobile tab/PWA kills the in-flight fetch even
+				// though the server finishes and persists the reply. Before
+				// surfacing an error, refetch once — if the server has our
+				// assistant reply, swap it in without dropping the thinking
+				// indicator, so the user sees no error flash.
+				const preSendCount = state.messages.length;
+				let recovered = false;
+				try {
+					const serverMessages = await chatService.getConversation(state.activeTripId);
+					const last = serverMessages[serverMessages.length - 1];
+					if (serverMessages.length >= preSendCount + 2 && last?.role === 'assistant') {
+						const actions = parseTripUpdates(last.content);
+						const mapActions = parseMapLinksActions(last.content);
+						update((s) => {
+							const pendingActions = { ...s.pendingActions };
+							const pendingMapLinks = { ...s.pendingMapLinks };
+							if (actions.length > 0) pendingActions[last.id] = actions;
+							if (mapActions.length > 0) pendingMapLinks[last.id] = mapActions;
+							return {
+								...s,
+								messages: serverMessages,
+								isLoading: false,
+								pendingActions,
+								pendingMapLinks
+							};
+						});
+						recovered = true;
+					}
+				} catch {
+					// verify itself failed — fall through to show original error
+				}
+				if (!recovered) {
+					update((s) => ({
+						...s,
+						isLoading: false,
+						error: e instanceof Error ? e.message : 'Something went wrong'
+					}));
+				}
 			} finally {
 				sendInFlight = false;
 				stopThinking();
