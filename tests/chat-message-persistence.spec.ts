@@ -95,7 +95,7 @@ test.describe('Chat — Message persistence during send', () => {
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 3000 });
 
 		// Type and send a message
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Best restaurants near the Bund?');
 		await page.waitForTimeout(200);

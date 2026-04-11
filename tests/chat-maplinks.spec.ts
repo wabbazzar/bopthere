@@ -98,7 +98,7 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Build map links for day 8');
 		await page.waitForTimeout(300);
@@ -140,7 +140,7 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Build map links for day 8');
 		await page.waitForTimeout(300);
@@ -175,7 +175,7 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Build map links for day 8');
 		await page.waitForTimeout(300);

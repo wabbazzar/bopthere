@@ -94,7 +94,7 @@ test.describe('Chat Trip Update Actions', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Put Din Tai Fung in the evening for day 1');
 		await page.waitForTimeout(300);
@@ -132,7 +132,7 @@ test.describe('Chat Trip Update Actions', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Put Din Tai Fung in the evening for day 1');
 		await page.waitForTimeout(300);
@@ -175,7 +175,7 @@ test.describe('Chat Trip Update Actions', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Put Din Tai Fung in the evening for day 1');
 		await page.waitForTimeout(300);

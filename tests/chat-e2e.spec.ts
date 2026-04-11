@@ -111,7 +111,7 @@ test.describe('Chat E2E', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible();
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Best restaurant?');
 		await page.waitForTimeout(300);
@@ -132,7 +132,7 @@ test.describe('Chat E2E', () => {
 		await navigateAuthenticated(page, '/trip/china-2026');
 
 		await page.locator('button[aria-label="Trip assistant"]').click();
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Hello');
 		await page.waitForTimeout(300);

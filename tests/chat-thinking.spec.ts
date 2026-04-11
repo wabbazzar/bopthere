@@ -93,7 +93,7 @@ test.describe('Chat Thinking Indicator', () => {
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
 		// Type and send a message
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('What should we do today?');
 		await page.waitForTimeout(300);
@@ -122,7 +122,7 @@ test.describe('Chat Thinking Indicator', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Tell me about restaurants');
 		await page.waitForTimeout(300);
@@ -164,7 +164,7 @@ test.describe('Chat Thinking Indicator', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('This will fail');
 		await page.waitForTimeout(300);

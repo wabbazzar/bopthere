@@ -86,7 +86,7 @@ test.describe('Chat Markdown Rendering', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('Best restaurant?');
 		await page.waitForTimeout(300);
@@ -140,7 +140,7 @@ test.describe('Chat Markdown Rendering', () => {
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
 
-		const input = page.locator('.drawer-input input');
+		const input = page.locator('.drawer-input textarea');
 		await input.click();
 		await page.keyboard.type('test');
 		await page.waitForTimeout(300);
