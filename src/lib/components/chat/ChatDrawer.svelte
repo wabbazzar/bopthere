@@ -18,6 +18,19 @@
 		}
 	}
 
+	// Always land on the most recent message when the drawer opens, even if
+	// the message count hasn't changed since the last time it was open.
+	let prevIsOpen = false;
+	$: if ($chat.isOpen && !prevIsOpen) {
+		prevIsOpen = true;
+		prevMsgCount = $chat.messages.length;
+		tick().then(() => {
+			if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
+		});
+	} else if (!$chat.isOpen && prevIsOpen) {
+		prevIsOpen = false;
+	}
+
 	function handleSend() {
 		const msg = inputValue.trim();
 		if (!msg || $chat.isLoading) return;

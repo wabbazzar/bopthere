@@ -59,3 +59,5 @@ _Dev agent appends new checks here as features are built._
 - [ ] Chat MAP_LINKS: Apply button saves mapLinks to trip day, shows "Directions added" badge
 - [ ] Chat MAP_LINKS: chained links show "Full day route" composite multi-stop link
 - [ ] MapLinks component: multi-stop "Full day route" renders when links chain together
+- [ ] Chat drawer: opens scrolled to the most recent message, even on reopen (close, scroll up, reopen → scrolled to bottom again)
+- [ ] Chat recovery: if sendMessage fetch is killed mid-flight but server persisted reply, drawer shows the assistant message without an error flash
