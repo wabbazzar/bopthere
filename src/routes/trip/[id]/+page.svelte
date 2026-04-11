@@ -209,7 +209,7 @@
 	}
 	@keyframes bob {
 		0%, 100% { transform: translateY(0); }
-		50%      { transform: translateY(-2px); }
+		50%      { transform: translateY(-3px); }
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.back-to-top { animation: none; }
