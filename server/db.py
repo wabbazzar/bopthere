@@ -29,6 +29,20 @@ def get_db() -> sqlite3.Connection:
             updated_at TEXT NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS trips (
+            trip_id    TEXT PRIMARY KEY,
+            trip_json  TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS trip_todos (
+            trip_id    TEXT PRIMARY KEY,
+            todos_json TEXT NOT NULL DEFAULT '[]',
+            updated_at TEXT NOT NULL
+        )
+    """)
     conn.commit()
     return conn
 
@@ -80,3 +94,63 @@ def ticket_path(trip_id: str, name: str) -> Path:
     if not str(target).startswith(str(base) + "/") and target != base:
         raise ValueError("attachment path escapes tickets dir")
     return target
+
+
+# ── Trip data persistence ────────────────────────────────────────
+
+
+def get_trip(trip_id: str) -> tuple[dict, str] | None:
+    """Return (trip_dict, updated_at) or None if no row."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT trip_json, updated_at FROM trips WHERE trip_id = ?", (trip_id,)
+    ).fetchone()
+    if not row:
+        return None
+    return json.loads(row["trip_json"]), row["updated_at"]
+
+
+def save_trip(trip_id: str, trip_json: str, updated_at: str) -> tuple[bool, str | None]:
+    """LWW save — writes only if updated_at >= stored value.
+
+    Returns (True, updated_at) on success, (False, server_updated_at) if stale.
+    """
+    conn = get_db()
+    existing = conn.execute(
+        "SELECT updated_at FROM trips WHERE trip_id = ?", (trip_id,)
+    ).fetchone()
+    if existing and existing["updated_at"] > updated_at:
+        return False, existing["updated_at"]
+    conn.execute(
+        "INSERT OR REPLACE INTO trips (trip_id, trip_json, updated_at) VALUES (?, ?, ?)",
+        (trip_id, trip_json, updated_at),
+    )
+    conn.commit()
+    return True, updated_at
+
+
+def get_todos(trip_id: str) -> tuple[list, str] | None:
+    """Return (todos_list, updated_at) or None if no row."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT todos_json, updated_at FROM trip_todos WHERE trip_id = ?", (trip_id,)
+    ).fetchone()
+    if not row:
+        return None
+    return json.loads(row["todos_json"]), row["updated_at"]
+
+
+def save_todos(trip_id: str, todos_json: str, updated_at: str) -> tuple[bool, str | None]:
+    """LWW save for todos — same semantics as save_trip."""
+    conn = get_db()
+    existing = conn.execute(
+        "SELECT updated_at FROM trip_todos WHERE trip_id = ?", (trip_id,)
+    ).fetchone()
+    if existing and existing["updated_at"] > updated_at:
+        return False, existing["updated_at"]
+    conn.execute(
+        "INSERT OR REPLACE INTO trip_todos (trip_id, todos_json, updated_at) VALUES (?, ?, ?)",
+        (trip_id, todos_json, updated_at),
+    )
+    conn.commit()
+    return True, updated_at

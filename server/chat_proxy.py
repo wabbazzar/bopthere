@@ -20,7 +20,11 @@ from db import (
     delete_conversation,
     get_bookings,
     get_conversation,
+    get_todos,
+    get_trip,
     save_conversation,
+    save_todos,
+    save_trip,
     ticket_path,
 )
 
@@ -42,7 +46,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
@@ -210,6 +214,77 @@ async def get_attachment(trip_id: str, name: str, exp: int, sig: str):
         filename=name,
         headers={"Content-Disposition": f'inline; filename="{name}"'},
     )
+
+
+# ── Trip data (server-authoritative, shared across devices) ───────
+
+
+@app.get("/api/trips/{trip_id}")
+async def get_trip_data(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    result = get_trip(trip_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    trip_data, updated_at = result
+    return {"tripId": trip_id, "trip": trip_data, "updatedAt": updated_at}
+
+
+class SaveTripRequest(BaseModel):
+    trip: dict
+    updatedAt: str
+
+
+@app.put("/api/trips/{trip_id}")
+async def put_trip(trip_id: str, req: SaveTripRequest, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    ok, server_ts = save_trip(trip_id, json.dumps(req.trip), req.updatedAt)
+    if not ok:
+        # LWW rejected — return the server's current state so the client
+        # can reconcile without a second round-trip.
+        server_result = get_trip(trip_id)
+        server_trip, server_updated = server_result if server_result else ({}, "")
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Server has newer data",
+                "trip": server_trip,
+                "updatedAt": server_updated,
+            },
+        )
+    return {"ok": True, "updatedAt": server_ts}
+
+
+@app.get("/api/trips/{trip_id}/todos")
+async def get_trip_todos(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    result = get_todos(trip_id)
+    if result is None:
+        return {"tripId": trip_id, "todos": [], "updatedAt": None}
+    todos_data, updated_at = result
+    return {"tripId": trip_id, "todos": todos_data, "updatedAt": updated_at}
+
+
+class SaveTodosRequest(BaseModel):
+    todos: list
+    updatedAt: str
+
+
+@app.put("/api/trips/{trip_id}/todos")
+async def put_trip_todos(trip_id: str, req: SaveTodosRequest, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    ok, server_ts = save_todos(trip_id, json.dumps(req.todos), req.updatedAt)
+    if not ok:
+        server_result = get_todos(trip_id)
+        server_todos, server_updated = server_result if server_result else ([], "")
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Server has newer data",
+                "todos": server_todos,
+                "updatedAt": server_updated,
+            },
+        )
+    return {"ok": True, "updatedAt": server_ts}
 
 
 @app.get("/health")

@@ -8,6 +8,9 @@
 	let editTodoValue = '';
 	let newTodoValue = '';
 	const TODOS_KEY_PREFIX = 'hw-trip-todos-';
+	const META_KEY = 'hw-todos-meta';
+	const SYNC_DEBOUNCE_MS = 2000;
+	let syncTimer: ReturnType<typeof setTimeout> | null = null;
 
 	onMount(() => { loadTodos(); });
 
@@ -22,6 +25,8 @@
 		} else {
 			todos = getDefaultTodos();
 		}
+		// Async: pull server version
+		pullTodosFromServer();
 	}
 
 	function getDefaultTodos() {
@@ -32,9 +37,62 @@
 		];
 	}
 
+	function getUpdatedAt(): string {
+		try { return JSON.parse(localStorage.getItem(META_KEY) || '{}')[tripId] || ''; }
+		catch { return ''; }
+	}
+	function setUpdatedAt(ts: string) {
+		try {
+			const m = JSON.parse(localStorage.getItem(META_KEY) || '{}');
+			m[tripId] = ts;
+			localStorage.setItem(META_KEY, JSON.stringify(m));
+		} catch { /* ignore */ }
+	}
+
 	function saveTodos() {
 		if (typeof localStorage === 'undefined') return;
 		localStorage.setItem(TODOS_KEY_PREFIX + tripId, JSON.stringify(todos));
+		const now = new Date().toISOString();
+		setUpdatedAt(now);
+		scheduleSyncToServer();
+	}
+
+	function scheduleSyncToServer() {
+		if (syncTimer) clearTimeout(syncTimer);
+		syncTimer = setTimeout(() => { syncTimer = null; pushTodosToServer(); }, SYNC_DEBOUNCE_MS);
+	}
+
+	async function pushTodosToServer() {
+		try {
+			const { saveTodos: apiSave } = await import('$lib/services/trips-api');
+			const result = await apiSave(tripId, todos, getUpdatedAt() || new Date().toISOString());
+			if (result.ok) {
+				setUpdatedAt(result.updatedAt);
+			} else if (result.serverTodos) {
+				todos = result.serverTodos;
+				if (typeof localStorage !== 'undefined') localStorage.setItem(TODOS_KEY_PREFIX + tripId, JSON.stringify(todos));
+				setUpdatedAt(result.updatedAt);
+			}
+		} catch { /* offline — localStorage has the latest, will sync on next save */ }
+	}
+
+	async function pullTodosFromServer() {
+		try {
+			const { fetchTodos, saveTodos: apiSave } = await import('$lib/services/trips-api');
+			const result = await fetchTodos(tripId);
+			const localTs = getUpdatedAt();
+			if (result.updatedAt === null) {
+				// No server row — push local (migration)
+				const now = new Date().toISOString();
+				const saveResult = await apiSave(tripId, todos, now);
+				if (saveResult.ok) setUpdatedAt(saveResult.updatedAt);
+			} else if (!localTs || result.updatedAt > localTs) {
+				// Server is newer
+				todos = result.todos;
+				if (typeof localStorage !== 'undefined') localStorage.setItem(TODOS_KEY_PREFIX + tripId, JSON.stringify(todos));
+				setUpdatedAt(result.updatedAt);
+			}
+		} catch { /* offline */ }
 	}
 
 	function toggleTodo(index: number) { todos[index].done = !todos[index].done; todos = [...todos]; saveTodos(); }

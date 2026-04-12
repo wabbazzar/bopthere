@@ -3,7 +3,10 @@ import type { Trip, TripDay, MapLink } from '$lib/types/trip';
 import { chinaTrip } from '$lib/data/china-2026';
 
 const STORAGE_KEY = 'hw-trips';
+const META_KEY = 'hw-trips-meta';
+const SYNC_PENDING_KEY = 'hw-trips-sync-pending';
 const UNDO_LIMIT = 50;
+const SYNC_DEBOUNCE_MS = 2000;
 
 // Default trips keyed by id — deep frozen copy so mutations never leak back
 const defaults: Record<string, Trip> = JSON.parse(JSON.stringify({
@@ -31,20 +34,19 @@ function computeDestinations(days: TripDay[]): string[] {
 }
 
 function loadTrips(): Record<string, Trip> {
-	if (typeof localStorage === 'undefined') return normalize(cloneDefaults());
+	if (typeof localStorage === 'undefined') return normalizeTrips(cloneDefaults());
 	const raw = localStorage.getItem(STORAGE_KEY);
-	if (!raw) return normalize(cloneDefaults());
+	if (!raw) return normalizeTrips(cloneDefaults());
 	try {
 		const saved = JSON.parse(raw) as Record<string, Trip>;
-		// Merge: saved data wins, but include any new default trips
-		return normalize({ ...cloneDefaults(), ...saved });
+		return normalizeTrips({ ...cloneDefaults(), ...saved });
 	} catch {
-		return normalize(cloneDefaults());
+		return normalizeTrips(cloneDefaults());
 	}
 }
 
 /** Recompute derived fields (destinations) for every trip — heals legacy state */
-function normalize(trips: Record<string, Trip>): Record<string, Trip> {
+function normalizeTrips(trips: Record<string, Trip>): Record<string, Trip> {
 	for (const trip of Object.values(trips)) {
 		trip.destinations = computeDestinations(trip.days);
 	}
@@ -56,17 +58,143 @@ function saveTrips(trips: Record<string, Trip>) {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
 }
 
+// ── Server sync metadata (per-trip updatedAt timestamps) ────────
+
+function loadMeta(): Record<string, string> {
+	if (typeof localStorage === 'undefined') return {};
+	try {
+		return JSON.parse(localStorage.getItem(META_KEY) || '{}');
+	} catch {
+		return {};
+	}
+}
+
+function saveMetaField(tripId: string, updatedAt: string) {
+	if (typeof localStorage === 'undefined') return;
+	const meta = loadMeta();
+	meta[tripId] = updatedAt;
+	localStorage.setItem(META_KEY, JSON.stringify(meta));
+}
+
 function createTripsStore() {
 	const { subscribe, set, update } = writable<Record<string, Trip>>(loadTrips());
 	const undoStack: string[] = [];
+	const syncTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 	function snapshot(trips: Record<string, Trip>) {
 		undoStack.push(JSON.stringify(trips));
 		if (undoStack.length > UNDO_LIMIT) undoStack.shift();
 	}
 
-	function persist() {
-		saveTrips(get({ subscribe }));
+	/**
+	 * Persist to localStorage (instant) and schedule a debounced PUT to
+	 * the server. Every mutation calls this instead of raw saveTrips().
+	 */
+	function persistAndSync(trips: Record<string, Trip>, tripId: string) {
+		saveTrips(trips);
+		const now = new Date().toISOString();
+		saveMetaField(tripId, now);
+		scheduleSyncToServer(tripId);
+	}
+
+	function scheduleSyncToServer(tripId: string) {
+		const existing = syncTimers.get(tripId);
+		if (existing) clearTimeout(existing);
+		syncTimers.set(tripId, setTimeout(() => {
+			syncTimers.delete(tripId);
+			pushToServer(tripId);
+		}, SYNC_DEBOUNCE_MS));
+	}
+
+	/** Push local trip state to the server. On 409 (stale), accept server version. */
+	async function pushToServer(tripId: string) {
+		try {
+			const { saveTrip } = await import('$lib/services/trips-api');
+			const trips = get({ subscribe });
+			const trip = trips[tripId];
+			if (!trip) return;
+			const meta = loadMeta();
+			const updatedAt = meta[tripId] || new Date().toISOString();
+			const result = await saveTrip(tripId, trip, updatedAt);
+			if (result.ok) {
+				saveMetaField(tripId, result.updatedAt);
+				clearSyncPending(tripId);
+			} else if (result.serverTrip) {
+				// Server had newer data — accept it
+				update((t) => {
+					t[tripId] = normalizeTrips({ [tripId]: result.serverTrip! })[tripId];
+					saveTrips(t);
+					return { ...t };
+				});
+				saveMetaField(tripId, result.updatedAt);
+				clearSyncPending(tripId);
+			}
+		} catch {
+			// Network error — mark pending for retry when online
+			markSyncPending(tripId);
+		}
+	}
+
+	/** Pull server state on init. If server is newer, replace local. If no row, push local. */
+	async function pullFromServer(tripId: string) {
+		try {
+			const { fetchTrip, saveTrip } = await import('$lib/services/trips-api');
+			const serverResult = await fetchTrip(tripId);
+			const meta = loadMeta();
+			const localUpdatedAt = meta[tripId] || '';
+
+			if (serverResult === null) {
+				// Server has no row — push current local state (first-user migration)
+				const trips = get({ subscribe });
+				const trip = trips[tripId];
+				if (trip) {
+					const now = new Date().toISOString();
+					const result = await saveTrip(tripId, trip, now);
+					if (result.ok) saveMetaField(tripId, result.updatedAt);
+				}
+			} else if (!localUpdatedAt || serverResult.updatedAt > localUpdatedAt) {
+				// Server is newer — replace local
+				update((trips) => {
+					trips[tripId] = normalizeTrips({ [tripId]: serverResult.trip })[tripId];
+					saveTrips(trips);
+					return { ...trips };
+				});
+				saveMetaField(tripId, serverResult.updatedAt);
+			}
+			// else: local is newer or same — keep local, it'll sync on next edit
+		} catch {
+			// Offline — use localStorage as-is
+		}
+	}
+
+	function markSyncPending(tripId: string) {
+		if (typeof localStorage === 'undefined') return;
+		const pending = new Set((localStorage.getItem(SYNC_PENDING_KEY) || '').split(',').filter(Boolean));
+		pending.add(tripId);
+		localStorage.setItem(SYNC_PENDING_KEY, [...pending].join(','));
+	}
+
+	function clearSyncPending(tripId: string) {
+		if (typeof localStorage === 'undefined') return;
+		const pending = new Set((localStorage.getItem(SYNC_PENDING_KEY) || '').split(',').filter(Boolean));
+		pending.delete(tripId);
+		if (pending.size === 0) localStorage.removeItem(SYNC_PENDING_KEY);
+		else localStorage.setItem(SYNC_PENDING_KEY, [...pending].join(','));
+	}
+
+	function flushPendingSyncs() {
+		if (typeof localStorage === 'undefined') return;
+		const raw = localStorage.getItem(SYNC_PENDING_KEY);
+		if (!raw) return;
+		const pending = raw.split(',').filter(Boolean);
+		for (const tripId of pending) {
+			scheduleSyncToServer(tripId);
+		}
+	}
+
+	// Listen for online recovery
+	if (typeof window !== 'undefined') {
+		window.addEventListener('online', () => flushPendingSyncs());
 	}
 
 	return {
@@ -74,6 +202,13 @@ function createTripsStore() {
 
 		init() {
 			set(loadTrips());
+			// Async: pull server state for each known trip
+			const trips = get({ subscribe });
+			for (const tripId of Object.keys(trips)) {
+				pullFromServer(tripId);
+			}
+			// Also flush any pending syncs from a previous session
+			flushPendingSyncs();
 		},
 
 		getTrip(id: string): Trip | undefined {
@@ -87,11 +222,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				(trip as unknown as Record<string, unknown>)[field] = value;
-				// Recalculate destinations from days
-				if (field === 'name' || field === 'startDate' || field === 'endDate') {
-					// no-op, just save
-				}
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -103,7 +234,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				trip.destinations = destinations;
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -134,7 +265,7 @@ function createTripsStore() {
 				// Auto-update destinations from unique locations
 				trip.destinations = computeDestinations(trip.days);
 
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -178,7 +309,7 @@ function createTripsStore() {
 					trip.endDate = dates[dates.length - 1];
 				}
 
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -198,7 +329,7 @@ function createTripsStore() {
 				}
 				trip.destinations = computeDestinations(trip.days);
 
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -213,7 +344,7 @@ function createTripsStore() {
 				snapshot(trips);
 				const [day] = trip.days.splice(dayIndex, 1);
 				trip.days.splice(newIndex, 0, day);
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -225,7 +356,6 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				const copy = { ...trip.days[dayIndex] };
-				// Increment date by 1
 				if (copy.date) {
 					const d = new Date(copy.date + 'T12:00:00');
 					d.setDate(d.getDate() + 1);
@@ -233,7 +363,7 @@ function createTripsStore() {
 					copy.dayOfWeek = d.toLocaleDateString('en-US', { weekday: 'short' });
 				}
 				trip.days.splice(dayIndex + 1, 0, copy);
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -245,7 +375,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				trip.links.push(url);
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -256,7 +386,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				trip.links[linkIndex] = url;
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -267,19 +397,18 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				trip.links.splice(linkIndex, 1);
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
 
-		// Undo
 		setDayMapLinks(id: string, dayIndex: number, mapLinks: MapLink[]) {
 			update((trips) => {
 				const trip = trips[id];
 				if (!trip || !trip.days[dayIndex]) return trips;
 				snapshot(trips);
 				trip.days[dayIndex].mapLinks = mapLinks;
-				saveTrips(trips);
+				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
@@ -290,6 +419,12 @@ function createTripsStore() {
 			const trips = JSON.parse(prev);
 			set(trips);
 			saveTrips(trips);
+			// Sync all trips after undo
+			for (const tripId of Object.keys(trips)) {
+				const now = new Date().toISOString();
+				saveMetaField(tripId, now);
+				scheduleSyncToServer(tripId);
+			}
 		},
 
 		canUndo(): boolean {
@@ -302,7 +437,7 @@ function createTripsStore() {
 				if (defaults[id]) {
 					snapshot(trips);
 					trips[id] = JSON.parse(JSON.stringify(defaults[id]));
-					saveTrips(trips);
+					persistAndSync(trips, id);
 				}
 				return { ...trips };
 			});
