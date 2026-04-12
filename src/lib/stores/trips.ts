@@ -135,13 +135,11 @@ function createTripsStore() {
 		}
 	}
 
-	/** Pull server state on init. If server is newer, replace local. If no row, push local. */
+	/** Pull server state on init. Server is authoritative — always use it if available. */
 	async function pullFromServer(tripId: string) {
 		try {
 			const { fetchTrip, saveTrip } = await import('$lib/services/trips-api');
 			const serverResult = await fetchTrip(tripId);
-			const meta = loadMeta();
-			const localUpdatedAt = meta[tripId] || '';
 
 			if (serverResult === null) {
 				// Server has no row — push current local state (first-user migration)
@@ -152,8 +150,9 @@ function createTripsStore() {
 					const result = await saveTrip(tripId, trip, now);
 					if (result.ok) saveMetaField(tripId, result.updatedAt);
 				}
-			} else if (!localUpdatedAt || serverResult.updatedAt > localUpdatedAt) {
-				// Server is newer — replace local
+			} else {
+				// Server has data — always use it. The server is the source of
+				// truth; localStorage is just a cache for offline + instant render.
 				update((trips) => {
 					trips[tripId] = normalizeTrips({ [tripId]: serverResult.trip })[tripId];
 					saveTrips(trips);
@@ -161,7 +160,6 @@ function createTripsStore() {
 				});
 				saveMetaField(tripId, serverResult.updatedAt);
 			}
-			// else: local is newer or same — keep local, it'll sync on next edit
 		} catch {
 			// Offline — use localStorage as-is
 		}
@@ -180,6 +178,19 @@ function createTripsStore() {
 		pending.delete(tripId);
 		if (pending.size === 0) localStorage.removeItem(SYNC_PENDING_KEY);
 		else localStorage.setItem(SYNC_PENDING_KEY, [...pending].join(','));
+	}
+
+	/** On page load: push any unsaved edits, then pull server state. */
+	async function initSync(tripId: string) {
+		// If there are pending local edits from a previous session, push first
+		if (typeof localStorage !== 'undefined') {
+			const raw = localStorage.getItem(SYNC_PENDING_KEY);
+			if (raw && raw.split(',').includes(tripId)) {
+				await pushToServer(tripId);
+			}
+		}
+		// Then pull (server always wins after any pending push)
+		await pullFromServer(tripId);
 	}
 
 	function flushPendingSyncs() {
@@ -202,13 +213,12 @@ function createTripsStore() {
 
 		init() {
 			set(loadTrips());
-			// Async: pull server state for each known trip
+			// Async: for each trip, flush any unsaved edits first, then
+			// pull from server (server is authoritative on load).
 			const trips = get({ subscribe });
 			for (const tripId of Object.keys(trips)) {
-				pullFromServer(tripId);
+				initSync(tripId);
 			}
-			// Also flush any pending syncs from a previous session
-			flushPendingSyncs();
 		},
 
 		getTrip(id: string): Trip | undefined {
