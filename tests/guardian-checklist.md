@@ -39,11 +39,15 @@ Edit this file to add new checks. Dev agent adds entries when new features are b
 - [ ] Console: no JavaScript errors on any page
 - [ ] Mobile: repeat dashboard + trip checks at 390x844 viewport
 
-## DB Integrity (daily only, post-021)
+## DB Integrity (daily only — run `python3 scripts/db-audit.py`)
 
+- [ ] `python3 scripts/db-audit.py` exits 0 (runs ALL checks below in one shot)
+- [ ] trips table: china-2026 exists with valid JSON, ≥10 days, has name + startDate + destinations
+- [ ] trips table: days 7-9 (Apr 28-30) have populated morning + afternoon fields
+- [ ] trip_bookings table: china-2026 has ≥5 bookings, each with type (flight|hotel) + details array
+- [ ] trip_todos table: valid JSON list if row exists, each item has text field
 - [ ] conversations table: all rows have valid JSON in messages_json
-- [ ] trips table: china-2026 exists with version >= 1 (when 021 lands)
-- [ ] No updated_at timestamps in the future
+- [ ] No updated_at timestamps in the future (UTC comparison)
 
 ## Context From Dev Agent
 
@@ -61,3 +65,8 @@ _Dev agent appends new checks here as features are built._
 - [ ] MapLinks component: multi-stop "Full day route" renders when links chain together
 - [ ] Chat drawer: opens scrolled to the most recent message, even on reopen (close, scroll up, reopen → scrolled to bottom again)
 - [ ] Chat recovery: if sendMessage fetch is killed mid-flight but server persisted reply, drawer shows the assistant message without an error flash
+- [ ] Trip persistence: editing a day field in the UI syncs to SQLite within 2s (debounced PUT)
+- [ ] Trip persistence: clearing localStorage and reloading pulls server data (trip-data-persistence.spec.ts)
+- [ ] Bookings: served from /api/trips/{id}/bookings (JWT-gated), NOT from repo source code
+- [ ] Ticket PDFs: "View ticket" → signed URL → PDF streams with correct Content-Type
+- [ ] Todos: server-persisted via /api/trips/{id}/todos, shared across devices

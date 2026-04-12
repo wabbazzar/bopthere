@@ -58,6 +58,23 @@ npx playwright test 2>&1
 
 Report total/passed/failed counts.
 
+## Step 2.5: Database integrity audit (daily only)
+
+Run the DB audit script against the live SQLite database:
+
+```bash
+python3 scripts/db-audit.py
+```
+
+This checks:
+- trips table: china-2026 exists with valid JSON, ≥10 days, days 7-9 have populated morning/afternoon
+- trip_bookings table: china-2026 has ≥5 bookings with valid JSON, each booking has type + details
+- trip_todos table: valid JSON if exists
+- conversations table: all rows have valid JSON
+- No updated_at timestamps in the future
+
+Exit code 0 = clean, 1 = issues found. stdout is a JSON array of issue strings — put them in `dbIssues` in the result file.
+
 ## Step 3: Ad-hoc GUI exploration (daily only)
 
 Use Playwright to navigate the app exploratorily. This is NOT about running existing test files — you are the test. Navigate to these pages and report what you see:
