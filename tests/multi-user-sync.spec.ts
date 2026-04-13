@@ -9,6 +9,7 @@
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:5174';
+const API = 'https://api.heatherandwesley.com';
 
 const WESLEY = {
 	username: 'wesley',
@@ -88,6 +89,64 @@ async function editFieldByLabel(page: Page, label: string, newText: string) {
 }
 
 test.describe('Multi-user trip sync', () => {
+	let tripSnapshot: unknown;
+	let snapshotToken: string;
+
+	/** Generate a JWT for API calls outside the browser context */
+	async function getApiToken(browser: any): Promise<string> {
+		const ctx = await browser.newContext();
+		const page = await ctx.newPage();
+		await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+		const token = await page.evaluate(async () => {
+			const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+				.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+			const payload = btoa(JSON.stringify({
+				username: 'wesley', role: 'admin',
+				exp: Math.floor(Date.now() / 1000) + 86400
+			})).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+			const enc = new TextEncoder();
+			const key = await crypto.subtle.importKey(
+				'raw', enc.encode('your-secret-key-change-in-production'),
+				{ name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+			);
+			const sig = await crypto.subtle.sign('HMAC', key, enc.encode(`${header}.${payload}`));
+			const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
+				.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+			return `${header}.${payload}.${signature}`;
+		});
+		await ctx.close();
+		return token;
+	}
+
+	test.beforeAll(async ({ browser }) => {
+		snapshotToken = await getApiToken(browser);
+		// Snapshot the current trip so we can restore after tests
+		const res = await fetch(`${API}/api/trips/china-2026`, {
+			headers: { Authorization: `Bearer ${snapshotToken}` }
+		});
+		if (res.ok) {
+			const data = await res.json();
+			tripSnapshot = data.trip;
+		}
+	});
+
+	test.afterAll(async () => {
+		// Restore the original trip data that tests contaminated
+		if (tripSnapshot && snapshotToken) {
+			await fetch(`${API}/api/trips/china-2026`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${snapshotToken}`
+				},
+				body: JSON.stringify({
+					trip: tripSnapshot,
+					updatedAt: new Date().toISOString()
+				})
+			});
+		}
+	});
+
 	test('Heather edits day 7, Wesley sees the change on reload', async ({ browser }) => {
 		// Heather's device (separate browser context = separate localStorage)
 		const heatherCtx = await browser.newContext();
