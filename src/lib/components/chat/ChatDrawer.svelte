@@ -91,6 +91,14 @@
 					mapLinksApplied={$chat.appliedMapLinks.has(message.id)}
 					pendingCreateTrip={$chat.pendingCreateTrip[message.id]}
 					createTripApplied={$chat.appliedCreateTrip.has(message.id)}
+					pendingDayOps={$chat.pendingDayOps[message.id]}
+					dayOpsApplied={$chat.appliedDayOps.has(message.id)}
+					pendingMeta={$chat.pendingMeta[message.id]}
+					metaApplied={$chat.appliedMeta.has(message.id)}
+					pendingLinkOps={$chat.pendingLinkOps[message.id]}
+					linkOpsApplied={$chat.appliedLinkOps.has(message.id)}
+					pendingTodoOps={$chat.pendingTodoOps[message.id]}
+					todoOpsApplied={$chat.appliedTodoOps.has(message.id)}
 				/>
 			{/each}
 

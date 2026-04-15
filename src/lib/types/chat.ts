@@ -17,6 +17,30 @@ export interface MapLinksAction {
 	mapLinks: import('$lib/types/trip').MapLink[];
 }
 
+export type TripDayOp =
+	| { op: 'add'; afterIndex?: number }
+	| { op: 'delete'; dayIndex: number }
+	| { op: 'duplicate'; dayIndex: number }
+	| { op: 'move'; dayIndex: number; direction: 'up' | 'down' };
+
+export interface TripMetaAction {
+	name?: string;
+	startDate?: string;
+	endDate?: string;
+	destinations?: string[];
+}
+
+export type TripLinkOp =
+	| { op: 'add'; url: string }
+	| { op: 'update'; linkIndex: number; url: string }
+	| { op: 'delete'; linkIndex: number };
+
+export type TodoOp =
+	| { op: 'add'; text: string }
+	| { op: 'update'; todoIndex: number; text: string }
+	| { op: 'toggle'; todoIndex: number }
+	| { op: 'delete'; todoIndex: number };
+
 export interface TripCreate {
 	id: string;
 	name: string;

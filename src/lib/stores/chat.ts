@@ -1,9 +1,28 @@
 import { writable, get } from 'svelte/store';
-import type { ChatMessage, TripUpdate, MapLinksAction, TripCreate } from '$lib/types/chat';
+import type {
+	ChatMessage,
+	TripUpdate,
+	MapLinksAction,
+	TripCreate,
+	TripDayOp,
+	TripMetaAction,
+	TripLinkOp,
+	TodoOp
+} from '$lib/types/chat';
 import type { Trip } from '$lib/types/trip';
 import * as chatService from '$lib/services/chat';
-import { parseTripUpdates, parseMapLinksActions, parseTripCreates, tripFromCreate } from '$lib/services/chat-actions';
+import {
+	parseTripUpdates,
+	parseMapLinksActions,
+	parseTripCreates,
+	parseTripDayOps,
+	parseTripMeta,
+	parseTripLinkOps,
+	parseTodoOps,
+	tripFromCreate
+} from '$lib/services/chat-actions';
 import { trips } from '$lib/stores/trips';
+import { todosStore } from '$lib/stores/todos';
 
 interface ChatState {
 	messages: ChatMessage[];
@@ -19,6 +38,14 @@ interface ChatState {
 	appliedMapLinks: Set<string>;
 	pendingCreateTrip: Record<string, TripCreate[]>;
 	appliedCreateTrip: Set<string>;
+	pendingDayOps: Record<string, TripDayOp[]>;
+	appliedDayOps: Set<string>;
+	pendingMeta: Record<string, TripMetaAction[]>;
+	appliedMeta: Set<string>;
+	pendingLinkOps: Record<string, TripLinkOp[]>;
+	appliedLinkOps: Set<string>;
+	pendingTodoOps: Record<string, TodoOp[]>;
+	appliedTodoOps: Set<string>;
 }
 
 const THINKING_MESSAGES = [
@@ -36,6 +63,53 @@ const THINKING_MESSAGES = [
 
 const THINKING_ROTATE_MS = 3000;
 
+/**
+ * Parse every supported action block out of an assistant message and merge
+ * them into the relevant pending-action dicts under the message id.
+ * Mutates `dicts` in place; returns it for chaining.
+ */
+function parseIntoDicts(
+	content: string,
+	messageId: string,
+	dicts: {
+		actions: Record<string, TripUpdate[]>;
+		mapLinks: Record<string, MapLinksAction[]>;
+		creates: Record<string, TripCreate[]>;
+		dayOps: Record<string, TripDayOp[]>;
+		meta: Record<string, TripMetaAction[]>;
+		linkOps: Record<string, TripLinkOp[]>;
+		todoOps: Record<string, TodoOp[]>;
+	}
+) {
+	const a = parseTripUpdates(content);
+	if (a.length) dicts.actions[messageId] = a;
+	const ml = parseMapLinksActions(content);
+	if (ml.length) dicts.mapLinks[messageId] = ml;
+	const c = parseTripCreates(content);
+	if (c.length) dicts.creates[messageId] = c;
+	const d = parseTripDayOps(content);
+	if (d.length) dicts.dayOps[messageId] = d;
+	const m = parseTripMeta(content);
+	if (m.length) dicts.meta[messageId] = m;
+	const l = parseTripLinkOps(content);
+	if (l.length) dicts.linkOps[messageId] = l;
+	const t = parseTodoOps(content);
+	if (t.length) dicts.todoOps[messageId] = t;
+	return dicts;
+}
+
+function emptyDicts() {
+	return {
+		actions: {} as Record<string, TripUpdate[]>,
+		mapLinks: {} as Record<string, MapLinksAction[]>,
+		creates: {} as Record<string, TripCreate[]>,
+		dayOps: {} as Record<string, TripDayOp[]>,
+		meta: {} as Record<string, TripMetaAction[]>,
+		linkOps: {} as Record<string, TripLinkOp[]>,
+		todoOps: {} as Record<string, TodoOp[]>
+	};
+}
+
 function createChatStore() {
 	const { subscribe, set, update } = writable<ChatState>({
 		messages: [],
@@ -50,7 +124,15 @@ function createChatStore() {
 		pendingMapLinks: {},
 		appliedMapLinks: new Set<string>(),
 		pendingCreateTrip: {},
-		appliedCreateTrip: new Set<string>()
+		appliedCreateTrip: new Set<string>(),
+		pendingDayOps: {},
+		appliedDayOps: new Set<string>(),
+		pendingMeta: {},
+		appliedMeta: new Set<string>(),
+		pendingLinkOps: {},
+		appliedLinkOps: new Set<string>(),
+		pendingTodoOps: {},
+		appliedTodoOps: new Set<string>()
 	});
 
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -114,22 +196,24 @@ function createChatStore() {
 				.then((messages) => {
 					// Don't overwrite if a send started while we were loading
 					if (!sendInFlight) {
-						// Re-parse any TRIP_UPDATE blocks from history so users
-						// can still apply actions from a previous session
-						const pendingActions: Record<string, TripUpdate[]> = {};
-						const pendingMapLinks: Record<string, MapLinksAction[]> = {};
-						const pendingCreateTrip: Record<string, TripCreate[]> = {};
+						// Re-parse every action block from history so users can
+						// still apply proposals from a previous session.
+						const d = emptyDicts();
 						for (const m of messages) {
-							if (m.role === 'assistant') {
-								const actions = parseTripUpdates(m.content);
-								if (actions.length > 0) pendingActions[m.id] = actions;
-								const mapActions = parseMapLinksActions(m.content);
-								if (mapActions.length > 0) pendingMapLinks[m.id] = mapActions;
-								const creates = parseTripCreates(m.content);
-								if (creates.length > 0) pendingCreateTrip[m.id] = creates;
-							}
+							if (m.role === 'assistant') parseIntoDicts(m.content, m.id, d);
 						}
-						update((s) => ({ ...s, messages, pendingActions, pendingMapLinks, pendingCreateTrip, isLoading: false }));
+						update((s) => ({
+							...s,
+							messages,
+							pendingActions: d.actions,
+							pendingMapLinks: d.mapLinks,
+							pendingCreateTrip: d.creates,
+							pendingDayOps: d.dayOps,
+							pendingMeta: d.meta,
+							pendingLinkOps: d.linkOps,
+							pendingTodoOps: d.todoOps,
+							isLoading: false
+						}));
 					} else {
 						// Send is in-flight — don't touch isLoading or it kills the thinking indicator
 					}
@@ -177,23 +261,28 @@ function createChatStore() {
 
 			try {
 				const assistantMsg = await chatService.sendMessage(state.activeTripId, state.activeTrip, message);
-				const actions = parseTripUpdates(assistantMsg.content);
-				const mapActions = parseMapLinksActions(assistantMsg.content);
-				const creates = parseTripCreates(assistantMsg.content);
 				update((s) => {
-					const pendingActions = { ...s.pendingActions };
-					const pendingMapLinks = { ...s.pendingMapLinks };
-					const pendingCreateTrip = { ...s.pendingCreateTrip };
-					if (actions.length > 0) pendingActions[assistantMsg.id] = actions;
-					if (mapActions.length > 0) pendingMapLinks[assistantMsg.id] = mapActions;
-					if (creates.length > 0) pendingCreateTrip[assistantMsg.id] = creates;
+					const d = {
+						actions: { ...s.pendingActions },
+						mapLinks: { ...s.pendingMapLinks },
+						creates: { ...s.pendingCreateTrip },
+						dayOps: { ...s.pendingDayOps },
+						meta: { ...s.pendingMeta },
+						linkOps: { ...s.pendingLinkOps },
+						todoOps: { ...s.pendingTodoOps }
+					};
+					parseIntoDicts(assistantMsg.content, assistantMsg.id, d);
 					return {
 						...s,
 						messages: [...s.messages, assistantMsg],
 						isLoading: false,
-						pendingActions,
-						pendingMapLinks,
-						pendingCreateTrip
+						pendingActions: d.actions,
+						pendingMapLinks: d.mapLinks,
+						pendingCreateTrip: d.creates,
+						pendingDayOps: d.dayOps,
+						pendingMeta: d.meta,
+						pendingLinkOps: d.linkOps,
+						pendingTodoOps: d.todoOps
 					};
 				});
 			} catch (e) {
@@ -208,23 +297,28 @@ function createChatStore() {
 					const serverMessages = await chatService.getConversation(state.activeTripId);
 					const last = serverMessages[serverMessages.length - 1];
 					if (serverMessages.length >= preSendCount + 2 && last?.role === 'assistant') {
-						const actions = parseTripUpdates(last.content);
-						const mapActions = parseMapLinksActions(last.content);
-						const creates = parseTripCreates(last.content);
 						update((s) => {
-							const pendingActions = { ...s.pendingActions };
-							const pendingMapLinks = { ...s.pendingMapLinks };
-							const pendingCreateTrip = { ...s.pendingCreateTrip };
-							if (actions.length > 0) pendingActions[last.id] = actions;
-							if (mapActions.length > 0) pendingMapLinks[last.id] = mapActions;
-							if (creates.length > 0) pendingCreateTrip[last.id] = creates;
+							const d = {
+								actions: { ...s.pendingActions },
+								mapLinks: { ...s.pendingMapLinks },
+								creates: { ...s.pendingCreateTrip },
+								dayOps: { ...s.pendingDayOps },
+								meta: { ...s.pendingMeta },
+								linkOps: { ...s.pendingLinkOps },
+								todoOps: { ...s.pendingTodoOps }
+							};
+							parseIntoDicts(last.content, last.id, d);
 							return {
 								...s,
 								messages: serverMessages,
 								isLoading: false,
-								pendingActions,
-								pendingMapLinks,
-								pendingCreateTrip
+								pendingActions: d.actions,
+								pendingMapLinks: d.mapLinks,
+								pendingCreateTrip: d.creates,
+								pendingDayOps: d.dayOps,
+								pendingMeta: d.meta,
+								pendingLinkOps: d.linkOps,
+								pendingTodoOps: d.todoOps
 							};
 						});
 						recovered = true;
@@ -366,6 +460,120 @@ function createChatStore() {
 				const pendingCreateTrip = { ...s.pendingCreateTrip };
 				delete pendingCreateTrip[messageId];
 				return { ...s, pendingCreateTrip };
+			});
+		},
+
+		applyDayOps(messageId: string) {
+			const state = get({ subscribe });
+			const ops = state.pendingDayOps[messageId];
+			if (!ops || !state.activeTripId) return;
+			const id = state.activeTripId;
+			for (const op of ops) {
+				if (op.op === 'add') trips.addDay(id, op.afterIndex);
+				else if (op.op === 'delete') trips.deleteDay(id, op.dayIndex);
+				else if (op.op === 'duplicate') trips.duplicateDay(id, op.dayIndex);
+				else if (op.op === 'move') trips.moveDay(id, op.dayIndex, op.direction);
+			}
+			update((s) => {
+				const pendingDayOps = { ...s.pendingDayOps };
+				delete pendingDayOps[messageId];
+				const appliedDayOps = new Set(s.appliedDayOps);
+				appliedDayOps.add(messageId);
+				return { ...s, pendingDayOps, appliedDayOps };
+			});
+		},
+
+		dismissDayOps(messageId: string) {
+			update((s) => {
+				const pendingDayOps = { ...s.pendingDayOps };
+				delete pendingDayOps[messageId];
+				return { ...s, pendingDayOps };
+			});
+		},
+
+		applyMeta(messageId: string) {
+			const state = get({ subscribe });
+			const metas = state.pendingMeta[messageId];
+			if (!metas || !state.activeTripId) return;
+			const id = state.activeTripId;
+			for (const m of metas) {
+				if (typeof m.name === 'string') trips.updateTrip(id, 'name', m.name);
+				if (typeof m.startDate === 'string') trips.updateTrip(id, 'startDate', m.startDate);
+				if (typeof m.endDate === 'string') trips.updateTrip(id, 'endDate', m.endDate);
+				if (Array.isArray(m.destinations)) trips.updateDestinations(id, m.destinations);
+			}
+			update((s) => {
+				const pendingMeta = { ...s.pendingMeta };
+				delete pendingMeta[messageId];
+				const appliedMeta = new Set(s.appliedMeta);
+				appliedMeta.add(messageId);
+				return { ...s, pendingMeta, appliedMeta };
+			});
+		},
+
+		dismissMeta(messageId: string) {
+			update((s) => {
+				const pendingMeta = { ...s.pendingMeta };
+				delete pendingMeta[messageId];
+				return { ...s, pendingMeta };
+			});
+		},
+
+		applyLinkOps(messageId: string) {
+			const state = get({ subscribe });
+			const ops = state.pendingLinkOps[messageId];
+			if (!ops || !state.activeTripId) return;
+			const id = state.activeTripId;
+			for (const op of ops) {
+				if (op.op === 'add') trips.addLink(id, op.url);
+				else if (op.op === 'update') trips.updateLink(id, op.linkIndex, op.url);
+				else if (op.op === 'delete') trips.deleteLink(id, op.linkIndex);
+			}
+			update((s) => {
+				const pendingLinkOps = { ...s.pendingLinkOps };
+				delete pendingLinkOps[messageId];
+				const appliedLinkOps = new Set(s.appliedLinkOps);
+				appliedLinkOps.add(messageId);
+				return { ...s, pendingLinkOps, appliedLinkOps };
+			});
+		},
+
+		dismissLinkOps(messageId: string) {
+			update((s) => {
+				const pendingLinkOps = { ...s.pendingLinkOps };
+				delete pendingLinkOps[messageId];
+				return { ...s, pendingLinkOps };
+			});
+		},
+
+		applyTodoOps(messageId: string) {
+			const state = get({ subscribe });
+			const ops = state.pendingTodoOps[messageId];
+			if (!ops || !state.activeTripId) return;
+			const id = state.activeTripId;
+			// Make sure the store has the latest view of todos before mutating,
+			// so the agent's indices line up with what the user sees.
+			todosStore.init(id);
+			for (const op of ops) {
+				if (op.op === 'add') todosStore.add(id, op.text);
+				else if (op.op === 'update') todosStore.updateText(id, op.todoIndex, op.text);
+				else if (op.op === 'toggle') todosStore.toggle(id, op.todoIndex);
+				else if (op.op === 'delete') todosStore.remove(id, op.todoIndex);
+			}
+			update((s) => {
+				const pendingTodoOps = { ...s.pendingTodoOps };
+				delete pendingTodoOps[messageId];
+				const appliedTodoOps = new Set(s.appliedTodoOps);
+				appliedTodoOps.add(messageId);
+				return { ...s, pendingTodoOps, appliedTodoOps };
+			});
+		},
+
+		dismissTodoOps(messageId: string) {
+			update((s) => {
+				const pendingTodoOps = { ...s.pendingTodoOps };
+				delete pendingTodoOps[messageId];
+				return { ...s, pendingTodoOps };
 			});
 		},
 

@@ -9,7 +9,11 @@ import {
 	stripTripCreateBlocks,
 	tripFromCreate,
 	slugifyTripId,
-	distributeDestinations
+	distributeDestinations,
+	parseTripDayOps,
+	parseTripMeta,
+	parseTripLinkOps,
+	parseTodoOps
 } from '$lib/services/chat-actions';
 
 describe('chat-actions', () => {
@@ -314,6 +318,94 @@ describe('chat-actions', () => {
 
 		it('single destination fills all days', () => {
 			expect(distributeDestinations(4, ['Tokyo'])).toEqual(['Tokyo', 'Tokyo', 'Tokyo', 'Tokyo']);
+		});
+	});
+
+	describe('parseTripDayOps', () => {
+		it('parses add/delete/duplicate/move ops', () => {
+			const content = '```TRIP_DAYS\n[{"op":"add","afterIndex":5},{"op":"delete","dayIndex":3},{"op":"duplicate","dayIndex":2},{"op":"move","dayIndex":4,"direction":"down"}]\n```';
+			const ops = parseTripDayOps(content);
+			expect(ops).toHaveLength(4);
+			expect(ops[0]).toEqual({ op: 'add', afterIndex: 5 });
+			expect(ops[1]).toEqual({ op: 'delete', dayIndex: 3 });
+			expect(ops[2]).toEqual({ op: 'duplicate', dayIndex: 2 });
+			expect(ops[3]).toEqual({ op: 'move', dayIndex: 4, direction: 'down' });
+		});
+
+		it('add without afterIndex is valid', () => {
+			const ops = parseTripDayOps('```TRIP_DAYS\n[{"op":"add"}]\n```');
+			expect(ops).toEqual([{ op: 'add', afterIndex: undefined }]);
+		});
+
+		it('rejects unknown op and invalid direction', () => {
+			expect(parseTripDayOps('```TRIP_DAYS\n[{"op":"pwn"}]\n```')).toEqual([]);
+			expect(parseTripDayOps('```TRIP_DAYS\n[{"op":"move","dayIndex":1,"direction":"sideways"}]\n```')).toEqual([]);
+		});
+
+		it('rejects negative dayIndex', () => {
+			expect(parseTripDayOps('```TRIP_DAYS\n[{"op":"delete","dayIndex":-1}]\n```')).toEqual([]);
+		});
+
+		it('handles malformed JSON gracefully', () => {
+			expect(parseTripDayOps('```TRIP_DAYS\nnope\n```')).toEqual([]);
+		});
+	});
+
+	describe('parseTripMeta', () => {
+		it('parses partial updates', () => {
+			const content = '```TRIP_META\n{"name":"Europe Summer 2026","destinations":["Barcelona","Cannes"]}\n```';
+			const metas = parseTripMeta(content);
+			expect(metas).toHaveLength(1);
+			expect(metas[0]).toEqual({ name: 'Europe Summer 2026', destinations: ['Barcelona', 'Cannes'] });
+		});
+
+		it('drops invalid date format', () => {
+			const metas = parseTripMeta('```TRIP_META\n{"startDate":"10/10/2026"}\n```');
+			expect(metas).toEqual([]);
+		});
+
+		it('drops non-string destinations entries', () => {
+			const metas = parseTripMeta('```TRIP_META\n{"destinations":["Paris",42,null,"Lyon"]}\n```');
+			expect(metas[0].destinations).toEqual(['Paris', 'Lyon']);
+		});
+
+		it('rejects empty payload (no applicable fields)', () => {
+			expect(parseTripMeta('```TRIP_META\n{}\n```')).toEqual([]);
+		});
+	});
+
+	describe('parseTripLinkOps', () => {
+		it('parses add/update/delete', () => {
+			const content = '```TRIP_LINKS\n[{"op":"add","url":"https://a.com"},{"op":"update","linkIndex":0,"url":"https://b.com"},{"op":"delete","linkIndex":1}]\n```';
+			const ops = parseTripLinkOps(content);
+			expect(ops).toHaveLength(3);
+			expect(ops[0]).toEqual({ op: 'add', url: 'https://a.com' });
+			expect(ops[1]).toEqual({ op: 'update', linkIndex: 0, url: 'https://b.com' });
+			expect(ops[2]).toEqual({ op: 'delete', linkIndex: 1 });
+		});
+
+		it('rejects empty url on add', () => {
+			expect(parseTripLinkOps('```TRIP_LINKS\n[{"op":"add","url":""}]\n```')).toEqual([]);
+		});
+
+		it('rejects negative linkIndex', () => {
+			expect(parseTripLinkOps('```TRIP_LINKS\n[{"op":"delete","linkIndex":-3}]\n```')).toEqual([]);
+		});
+	});
+
+	describe('parseTodoOps', () => {
+		it('parses add/update/toggle/delete', () => {
+			const content = '```TODOS\n[{"op":"add","text":"Book visas"},{"op":"update","todoIndex":0,"text":"Book flights"},{"op":"toggle","todoIndex":1},{"op":"delete","todoIndex":2}]\n```';
+			const ops = parseTodoOps(content);
+			expect(ops).toHaveLength(4);
+			expect(ops[0]).toEqual({ op: 'add', text: 'Book visas' });
+			expect(ops[1]).toEqual({ op: 'update', todoIndex: 0, text: 'Book flights' });
+			expect(ops[2]).toEqual({ op: 'toggle', todoIndex: 1 });
+			expect(ops[3]).toEqual({ op: 'delete', todoIndex: 2 });
+		});
+
+		it('rejects whitespace-only add text', () => {
+			expect(parseTodoOps('```TODOS\n[{"op":"add","text":"   "}]\n```')).toEqual([]);
 		});
 	});
 });

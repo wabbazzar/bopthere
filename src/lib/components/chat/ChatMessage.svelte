@@ -1,5 +1,14 @@
 <script lang="ts">
-	import type { ChatMessage, TripUpdate, MapLinksAction, TripCreate } from '$lib/types/chat';
+	import type {
+		ChatMessage,
+		TripUpdate,
+		MapLinksAction,
+		TripCreate,
+		TripDayOp,
+		TripMetaAction,
+		TripLinkOp,
+		TodoOp
+	} from '$lib/types/chat';
 	import { chat } from '$lib/stores/chat';
 	import { stripAllActionBlocks } from '$lib/services/chat-actions';
 
@@ -10,6 +19,34 @@
 	export let mapLinksApplied = false;
 	export let pendingCreateTrip: TripCreate[] | undefined = undefined;
 	export let createTripApplied = false;
+	export let pendingDayOps: TripDayOp[] | undefined = undefined;
+	export let dayOpsApplied = false;
+	export let pendingMeta: TripMetaAction[] | undefined = undefined;
+	export let metaApplied = false;
+	export let pendingLinkOps: TripLinkOp[] | undefined = undefined;
+	export let linkOpsApplied = false;
+	export let pendingTodoOps: TodoOp[] | undefined = undefined;
+	export let todoOpsApplied = false;
+
+	function dayOpSummary(op: TripDayOp): string {
+		if (op.op === 'add') return op.afterIndex === undefined ? 'Append a new day' : `Insert a day after Day ${op.afterIndex + 1}`;
+		if (op.op === 'delete') return `Delete Day ${op.dayIndex + 1}`;
+		if (op.op === 'duplicate') return `Duplicate Day ${op.dayIndex + 1}`;
+		return `Move Day ${op.dayIndex + 1} ${op.direction}`;
+	}
+
+	function linkOpSummary(op: TripLinkOp): string {
+		if (op.op === 'add') return `Add link: ${op.url}`;
+		if (op.op === 'update') return `Update link #${op.linkIndex + 1} → ${op.url}`;
+		return `Delete link #${op.linkIndex + 1}`;
+	}
+
+	function todoOpSummary(op: TodoOp): string {
+		if (op.op === 'add') return `Add todo: ${op.text}`;
+		if (op.op === 'update') return `Edit todo #${op.todoIndex + 1} → ${op.text}`;
+		if (op.op === 'toggle') return `Toggle todo #${op.todoIndex + 1}`;
+		return `Delete todo #${op.todoIndex + 1}`;
+	}
 
 	const FIELD_LABELS: Record<string, string> = {
 		morning: 'Morning',
@@ -166,6 +203,89 @@
 			<div class="action-applied" aria-label="Trip created">
 				Trip added
 			</div>
+		{/if}
+
+		{#if pendingDayOps && pendingDayOps.length > 0}
+			<div class="action-block" aria-label="Day reshape actions">
+				<div class="action-summary">
+					{#each pendingDayOps as op}
+						<div class="action-item">{dayOpSummary(op)}</div>
+					{/each}
+				</div>
+				<div class="action-buttons">
+					<button class="action-btn action-apply" on:click={() => chat.applyDayOps(message.id)} aria-label="Apply day changes">Apply</button>
+					<button class="action-btn action-dismiss" on:click={() => chat.dismissDayOps(message.id)} aria-label="Dismiss day changes">Dismiss</button>
+				</div>
+			</div>
+		{/if}
+
+		{#if dayOpsApplied}
+			<div class="action-applied" aria-label="Day changes applied">Days updated</div>
+		{/if}
+
+		{#if pendingMeta && pendingMeta.length > 0}
+			<div class="action-block" aria-label="Trip meta actions">
+				<div class="action-summary">
+					{#each pendingMeta as meta}
+						{#if meta.name}
+							<div class="action-item">Trip name → {meta.name}</div>
+						{/if}
+						{#if meta.startDate}
+							<div class="action-item">Start date → {meta.startDate}</div>
+						{/if}
+						{#if meta.endDate}
+							<div class="action-item">End date → {meta.endDate}</div>
+						{/if}
+						{#if meta.destinations}
+							<div class="action-item">Destinations → {meta.destinations.join(' · ')}</div>
+						{/if}
+					{/each}
+				</div>
+				<div class="action-buttons">
+					<button class="action-btn action-apply" on:click={() => chat.applyMeta(message.id)} aria-label="Apply trip meta">Apply</button>
+					<button class="action-btn action-dismiss" on:click={() => chat.dismissMeta(message.id)} aria-label="Dismiss trip meta">Dismiss</button>
+				</div>
+			</div>
+		{/if}
+
+		{#if metaApplied}
+			<div class="action-applied" aria-label="Trip meta applied">Trip details updated</div>
+		{/if}
+
+		{#if pendingLinkOps && pendingLinkOps.length > 0}
+			<div class="action-block" aria-label="Trip link actions">
+				<div class="action-summary">
+					{#each pendingLinkOps as op}
+						<div class="action-item">{linkOpSummary(op)}</div>
+					{/each}
+				</div>
+				<div class="action-buttons">
+					<button class="action-btn action-apply" on:click={() => chat.applyLinkOps(message.id)} aria-label="Apply link changes">Apply</button>
+					<button class="action-btn action-dismiss" on:click={() => chat.dismissLinkOps(message.id)} aria-label="Dismiss link changes">Dismiss</button>
+				</div>
+			</div>
+		{/if}
+
+		{#if linkOpsApplied}
+			<div class="action-applied" aria-label="Link changes applied">Links updated</div>
+		{/if}
+
+		{#if pendingTodoOps && pendingTodoOps.length > 0}
+			<div class="action-block" aria-label="Todo actions">
+				<div class="action-summary">
+					{#each pendingTodoOps as op}
+						<div class="action-item">{todoOpSummary(op)}</div>
+					{/each}
+				</div>
+				<div class="action-buttons">
+					<button class="action-btn action-apply" on:click={() => chat.applyTodoOps(message.id)} aria-label="Apply todo changes">Apply</button>
+					<button class="action-btn action-dismiss" on:click={() => chat.dismissTodoOps(message.id)} aria-label="Dismiss todo changes">Dismiss</button>
+				</div>
+			</div>
+		{/if}
+
+		{#if todoOpsApplied}
+			<div class="action-applied" aria-label="Todos applied">Todos updated</div>
 		{/if}
 	</div>
 	<span class="msg-time">{formatTime(message.timestamp)}</span>

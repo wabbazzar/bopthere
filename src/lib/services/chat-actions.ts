@@ -1,4 +1,12 @@
-import type { TripUpdate, MapLinksAction, TripCreate } from '$lib/types/chat';
+import type {
+	TripUpdate,
+	MapLinksAction,
+	TripCreate,
+	TripDayOp,
+	TripMetaAction,
+	TripLinkOp,
+	TodoOp
+} from '$lib/types/chat';
 import type { MapLink, Trip, TripDay } from '$lib/types/trip';
 
 const VALID_FIELDS = new Set([
@@ -15,6 +23,22 @@ function getMapLinksRegex(): RegExp {
 
 function getTripCreateRegex(): RegExp {
 	return /```TRIP_CREATE\s*[\r\n]+([\s\S]*?)```/g;
+}
+
+function getTripDaysRegex(): RegExp {
+	return /```TRIP_DAYS\s*[\r\n]+([\s\S]*?)```/g;
+}
+
+function getTripMetaRegex(): RegExp {
+	return /```TRIP_META\s*[\r\n]+([\s\S]*?)```/g;
+}
+
+function getTripLinksRegex(): RegExp {
+	return /```TRIP_LINKS\s*[\r\n]+([\s\S]*?)```/g;
+}
+
+function getTodosRegex(): RegExp {
+	return /```TODOS\s*[\r\n]+([\s\S]*?)```/g;
 }
 
 const ID_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
@@ -257,6 +281,124 @@ function dateRange(start: string, end: string): string[] {
 	return dates;
 }
 
+export function parseTripDayOps(content: string): TripDayOp[] {
+	const ops: TripDayOp[] = [];
+	const re = getTripDaysRegex();
+	let match: RegExpExecArray | null;
+	while ((match = re.exec(content)) !== null) {
+		try {
+			const parsed = JSON.parse(match[1]);
+			const items = Array.isArray(parsed) ? parsed : [parsed];
+			for (const item of items) {
+				if (!item || typeof item !== 'object') continue;
+				const op = item.op;
+				if (op === 'add') {
+					const after = typeof item.afterIndex === 'number' ? item.afterIndex : undefined;
+					ops.push({ op: 'add', afterIndex: after });
+				} else if (op === 'delete' && typeof item.dayIndex === 'number' && item.dayIndex >= 0) {
+					ops.push({ op: 'delete', dayIndex: item.dayIndex });
+				} else if (op === 'duplicate' && typeof item.dayIndex === 'number' && item.dayIndex >= 0) {
+					ops.push({ op: 'duplicate', dayIndex: item.dayIndex });
+				} else if (
+					op === 'move' &&
+					typeof item.dayIndex === 'number' && item.dayIndex >= 0 &&
+					(item.direction === 'up' || item.direction === 'down')
+				) {
+					ops.push({ op: 'move', dayIndex: item.dayIndex, direction: item.direction });
+				}
+			}
+		} catch {
+			// malformed — skip
+		}
+	}
+	return ops;
+}
+
+export function parseTripMeta(content: string): TripMetaAction[] {
+	const metas: TripMetaAction[] = [];
+	const re = getTripMetaRegex();
+	let match: RegExpExecArray | null;
+	while ((match = re.exec(content)) !== null) {
+		try {
+			const parsed = JSON.parse(match[1]);
+			if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue;
+			const meta: TripMetaAction = {};
+			if (typeof parsed.name === 'string' && parsed.name.length > 0) meta.name = parsed.name;
+			if (typeof parsed.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(parsed.startDate)) meta.startDate = parsed.startDate;
+			if (typeof parsed.endDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(parsed.endDate)) meta.endDate = parsed.endDate;
+			if (Array.isArray(parsed.destinations)) {
+				meta.destinations = parsed.destinations.filter((d: unknown): d is string => typeof d === 'string');
+			}
+			if (Object.keys(meta).length > 0) metas.push(meta);
+		} catch {
+			// skip
+		}
+	}
+	return metas;
+}
+
+export function parseTripLinkOps(content: string): TripLinkOp[] {
+	const ops: TripLinkOp[] = [];
+	const re = getTripLinksRegex();
+	let match: RegExpExecArray | null;
+	while ((match = re.exec(content)) !== null) {
+		try {
+			const parsed = JSON.parse(match[1]);
+			const items = Array.isArray(parsed) ? parsed : [parsed];
+			for (const item of items) {
+				if (!item || typeof item !== 'object') continue;
+				const op = item.op;
+				if (op === 'add' && typeof item.url === 'string' && item.url.length > 0) {
+					ops.push({ op: 'add', url: item.url });
+				} else if (
+					op === 'update' &&
+					typeof item.linkIndex === 'number' && item.linkIndex >= 0 &&
+					typeof item.url === 'string' && item.url.length > 0
+				) {
+					ops.push({ op: 'update', linkIndex: item.linkIndex, url: item.url });
+				} else if (op === 'delete' && typeof item.linkIndex === 'number' && item.linkIndex >= 0) {
+					ops.push({ op: 'delete', linkIndex: item.linkIndex });
+				}
+			}
+		} catch {
+			// skip
+		}
+	}
+	return ops;
+}
+
+export function parseTodoOps(content: string): TodoOp[] {
+	const ops: TodoOp[] = [];
+	const re = getTodosRegex();
+	let match: RegExpExecArray | null;
+	while ((match = re.exec(content)) !== null) {
+		try {
+			const parsed = JSON.parse(match[1]);
+			const items = Array.isArray(parsed) ? parsed : [parsed];
+			for (const item of items) {
+				if (!item || typeof item !== 'object') continue;
+				const op = item.op;
+				if (op === 'add' && typeof item.text === 'string' && item.text.trim().length > 0) {
+					ops.push({ op: 'add', text: item.text });
+				} else if (
+					op === 'update' &&
+					typeof item.todoIndex === 'number' && item.todoIndex >= 0 &&
+					typeof item.text === 'string' && item.text.length > 0
+				) {
+					ops.push({ op: 'update', todoIndex: item.todoIndex, text: item.text });
+				} else if (op === 'toggle' && typeof item.todoIndex === 'number' && item.todoIndex >= 0) {
+					ops.push({ op: 'toggle', todoIndex: item.todoIndex });
+				} else if (op === 'delete' && typeof item.todoIndex === 'number' && item.todoIndex >= 0) {
+					ops.push({ op: 'delete', todoIndex: item.todoIndex });
+				}
+			}
+		} catch {
+			// skip
+		}
+	}
+	return ops;
+}
+
 export function stripTripUpdateBlocks(content: string): string {
 	return content.replace(getTripUpdateRegex(), '').trim();
 }
@@ -269,6 +411,30 @@ export function stripTripCreateBlocks(content: string): string {
 	return content.replace(getTripCreateRegex(), '').trim();
 }
 
+export function stripTripDaysBlocks(content: string): string {
+	return content.replace(getTripDaysRegex(), '').trim();
+}
+
+export function stripTripMetaBlocks(content: string): string {
+	return content.replace(getTripMetaRegex(), '').trim();
+}
+
+export function stripTripLinksBlocks(content: string): string {
+	return content.replace(getTripLinksRegex(), '').trim();
+}
+
+export function stripTodosBlocks(content: string): string {
+	return content.replace(getTodosRegex(), '').trim();
+}
+
 export function stripAllActionBlocks(content: string): string {
-	return stripTripCreateBlocks(stripMapLinksBlocks(stripTripUpdateBlocks(content)));
+	let out = content;
+	out = stripTripUpdateBlocks(out);
+	out = stripMapLinksBlocks(out);
+	out = stripTripCreateBlocks(out);
+	out = stripTripDaysBlocks(out);
+	out = stripTripMetaBlocks(out);
+	out = stripTripLinksBlocks(out);
+	out = stripTodosBlocks(out);
+	return out;
 }

@@ -1,126 +1,44 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { todosStore } from '$lib/stores/todos';
 
 	export let tripId: string;
 
-	let todos: { text: string; done: boolean }[] = [];
 	let editingTodoIndex: number | null = null;
 	let editTodoValue = '';
 	let newTodoValue = '';
-	const TODOS_KEY_PREFIX = 'hw-trip-todos-';
-	const META_KEY = 'hw-todos-meta';
-	const SYNC_DEBOUNCE_MS = 2000;
-	let syncTimer: ReturnType<typeof setTimeout> | null = null;
 
-	onMount(() => { loadTodos(); });
+	onMount(() => { todosStore.init(tripId); });
 
-	$: if (tripId) loadTodos();
+	// Re-init whenever the active trip id changes so we load the right todos.
+	$: if (tripId) todosStore.init(tripId);
 
-	function loadTodos() {
-		if (typeof localStorage === 'undefined') return;
-		const raw = localStorage.getItem(TODOS_KEY_PREFIX + tripId);
-		if (raw) {
-			try { todos = JSON.parse(raw); }
-			catch { todos = getDefaultTodos(); }
-		} else {
-			todos = getDefaultTodos();
-		}
-		// Async: pull server version
-		pullTodosFromServer();
+	$: todos = $todosStore[tripId] ?? [];
+
+	function startTodoEdit(index: number) {
+		editingTodoIndex = index;
+		editTodoValue = todos[index].text;
 	}
 
-	function getDefaultTodos() {
-		return [
-			{ text: 'Book intra-China train/flights', done: false },
-			{ text: 'Fill in morning/afternoon activities', done: false },
-			{ text: 'Confirm Wulingyuan hotel', done: false }
-		];
-	}
-
-	function getUpdatedAt(): string {
-		try { return JSON.parse(localStorage.getItem(META_KEY) || '{}')[tripId] || ''; }
-		catch { return ''; }
-	}
-	function setUpdatedAt(ts: string) {
-		try {
-			const m = JSON.parse(localStorage.getItem(META_KEY) || '{}');
-			m[tripId] = ts;
-			localStorage.setItem(META_KEY, JSON.stringify(m));
-		} catch { /* ignore */ }
-	}
-
-	function saveTodos() {
-		if (typeof localStorage === 'undefined') return;
-		localStorage.setItem(TODOS_KEY_PREFIX + tripId, JSON.stringify(todos));
-		const now = new Date().toISOString();
-		setUpdatedAt(now);
-		scheduleSyncToServer();
-	}
-
-	function scheduleSyncToServer() {
-		if (syncTimer) clearTimeout(syncTimer);
-		syncTimer = setTimeout(() => { syncTimer = null; pushTodosToServer(); }, SYNC_DEBOUNCE_MS);
-	}
-
-	async function pushTodosToServer() {
-		try {
-			const { saveTodos: apiSave } = await import('$lib/services/trips-api');
-			const result = await apiSave(tripId, todos, getUpdatedAt() || new Date().toISOString());
-			if (result.ok) {
-				setUpdatedAt(result.updatedAt);
-			} else if (result.serverTodos) {
-				todos = result.serverTodos;
-				if (typeof localStorage !== 'undefined') localStorage.setItem(TODOS_KEY_PREFIX + tripId, JSON.stringify(todos));
-				setUpdatedAt(result.updatedAt);
-			}
-		} catch { /* offline — localStorage has the latest, will sync on next save */ }
-	}
-
-	async function pullTodosFromServer() {
-		try {
-			const { fetchTodos, saveTodos: apiSave } = await import('$lib/services/trips-api');
-			const result = await fetchTodos(tripId);
-			const localTs = getUpdatedAt();
-			if (result.updatedAt === null) {
-				// No server row — push local (migration)
-				const now = new Date().toISOString();
-				const saveResult = await apiSave(tripId, todos, now);
-				if (saveResult.ok) setUpdatedAt(saveResult.updatedAt);
-			} else if (!localTs || result.updatedAt > localTs) {
-				// Server is newer
-				todos = result.todos;
-				if (typeof localStorage !== 'undefined') localStorage.setItem(TODOS_KEY_PREFIX + tripId, JSON.stringify(todos));
-				setUpdatedAt(result.updatedAt);
-			}
-		} catch { /* offline */ }
-	}
-
-	function toggleTodo(index: number) { todos[index].done = !todos[index].done; todos = [...todos]; saveTodos(); }
-	function startTodoEdit(index: number) { editingTodoIndex = index; editTodoValue = todos[index].text; }
 	function commitTodoEdit() {
 		if (editingTodoIndex === null) return;
-		todos[editingTodoIndex].text = editTodoValue;
-		todos = [...todos]; saveTodos(); editingTodoIndex = null;
+		todosStore.updateText(tripId, editingTodoIndex, editTodoValue);
+		editingTodoIndex = null;
 	}
+
 	function handleTodoKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') { e.preventDefault(); commitTodoEdit(); }
 		else if (e.key === 'Escape') { editingTodoIndex = null; }
 	}
-	function deleteTodo(index: number) { todos.splice(index, 1); todos = [...todos]; saveTodos(); }
+
 	function addTodo() {
 		if (!newTodoValue.trim()) return;
-		todos = [...todos, { text: newTodoValue.trim(), done: false }]; saveTodos(); newTodoValue = '';
+		todosStore.add(tripId, newTodoValue);
+		newTodoValue = '';
 	}
+
 	function handleNewTodoKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') { e.preventDefault(); addTodo(); }
-	}
-	function moveTodoUp(index: number) {
-		if (index === 0) return;
-		const item = todos.splice(index, 1)[0]; todos.splice(index - 1, 0, item); todos = [...todos]; saveTodos();
-	}
-	function moveTodoDown(index: number) {
-		if (index >= todos.length - 1) return;
-		const item = todos.splice(index, 1)[0]; todos.splice(index + 1, 0, item); todos = [...todos]; saveTodos();
 	}
 </script>
 
@@ -144,7 +62,7 @@
 	<ul class="space-y-1.5 text-sm">
 		{#each todos as todo, i}
 			<li class="group flex items-center gap-2">
-				<input type="checkbox" checked={todo.done} on:change={() => toggleTodo(i)}
+				<input type="checkbox" checked={todo.done} on:change={() => todosStore.toggle(tripId, i)}
 					class="accent-[var(--success)]" />
 				{#if editingTodoIndex === i}
 					<input type="text" bind:value={editTodoValue} on:blur={commitTodoEdit}
@@ -163,12 +81,12 @@
 				{/if}
 				<span class="opacity-0 group-hover:opacity-100 flex gap-1 text-xs shrink-0" style="color: var(--ink-faint)">
 					{#if i > 0}
-						<button on:click={() => moveTodoUp(i)} style="background:none;border:none;cursor:pointer;color:inherit">{'\u25B2'}</button>
+						<button aria-label="Move up" on:click={() => todosStore.move(tripId, i, 'up')} style="background:none;border:none;cursor:pointer;color:inherit">{'\u25B2'}</button>
 					{/if}
 					{#if i < todos.length - 1}
-						<button on:click={() => moveTodoDown(i)} style="background:none;border:none;cursor:pointer;color:inherit">{'\u25BC'}</button>
+						<button aria-label="Move down" on:click={() => todosStore.move(tripId, i, 'down')} style="background:none;border:none;cursor:pointer;color:inherit">{'\u25BC'}</button>
 					{/if}
-					<button on:click={() => deleteTodo(i)} style="background:none;border:none;cursor:pointer;color:var(--danger)">{'\u2715'}</button>
+					<button aria-label="Delete todo" on:click={() => todosStore.remove(tripId, i)} style="background:none;border:none;cursor:pointer;color:var(--danger)">{'\u2715'}</button>
 				</span>
 			</li>
 		{/each}
