@@ -12,6 +12,15 @@ npm run dev -- --port 5174 &
 ```
 Never kill the dev server. If it crashes, restart it immediately.
 
+## 0.5. Host Detection
+
+Check which machine you're running on:
+```bash
+hostname
+```
+- **`wabbazzar-ice`**: You are on the server. You have direct access to `server/data/chat.db` (SQLite), ticket PDFs in `server/data/tickets/`, and the systemd service. No SSH or API auth needed — read/write the DB directly via `python3 -c "from db import ..."` from the `server/` directory.
+- **Any other host**: You are on a dev machine. Access server data through the API (`https://api.heatherandwesley.com`) with a JWT token, or SSH into `wabbazzar-ice`.
+
 ## 1. Project Architecture
 
 ### Technology Stack

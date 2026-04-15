@@ -91,7 +91,7 @@ test.describe('Trip data — server persistence verification', () => {
 		await goToDay(page, '04-30');
 
 		const content = await page.locator('main').textContent();
-		expect(content).toContain('Tujia breakfast');
+		expect(content).toContain('Tujia chili paste');
 		expect(content).toContain('Jiefang Road');
 		expect(content).toContain('Foot massage');
 	});

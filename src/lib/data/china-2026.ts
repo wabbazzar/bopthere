@@ -104,8 +104,8 @@ const days: TripDay[] = [
 		morning: '',
 		afternoon: '',
 		evening: '',
-		accommodation: 'ZJJ City Hotel (TBD)',
-		notes: 'Hampton by Hilton recommended',
+		accommodation: 'Hampton by Hilton Tianmen Mountain',
+		notes: 'US$96.90 prepaid, breakfast for 2',
 		ooo: true,
 		mapLinks: [
 			{ label: 'Homestay to City Hotel', from: 'Qishi Li Cave Homestay, Wulingyuan, Zhangjiajie', to: 'Hampton by Hilton Zhangjiajie Tianmen Mountain' }

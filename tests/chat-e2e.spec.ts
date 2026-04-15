@@ -157,7 +157,7 @@ test.describe('Chat E2E', () => {
 		await expect(drawer).toBeVisible({ timeout: 5000 });
 
 		// Check input font-size is >= 16px (iOS auto-zooms on focus below this)
-		const input = drawer.locator('input[type="text"]');
+		const input = drawer.locator('textarea');
 		await expect(input).toBeVisible();
 		const fontSize = await input.evaluate((el) => getComputedStyle(el).fontSize);
 		const pxValue = parseFloat(fontSize);

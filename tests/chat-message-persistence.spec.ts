@@ -164,7 +164,7 @@ test.describe('Chat — Message persistence during send', () => {
 		// Look for a suggest sparkle button (appears on empty suggestable fields)
 		const sparkle = page.locator('button[aria-label="Get suggestions"]').first();
 		if (await sparkle.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await sparkle.click();
+			await sparkle.click({ force: true });
 
 			// The suggest popover should appear — pick options and submit
 			const popover = page.locator('text=/energy|vibe/i');

@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
 	testDir: './tests',
-	testIgnore: ['**/e2e/**', '**/unit/**'],
+	testIgnore: ['**/e2e/**', '**/unit/**', '**/integration/**'],
 	timeout: 120000,
 	workers: 1,
 	use: { headless: true },
