@@ -27,6 +27,11 @@ Edit this file to add new checks. Dev agent adds entries when new features are b
 - [ ] Week view: day cards clickable, correct count, Add Day works
 - [ ] Todos: add/edit/delete/toggle/enter-to-add all functional
 - [ ] Dashboard: trip cards render and navigate to trip page
+- [ ] Dashboard: "+ New trip" button opens the NewTripModal (not chat)
+- [ ] NewTripModal: name + DateRangePicker range → Create button enabled; submits and navigates to /trip/<slug>
+- [ ] Chat agent TRIP_CREATE block → Apply adds trip to localStorage + navigates to /trip/<id>
+- [ ] Chat agent TRIP_CREATE Dismiss removes block without creating a trip
+- [ ] System prompt references Austin, TX as home base (no Seattle hallucination)
 - [ ] No JavaScript console errors during interaction
 
 ## Ad-hoc GUI Exploration (daily only)

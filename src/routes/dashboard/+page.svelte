@@ -2,10 +2,23 @@
 	import { trips as tripsStore } from '$lib/stores/trips';
 	import type { Trip } from '$lib/types/trip';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import NewTripModal from '$lib/components/trip/NewTripModal.svelte';
 
 	onMount(() => { tripsStore.init(); });
 
 	$: allTrips = Object.values($tripsStore) as Trip[];
+
+	let newTripOpen = false;
+
+	function openNewTrip() {
+		newTripOpen = true;
+	}
+
+	function handleCreated(e: CustomEvent<{ id: string }>) {
+		newTripOpen = false;
+		goto(`/trip/${e.detail.id}`);
+	}
 
 	function daysUntil(dateStr: string): number {
 		const target = new Date(dateStr + 'T00:00:00');
@@ -25,7 +38,23 @@
 	<title>Trips - H&W Travel</title>
 </svelte:head>
 
-<p class="section-label mb-6">Upcoming Trips</p>
+<div class="flex items-center justify-between mb-6 max-w-2xl">
+	<p class="section-label m-0">Upcoming Trips</p>
+	<button
+		type="button"
+		class="new-trip-btn"
+		aria-label="Create a new trip"
+		on:click={openNewTrip}
+	>
+		+ New trip
+	</button>
+</div>
+
+<NewTripModal
+	open={newTripOpen}
+	on:created={handleCreated}
+	on:close={() => (newTripOpen = false)}
+/>
 
 <div class="grid gap-4 max-w-2xl">
 	{#each allTrips as trip}
@@ -100,3 +129,22 @@
 		</div>
 	</a>
 </div>
+
+<style>
+	.new-trip-btn {
+		font-family: var(--font-body);
+		font-size: 0.8rem;
+		padding: 0.4rem 0.85rem;
+		border-radius: var(--radius);
+		border: 1px solid var(--accent);
+		background: transparent;
+		color: var(--accent);
+		cursor: pointer;
+		transition: background-color 150ms ease, color 150ms ease;
+	}
+
+	.new-trip-btn:hover {
+		background: var(--accent);
+		color: var(--surface);
+	}
+</style>

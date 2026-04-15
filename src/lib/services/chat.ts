@@ -35,7 +35,7 @@ export async function getConversation(tripId: string): Promise<ChatMessage[]> {
 
 export async function sendMessage(tripId: string, trip: Trip, message: string): Promise<ChatMessage> {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 60000);
+	const timeout = setTimeout(() => controller.abort(), 125000);
 	try {
 		const res = await fetch(`${API_URL}/api/chat/messages`, {
 			method: 'POST',
@@ -91,9 +91,10 @@ function buildSystemPrompt(trip: Trip): string {
 		})
 		.join('\n');
 
-	return `You are a travel planning assistant for Wesley and Heather's trip.
+	return `You are a travel planning assistant for Wesley and Heather.
+Home base: Austin, TX (AUS) — all trips originate from Austin unless they say otherwise.
 Today: ${today}
-Trip: ${trip.name} (${trip.startDate} to ${trip.endDate})
+Current trip in view: ${trip.name} (${trip.startDate} to ${trip.endDate})
 Destinations: ${trip.destinations.join(', ')}
 
 ITINERARY:
@@ -152,7 +153,26 @@ Rules:
 - label should be short and descriptive
 - Always use the accommodation name from the itinerary as start/end points when relevant
 - The user will see clickable Google Maps preview links before applying — use precise names
-- Never emit MAP_LINKS unless the user explicitly asks for maps, directions, or a route`;
+- Never emit MAP_LINKS unless the user explicitly asks for maps, directions, or a route
+
+CREATING A NEW TRIP:
+When the user asks to plan or create a new trip, you MUST emit a TRIP_CREATE block as soon as you know a name + startDate + endDate. Do NOT ramble through clarifying questions across multiple turns — propose the skeleton immediately, then iterate. The user can Dismiss and revise if wrong.
+
+Format:
+\`\`\`TRIP_CREATE
+{"id": "japan-2026-10", "name": "Japan Oct 2026", "startDate": "2026-10-10", "endDate": "2026-10-20", "destinations": ["Tokyo", "Kyoto"]}
+\`\`\`
+
+Rules:
+- id: URL-safe slug — lowercase letters, digits, hyphens only. Derive it from destinations + year/month (e.g. "europe-2026-06", "portugal-spring-2027"). Becomes the route /trip/<id>.
+- name: short human-readable label ("Europe Jun 2026").
+- startDate, endDate: YYYY-MM-DD.
+- destinations: optional array of cities/regions if known.
+- days: OMIT IT by default. The app seeds one empty day per calendar date between startDate and endDate automatically — that's enough. Only include a populated days array if the user explicitly asks you to pre-fill daily activities; otherwise leave it out so the response stays fast.
+- When to emit: as soon as you have name + startDate + endDate from the user. If the user gives you dates and destinations in one message, emit TRIP_CREATE in your FIRST reply — don't ask follow-ups first.
+- When to ask: only if the user hasn't given you enough to produce startDate and endDate (e.g. "plan a trip to Japan" with no dates). One concise clarifying question max, then emit on the next turn.
+- Keep prose BEFORE the block short (2–4 sentences max). The big itinerary-by-day markdown table is NOT needed before creation — save that for after, via TRIP_UPDATE blocks.
+- After creation the app navigates to the new trip; follow up with TRIP_UPDATE blocks for day details when the user asks.`;
 }
 
 export function buildSuggestionMessage(

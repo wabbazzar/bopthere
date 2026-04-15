@@ -251,4 +251,60 @@ describe('trips store', () => {
 			expect(trips.exportTrip('nonexistent')).toBe('');
 		});
 	});
+
+	describe('addTrip', () => {
+		const newTrip = {
+			id: 'japan-2026-10',
+			name: 'Japan Oct 2026',
+			startDate: '2026-10-10',
+			endDate: '2026-10-12',
+			destinations: [],
+			days: [
+				{ date: '2026-10-10', dayOfWeek: 'Sat', location: 'Tokyo', travel: '', morning: '', afternoon: '', evening: '', accommodation: '', notes: '', ooo: false },
+				{ date: '2026-10-11', dayOfWeek: 'Sun', location: 'Tokyo', travel: '', morning: '', afternoon: '', evening: '', accommodation: '', notes: '', ooo: false },
+				{ date: '2026-10-12', dayOfWeek: 'Mon', location: 'Kyoto', travel: '', morning: '', afternoon: '', evening: '', accommodation: '', notes: '', ooo: false }
+			],
+			links: []
+		};
+
+		// Clean up any new trip after each add test
+		function removeAdded(id: string) {
+			const raw = localStorage.getItem('hw-trips');
+			if (!raw) return;
+			const parsed = JSON.parse(raw);
+			delete parsed[id];
+			localStorage.setItem('hw-trips', JSON.stringify(parsed));
+		}
+
+		it('inserts a brand-new trip', () => {
+			expect(trips.addTrip(newTrip)).toBe(true);
+			const added = get(trips)['japan-2026-10'];
+			expect(added).toBeTruthy();
+			expect(added.name).toBe('Japan Oct 2026');
+			expect(added.days).toHaveLength(3);
+			removeAdded('japan-2026-10');
+		});
+
+		it('computes destinations from day locations', () => {
+			trips.addTrip(newTrip);
+			const added = get(trips)['japan-2026-10'];
+			expect(added.destinations).toEqual(expect.arrayContaining(['Tokyo', 'Kyoto']));
+			removeAdded('japan-2026-10');
+		});
+
+		it('refuses to overwrite an existing trip', () => {
+			trips.addTrip(newTrip);
+			expect(trips.addTrip({ ...newTrip, name: 'Overwrite' })).toBe(false);
+			expect(get(trips)['japan-2026-10'].name).toBe('Japan Oct 2026');
+			removeAdded('japan-2026-10');
+		});
+
+		it('does not mutate input object (deep clones)', () => {
+			trips.addTrip(newTrip);
+			const added = get(trips)['japan-2026-10'];
+			added.days[0].location = 'MUTATED';
+			expect(newTrip.days[0].location).toBe('Tokyo');
+			removeAdded('japan-2026-10');
+		});
+	});
 });

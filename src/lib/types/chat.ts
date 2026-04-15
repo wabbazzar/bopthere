@@ -17,6 +17,24 @@ export interface MapLinksAction {
 	mapLinks: import('$lib/types/trip').MapLink[];
 }
 
+export interface TripCreate {
+	id: string;
+	name: string;
+	startDate: string;
+	endDate: string;
+	destinations?: string[];
+	days?: Array<{
+		date: string;
+		location: string;
+		travel?: string;
+		morning?: string;
+		afternoon?: string;
+		evening?: string;
+		accommodation?: string;
+		notes?: string;
+	}>;
+}
+
 export type SuggestionType = 'activity' | 'restaurant';
 export type Vibe = string;
 

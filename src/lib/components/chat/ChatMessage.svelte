@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ChatMessage, TripUpdate, MapLinksAction } from '$lib/types/chat';
+	import type { ChatMessage, TripUpdate, MapLinksAction, TripCreate } from '$lib/types/chat';
 	import { chat } from '$lib/stores/chat';
 	import { stripAllActionBlocks } from '$lib/services/chat-actions';
 
@@ -8,6 +8,8 @@
 	export let applied = false;
 	export let pendingMapLinks: MapLinksAction[] | undefined = undefined;
 	export let mapLinksApplied = false;
+	export let pendingCreateTrip: TripCreate[] | undefined = undefined;
+	export let createTripApplied = false;
 
 	const FIELD_LABELS: Record<string, string> = {
 		morning: 'Morning',
@@ -132,6 +134,37 @@
 		{#if mapLinksApplied}
 			<div class="action-applied" aria-label="Map links applied">
 				Directions added to trip
+			</div>
+		{/if}
+
+		{#if pendingCreateTrip && pendingCreateTrip.length > 0}
+			{#each pendingCreateTrip as tc}
+				<div class="action-block" aria-label="Create trip action">
+					<div class="action-summary">
+						<div class="create-trip-header">New trip: {tc.name}</div>
+						<div class="create-trip-row">{tc.startDate} → {tc.endDate}</div>
+						{#if tc.destinations && tc.destinations.length > 0}
+							<div class="create-trip-row">Destinations: {tc.destinations.join(' · ')}</div>
+						{/if}
+						{#if tc.days && tc.days.length > 0}
+							<div class="create-trip-row">{tc.days.length} days planned</div>
+						{/if}
+					</div>
+					<div class="action-buttons">
+						<button class="action-btn action-apply" on:click={() => chat.applyCreateTrip(message.id)} aria-label="Create this trip">
+							Add trip
+						</button>
+						<button class="action-btn action-dismiss" on:click={() => chat.dismissCreateTrip(message.id)} aria-label="Dismiss new trip">
+							Dismiss
+						</button>
+					</div>
+				</div>
+			{/each}
+		{/if}
+
+		{#if createTripApplied}
+			<div class="action-applied" aria-label="Trip created">
+				Trip added
 			</div>
 		{/if}
 	</div>
@@ -303,5 +336,17 @@
 		margin-top: 0.25rem;
 		padding-top: 0.25rem;
 		border-top: 1px dotted var(--border);
+	}
+
+	.create-trip-header {
+		font-weight: 600;
+		font-size: 0.85rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.create-trip-row {
+		font-size: 0.75rem;
+		color: var(--ink-muted);
+		padding: 0.1rem 0;
 	}
 </style>

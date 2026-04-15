@@ -89,6 +89,8 @@
 					applied={$chat.appliedActions.has(message.id)}
 					pendingMapLinks={$chat.pendingMapLinks[message.id]}
 					mapLinksApplied={$chat.appliedMapLinks.has(message.id)}
+					pendingCreateTrip={$chat.pendingCreateTrip[message.id]}
+					createTripApplied={$chat.appliedCreateTrip.has(message.id)}
 				/>
 			{/each}
 

@@ -1,8 +1,8 @@
 import { writable, get } from 'svelte/store';
-import type { ChatMessage, TripUpdate, MapLinksAction } from '$lib/types/chat';
+import type { ChatMessage, TripUpdate, MapLinksAction, TripCreate } from '$lib/types/chat';
 import type { Trip } from '$lib/types/trip';
 import * as chatService from '$lib/services/chat';
-import { parseTripUpdates, parseMapLinksActions } from '$lib/services/chat-actions';
+import { parseTripUpdates, parseMapLinksActions, parseTripCreates, tripFromCreate } from '$lib/services/chat-actions';
 import { trips } from '$lib/stores/trips';
 
 interface ChatState {
@@ -17,6 +17,8 @@ interface ChatState {
 	appliedActions: Set<string>;
 	pendingMapLinks: Record<string, MapLinksAction[]>;
 	appliedMapLinks: Set<string>;
+	pendingCreateTrip: Record<string, TripCreate[]>;
+	appliedCreateTrip: Set<string>;
 }
 
 const THINKING_MESSAGES = [
@@ -46,7 +48,9 @@ function createChatStore() {
 		pendingActions: {},
 		appliedActions: new Set<string>(),
 		pendingMapLinks: {},
-		appliedMapLinks: new Set<string>()
+		appliedMapLinks: new Set<string>(),
+		pendingCreateTrip: {},
+		appliedCreateTrip: new Set<string>()
 	});
 
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -114,15 +118,18 @@ function createChatStore() {
 						// can still apply actions from a previous session
 						const pendingActions: Record<string, TripUpdate[]> = {};
 						const pendingMapLinks: Record<string, MapLinksAction[]> = {};
+						const pendingCreateTrip: Record<string, TripCreate[]> = {};
 						for (const m of messages) {
 							if (m.role === 'assistant') {
 								const actions = parseTripUpdates(m.content);
 								if (actions.length > 0) pendingActions[m.id] = actions;
 								const mapActions = parseMapLinksActions(m.content);
 								if (mapActions.length > 0) pendingMapLinks[m.id] = mapActions;
+								const creates = parseTripCreates(m.content);
+								if (creates.length > 0) pendingCreateTrip[m.id] = creates;
 							}
 						}
-						update((s) => ({ ...s, messages, pendingActions, pendingMapLinks, isLoading: false }));
+						update((s) => ({ ...s, messages, pendingActions, pendingMapLinks, pendingCreateTrip, isLoading: false }));
 					} else {
 						// Send is in-flight — don't touch isLoading or it kills the thinking indicator
 					}
@@ -172,17 +179,21 @@ function createChatStore() {
 				const assistantMsg = await chatService.sendMessage(state.activeTripId, state.activeTrip, message);
 				const actions = parseTripUpdates(assistantMsg.content);
 				const mapActions = parseMapLinksActions(assistantMsg.content);
+				const creates = parseTripCreates(assistantMsg.content);
 				update((s) => {
 					const pendingActions = { ...s.pendingActions };
 					const pendingMapLinks = { ...s.pendingMapLinks };
+					const pendingCreateTrip = { ...s.pendingCreateTrip };
 					if (actions.length > 0) pendingActions[assistantMsg.id] = actions;
 					if (mapActions.length > 0) pendingMapLinks[assistantMsg.id] = mapActions;
+					if (creates.length > 0) pendingCreateTrip[assistantMsg.id] = creates;
 					return {
 						...s,
 						messages: [...s.messages, assistantMsg],
 						isLoading: false,
 						pendingActions,
-						pendingMapLinks
+						pendingMapLinks,
+						pendingCreateTrip
 					};
 				});
 			} catch (e) {
@@ -199,17 +210,21 @@ function createChatStore() {
 					if (serverMessages.length >= preSendCount + 2 && last?.role === 'assistant') {
 						const actions = parseTripUpdates(last.content);
 						const mapActions = parseMapLinksActions(last.content);
+						const creates = parseTripCreates(last.content);
 						update((s) => {
 							const pendingActions = { ...s.pendingActions };
 							const pendingMapLinks = { ...s.pendingMapLinks };
+							const pendingCreateTrip = { ...s.pendingCreateTrip };
 							if (actions.length > 0) pendingActions[last.id] = actions;
 							if (mapActions.length > 0) pendingMapLinks[last.id] = mapActions;
+							if (creates.length > 0) pendingCreateTrip[last.id] = creates;
 							return {
 								...s,
 								messages: serverMessages,
 								isLoading: false,
 								pendingActions,
-								pendingMapLinks
+								pendingMapLinks,
+								pendingCreateTrip
 							};
 						});
 						recovered = true;
@@ -228,6 +243,20 @@ function createChatStore() {
 				sendInFlight = false;
 				stopThinking();
 			}
+		},
+
+		/**
+		 * Open chat (using an existing trip for context) and prompt the agent
+		 * to start planning a new trip. The agent emits a TRIP_CREATE block
+		 * which the user can apply.
+		 */
+		planNewTrip(contextTripId: string, contextTrip: Trip) {
+			sendInFlight = true;
+			const state = get({ subscribe });
+			if (!state.isOpen) {
+				this.open(contextTripId, contextTrip);
+			}
+			setTimeout(() => this.send("Let's plan a new trip."), 300);
 		},
 
 		sendSuggestion(tripId: string, trip: Trip, dayIndex: number, slot: 'morning' | 'afternoon' | 'evening', energy: string, interest: string) {
@@ -296,6 +325,47 @@ function createChatStore() {
 				const pendingMapLinks = { ...s.pendingMapLinks };
 				delete pendingMapLinks[messageId];
 				return { ...s, pendingMapLinks };
+			});
+		},
+
+		applyCreateTrip(messageId: string): string | null {
+			const state = get({ subscribe });
+			const creates = state.pendingCreateTrip[messageId];
+			if (!creates || creates.length === 0) return null;
+
+			let createdId: string | null = null;
+			for (const tc of creates) {
+				const trip = tripFromCreate(tc);
+				if (trips.addTrip(trip)) {
+					createdId = trip.id;
+				}
+			}
+
+			update((s) => {
+				const pendingCreateTrip = { ...s.pendingCreateTrip };
+				delete pendingCreateTrip[messageId];
+				const appliedCreateTrip = new Set(s.appliedCreateTrip);
+				appliedCreateTrip.add(messageId);
+				return { ...s, pendingCreateTrip, appliedCreateTrip };
+			});
+
+			// Navigate to the new trip so the user immediately sees it.
+			// Dynamic import so this file stays testable outside a SvelteKit runtime.
+			if (createdId) {
+				import('$app/navigation')
+					.then(({ goto }) => goto(`/trip/${createdId}`))
+					.catch(() => {
+						// navigation unavailable (tests/SSR) — trip is still in the store
+					});
+			}
+			return createdId;
+		},
+
+		dismissCreateTrip(messageId: string) {
+			update((s) => {
+				const pendingCreateTrip = { ...s.pendingCreateTrip };
+				delete pendingCreateTrip[messageId];
+				return { ...s, pendingCreateTrip };
 			});
 		},
 

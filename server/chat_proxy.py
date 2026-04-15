@@ -76,10 +76,19 @@ async def ask_claude(system_prompt: str, conversation_text: str) -> str:
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    stdout, stderr = await asyncio.wait_for(
-        proc.communicate(input=conversation_text.encode()),
-        timeout=60,
-    )
+    try:
+        stdout, stderr = await asyncio.wait_for(
+            proc.communicate(input=conversation_text.encode()),
+            timeout=120,
+        )
+    except asyncio.TimeoutError:
+        # Don't leave an orphan claude subprocess eating CPU/RAM
+        try:
+            proc.kill()
+            await proc.wait()
+        except ProcessLookupError:
+            pass
+        raise
     if proc.returncode != 0:
         err = stderr.decode().strip()
         raise RuntimeError(f"claude exited {proc.returncode}: {err}")

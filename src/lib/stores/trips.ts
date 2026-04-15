@@ -459,6 +459,28 @@ function createTripsStore() {
 			const trip = trips[id];
 			if (!trip) return '';
 			return JSON.stringify(trip, null, 2);
+		},
+
+		/**
+		 * Add a brand-new trip to the store. Returns false if the id already
+		 * exists (refuse to overwrite). On success, persists locally and
+		 * pushes to the server via the normal debounced sync.
+		 */
+		addTrip(trip: Trip): boolean {
+			const current = get({ subscribe });
+			if (current[trip.id]) return false;
+			let accepted = false;
+			update((trips) => {
+				if (trips[trip.id]) return trips;
+				snapshot(trips);
+				const clone = JSON.parse(JSON.stringify(trip)) as Trip;
+				clone.destinations = computeDestinations(clone.days);
+				trips[trip.id] = clone;
+				persistAndSync(trips, trip.id);
+				accepted = true;
+				return { ...trips };
+			});
+			return accepted;
 		}
 	};
 }
