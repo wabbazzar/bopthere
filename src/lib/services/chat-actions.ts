@@ -208,7 +208,10 @@ export function slugifyTripId(name: string, startDate: string, existing: Set<str
 		.replace(/^-+|-+$/g, '')
 		.slice(0, 40) || 'trip';
 	const year = /^\d{4}-\d{2}-\d{2}$/.test(startDate) ? startDate.slice(0, 4) : '';
-	const candidate = year ? `${base}-${year}` : base;
+	// Don't double-append the year when the user already put it in the name
+	// (e.g. "Europe 2026" shouldn't become "europe-2026-2026").
+	const baseHasYear = year && new RegExp(`(^|-)${year}$`).test(base);
+	const candidate = year && !baseHasYear ? `${base}-${year}` : base;
 	if (!existing.has(candidate)) return candidate;
 	let i = 2;
 	while (existing.has(`${candidate}-${i}`)) i += 1;

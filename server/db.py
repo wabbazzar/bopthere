@@ -99,6 +99,15 @@ def ticket_path(trip_id: str, name: str) -> Path:
 # ── Trip data persistence ────────────────────────────────────────
 
 
+def list_trips() -> list[dict]:
+    """Return [{tripId, updatedAt}] for every persisted trip, newest first."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT trip_id, updated_at FROM trips ORDER BY updated_at DESC"
+    ).fetchall()
+    return [{"tripId": r["trip_id"], "updatedAt": r["updated_at"]} for r in rows]
+
+
 def get_trip(trip_id: str) -> tuple[dict, str] | None:
     """Return (trip_dict, updated_at) or None if no row."""
     conn = get_db()

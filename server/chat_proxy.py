@@ -32,6 +32,7 @@ from db import (
     get_conversation,
     get_todos,
     get_trip,
+    list_trips,
     save_conversation,
     save_todos,
     save_trip,
@@ -279,9 +280,51 @@ async def get_attachment(trip_id: str, name: str, exp: int, sig: str):
 # ── Trip data (server-authoritative, shared across devices) ───────
 
 
+import re
+
+# Slug format for trip ids: lowercase letters/digits/hyphens, 1–48 chars,
+# must start with alphanumeric. Prevents path traversal, overlong keys,
+# accidental collisions from mixed-case ids.
+_TRIP_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,47}$")
+
+
+def _validate_trip_id(trip_id: str) -> None:
+    if not _TRIP_ID_RE.fullmatch(trip_id):
+        raise HTTPException(status_code=400, detail="Invalid trip id")
+
+
+def _validate_trip_payload(trip: dict, path_trip_id: str) -> None:
+    """Reject malformed trip bodies before they hit the DB."""
+    if not isinstance(trip, dict):
+        raise HTTPException(status_code=400, detail="trip must be an object")
+    body_id = trip.get("id")
+    if body_id != path_trip_id:
+        raise HTTPException(
+            status_code=400,
+            detail=f"trip.id ({body_id!r}) must match path id ({path_trip_id!r})",
+        )
+    for field in ("name", "startDate", "endDate"):
+        v = trip.get(field)
+        if not isinstance(v, str) or not v:
+            raise HTTPException(status_code=400, detail=f"trip.{field} required")
+    days = trip.get("days")
+    if not isinstance(days, list):
+        raise HTTPException(status_code=400, detail="trip.days must be a list")
+
+
+@app.get("/api/trips")
+async def list_all_trips(authorization: str | None = Header(None)):
+    """Catalog of every server-persisted trip so clients can discover
+    trips created on other devices. Returns ids + updatedAt only — full
+    data is fetched per-trip via GET /api/trips/{trip_id}."""
+    verify_token(authorization)
+    return {"trips": list_trips()}
+
+
 @app.get("/api/trips/{trip_id}")
 async def get_trip_data(trip_id: str, authorization: str | None = Header(None)):
     verify_token(authorization)
+    _validate_trip_id(trip_id)
     result = get_trip(trip_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Trip not found")
@@ -297,6 +340,8 @@ class SaveTripRequest(BaseModel):
 @app.put("/api/trips/{trip_id}")
 async def put_trip(trip_id: str, req: SaveTripRequest, authorization: str | None = Header(None)):
     verify_token(authorization)
+    _validate_trip_id(trip_id)
+    _validate_trip_payload(req.trip, trip_id)
     ok, server_ts = save_trip(trip_id, json.dumps(req.trip), req.updatedAt)
     if not ok:
         # LWW rejected — return the server's current state so the client

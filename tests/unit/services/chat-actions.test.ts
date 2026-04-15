@@ -244,7 +244,17 @@ describe('chat-actions', () => {
 
 	describe('slugifyTripId', () => {
 		it('lowercases, strips punctuation, appends year', () => {
-			expect(slugifyTripId('Europe Summer 2026', '2026-06-12', new Set())).toBe('europe-summer-2026-2026');
+			expect(slugifyTripId('Europe Summer', '2026-06-12', new Set())).toBe('europe-summer-2026');
+		});
+
+		it('does not double-append the year when the name already ends in it', () => {
+			expect(slugifyTripId('Europe 2026', '2026-06-12', new Set())).toBe('europe-2026');
+			expect(slugifyTripId('Europe Summer 2026', '2026-06-12', new Set())).toBe('europe-summer-2026');
+		});
+
+		it('still appends year when only an embedded year appears mid-slug', () => {
+			// Year in the middle (not trailing) shouldn't suppress the suffix
+			expect(slugifyTripId('2026 Europe Trip', '2026-06-12', new Set())).toBe('2026-europe-trip-2026');
 		});
 
 		it('handles diacritics', () => {

@@ -180,6 +180,26 @@ function createTripsStore() {
 		else localStorage.setItem(SYNC_PENDING_KEY, [...pending].join(','));
 	}
 
+	/**
+	 * Ask the server which trips exist and pull any that aren't in the
+	 * local store. Silent on errors — offline clients keep working with
+	 * whatever they already had.
+	 */
+	async function discoverServerTrips() {
+		try {
+			const { fetchTripList } = await import('$lib/services/trips-api');
+			const catalog = await fetchTripList();
+			const local = get({ subscribe });
+			for (const entry of catalog) {
+				if (!local[entry.tripId]) {
+					await pullFromServer(entry.tripId);
+				}
+			}
+		} catch {
+			// offline / network error — fine
+		}
+	}
+
 	/** On page load: push any unsaved edits, then pull server state. */
 	async function initSync(tripId: string) {
 		// If there are pending local edits from a previous session, push first
@@ -213,12 +233,15 @@ function createTripsStore() {
 
 		init() {
 			set(loadTrips());
-			// Async: for each trip, flush any unsaved edits first, then
-			// pull from server (server is authoritative on load).
+			// Sync the trips we already know about (push pending, pull server truth).
 			const trips = get({ subscribe });
 			for (const tripId of Object.keys(trips)) {
 				initSync(tripId);
 			}
+			// Then discover any trips created on other devices that we don't
+			// have locally yet — this is how a new trip made on Wesley's phone
+			// reaches Heather's desktop.
+			discoverServerTrips();
 		},
 
 		getTrip(id: string): Trip | undefined {

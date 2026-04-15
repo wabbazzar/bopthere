@@ -22,6 +22,34 @@ export interface TodosResponse {
 	updatedAt: string | null;
 }
 
+export interface TripListEntry {
+	tripId: string;
+	updatedAt: string;
+}
+
+/**
+ * Fetch the server catalog of all persisted trips (id + updatedAt only).
+ * Used by clients on init to discover trips created on other devices.
+ * Returns [] on any error so the init flow can still proceed with local data.
+ */
+export async function fetchTripList(): Promise<TripListEntry[]> {
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 8000);
+	try {
+		const res = await fetch(`${API_URL}/api/trips`, {
+			headers: headers(),
+			signal: controller.signal
+		});
+		clearTimeout(timeout);
+		if (!res.ok) return [];
+		const data = await res.json();
+		return (data.trips ?? []) as TripListEntry[];
+	} catch {
+		clearTimeout(timeout);
+		return [];
+	}
+}
+
 /**
  * Fetch the server-authoritative trip data.
  * Returns null if the server has no row yet (first-time migration case).
