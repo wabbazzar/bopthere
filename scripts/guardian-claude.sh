@@ -10,12 +10,16 @@ set -euo pipefail
 MODE="${1:-hook}"
 HW_DIR="/home/wabbazzar/code/heatherandwesley"
 NOTIFY="/home/wabbazzar/code/wabbazzar-ice/scripts/notify.sh"
+LOG_EVENT="/home/wabbazzar/code/wabbazzar-ice/scripts/log_event.sh"
 PROMPT_FILE="$HW_DIR/scripts/guardian-claude-prompt.md"
 RESULT_FILE="$HW_DIR/tmp/guardian-result.json"
 LOG_FILE="$HW_DIR/tmp/guardian-last-run.log"
 
 cd "$HW_DIR"
 mkdir -p tmp
+
+JOB_START=$(date +%s)
+[ -x "$LOG_EVENT" ] && "$LOG_EVENT" hw-guardian job.start mode="$MODE" || true
 
 # For daily mode: ensure dev server is running (needed for Playwright)
 if [ "$MODE" = "daily" ]; then
@@ -71,3 +75,8 @@ else
 fi
 
 echo "[guardian-claude] Done. Pass=$PASS" >> "$LOG_FILE"
+
+JOB_DUR=$(( $(date +%s) - JOB_START ))
+if [ "$PASS" = "True" ]; then JOB_STATUS="ok"; else JOB_STATUS="fail"; fi
+[ -x "$LOG_EVENT" ] && "$LOG_EVENT" hw-guardian job.end \
+  mode="$MODE" status="$JOB_STATUS" exit_code="$EXIT" duration_s="$JOB_DUR" || true

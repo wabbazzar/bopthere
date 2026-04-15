@@ -5,16 +5,26 @@ import hashlib
 import hmac
 import json
 import os
+import sys
 import time
 import uuid
 from datetime import datetime
 from pathlib import Path
 
 import jwt
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+
+# Fire-and-forget event logging into wabbazzar-ice/data/events/. Falls back
+# to a no-op if the shared lib isn't on disk.
+sys.path.insert(0, "/home/wabbazzar/code/wabbazzar-ice/lib")
+try:
+    from events import log_event  # type: ignore
+except Exception:  # pragma: no cover
+    def log_event(*_a, **_k):  # type: ignore[no-redef]
+        pass
 
 from db import (
     delete_conversation,
@@ -49,6 +59,47 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
+
+
+@app.middleware("http")
+async def _log_request(request: Request, call_next):
+    """Emit one http.request event per response. Fire-and-forget."""
+    t0 = time.monotonic()
+    actor = "anonymous"
+    auth = request.headers.get("authorization")
+    if auth and auth.startswith("Bearer "):
+        try:
+            payload = jwt.decode(auth[7:], JWT_SECRET, algorithms=["HS256"])
+            actor = payload.get("username") or payload.get("sub") or "anonymous"
+        except jwt.ExpiredSignatureError:
+            actor = "unauth_failed"
+        except jwt.InvalidTokenError:
+            actor = "unauth_failed"
+        except Exception:
+            actor = "unauth_failed"
+    try:
+        response = await call_next(request)
+    except Exception:
+        log_event(
+            "hw-chat",
+            "http.request",
+            actor=actor,
+            method=request.method,
+            path=request.url.path,
+            status=500,
+            latency_ms=int((time.monotonic() - t0) * 1000),
+        )
+        raise
+    log_event(
+        "hw-chat",
+        "http.request",
+        actor=actor,
+        method=request.method,
+        path=request.url.path,
+        status=response.status_code,
+        latency_ms=int((time.monotonic() - t0) * 1000),
+    )
+    return response
 
 
 def verify_token(authorization: str | None) -> dict:
