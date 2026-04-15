@@ -105,6 +105,7 @@
 		<!-- Day content fields -->
 		<div class="day-fields card">
 			<div class="px-4 py-1">
+				<ExpandableField label="Location" value={day.location} field="location" dayIndex={currentDayIndex} {tripId} icon={'\u{1F4CD}'} />
 				<ExpandableField label="Travel" value={day.travel} field="travel" dayIndex={currentDayIndex} {tripId} icon={'\u2708'} />
 				<ExpandableField label="Stay" value={day.accommodation} field="accommodation" dayIndex={currentDayIndex} {tripId} icon={'\u{1F3E8}'} />
 				<ExpandableField label="Morning" value={day.morning} field="morning" dayIndex={currentDayIndex} {tripId} suggestable on:suggest={handleSuggest} />
@@ -112,9 +113,12 @@
 				<ExpandableField label="Evening" value={day.evening} field="evening" dayIndex={currentDayIndex} {tripId} suggestable on:suggest={handleSuggest} />
 				<ExpandableField label="Notes" value={day.notes} field="notes" dayIndex={currentDayIndex} {tripId} />
 			</div>
-			{#if day.mapLinks?.length}
-				<MapLinks mapLinks={day.mapLinks} />
-			{/if}
+			<MapLinks
+				{tripId}
+				dayIndex={currentDayIndex}
+				mapLinks={day.mapLinks ?? []}
+				defaultFrom={day.accommodation ?? ''}
+			/>
 		</div>
 
 		<!-- Actions bar -->

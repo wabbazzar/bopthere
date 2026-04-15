@@ -2,7 +2,7 @@
 	import { createEventDispatcher, onMount, tick } from 'svelte';
 	import { get } from 'svelte/store';
 	import { trips } from '$lib/stores/trips';
-	import { tripFromCreate, slugifyTripId } from '$lib/services/chat-actions';
+	import { tripFromCreate, slugifyTripId, distributeDestinations } from '$lib/services/chat-actions';
 	import DateRangePicker from '$lib/components/ui/DateRangePicker.svelte';
 
 	export let open = false;
@@ -88,6 +88,16 @@
 			endDate,
 			destinations
 		});
+
+		// Auto-distribute destinations across days: e.g. 3 destinations over
+		// 21 days gives 7 days each. The user can still edit any day's
+		// location individually afterward.
+		if (destinations.length > 0) {
+			const locations = distributeDestinations(trip.days.length, destinations);
+			for (let i = 0; i < trip.days.length; i++) {
+				trip.days[i].location = locations[i] ?? '';
+			}
+		}
 
 		if (!trips.addTrip(trip)) {
 			error = 'A trip with that name/date already exists.';

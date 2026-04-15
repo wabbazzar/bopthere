@@ -8,7 +8,8 @@ import {
 	parseTripCreates,
 	stripTripCreateBlocks,
 	tripFromCreate,
-	slugifyTripId
+	slugifyTripId,
+	distributeDestinations
 } from '$lib/services/chat-actions';
 
 describe('chat-actions', () => {
@@ -276,6 +277,43 @@ describe('chat-actions', () => {
 
 		it('omits year suffix when startDate is invalid', () => {
 			expect(slugifyTripId('Japan', 'not-a-date', new Set())).toBe('japan');
+		});
+	});
+
+	describe('distributeDestinations', () => {
+		it('returns empty when there are no destinations', () => {
+			expect(distributeDestinations(10, [])).toEqual([]);
+		});
+
+		it('returns empty when there are no days', () => {
+			expect(distributeDestinations(0, ['Paris'])).toEqual([]);
+		});
+
+		it('evenly splits 3 destinations across 21 days (7 each)', () => {
+			const out = distributeDestinations(21, ['Barcelona', 'Cannes', 'Lisbon']);
+			expect(out).toHaveLength(21);
+			expect(out.slice(0, 7).every((x) => x === 'Barcelona')).toBe(true);
+			expect(out.slice(7, 14).every((x) => x === 'Cannes')).toBe(true);
+			expect(out.slice(14, 21).every((x) => x === 'Lisbon')).toBe(true);
+		});
+
+		it('handles non-divisible lengths (e.g. 5 days, 3 destinations)', () => {
+			const out = distributeDestinations(5, ['A', 'B', 'C']);
+			expect(out).toHaveLength(5);
+			expect(out[0]).toBe('A');
+			expect(out[out.length - 1]).toBe('C');
+			// Every destination appears at least once
+			expect(new Set(out)).toEqual(new Set(['A', 'B', 'C']));
+		});
+
+		it('fewer days than destinations still covers the start', () => {
+			const out = distributeDestinations(2, ['A', 'B', 'C', 'D']);
+			expect(out).toHaveLength(2);
+			expect(out[0]).toBe('A');
+		});
+
+		it('single destination fills all days', () => {
+			expect(distributeDestinations(4, ['Tokyo'])).toEqual(['Tokyo', 'Tokyo', 'Tokyo', 'Tokyo']);
 		});
 	});
 });

@@ -45,7 +45,7 @@ async function mountDashboard(page: Page) {
 		try {
 			const parsed = JSON.parse(raw);
 			for (const k of Object.keys(parsed)) {
-				if (k.startsWith('japan-')) delete parsed[k];
+				if (k.startsWith('japan-') || k.startsWith('europe-2027')) delete parsed[k];
 			}
 			localStorage.setItem('hw-trips', JSON.stringify(parsed));
 		} catch {}
@@ -155,6 +155,51 @@ test.describe('New Trip Modal', () => {
 		await dialog.locator('button[aria-label="Remove Kyoto"]').click();
 		await expect(removeButtons).toHaveCount(2);
 		await expect(dialog.locator('button[aria-label="Remove Kyoto"]')).toHaveCount(0);
+	});
+
+	test('destinations are auto-distributed across day locations on create', async ({ page }) => {
+		await mountDashboard(page);
+		await page.locator('button[aria-label="Create a new trip"]').click();
+		const dialog = page.locator('[role="dialog"]');
+
+		await dialog.locator('input[type="text"]').first().fill('Europe 2027');
+
+		// Pick a 21-day range — forward 6 months, click day 1 then day 21
+		for (let i = 0; i < 6; i++) {
+			await dialog.locator('button[aria-label="Next month"]').click();
+		}
+		const cells = dialog.locator('button[aria-label^="20"]');
+		await cells.first().click();
+		// The month may not have 21 days visible; advance one month to land on a day in the next month
+		// Instead, click a cell 20 positions later within whatever's visible
+		const secondCellIndex = Math.min(20, (await cells.count()) - 1);
+		await cells.nth(secondCellIndex).click();
+
+		// Expand destinations and add three chips
+		await dialog.locator('summary', { hasText: 'destinations' }).click();
+		const tagInput = dialog.locator('input[aria-label="Add destination"]');
+		await tagInput.fill('Barcelona');
+		await tagInput.press('Enter');
+		await tagInput.fill('Cannes');
+		await tagInput.press('Enter');
+		await tagInput.fill('Lisbon');
+		await tagInput.press('Enter');
+
+		await dialog.locator('button[type="submit"]').click();
+		await expect(page).toHaveURL(/\/trip\/europe-2027/, { timeout: 5000 });
+
+		const locations = await page.evaluate(() => {
+			const raw = localStorage.getItem('hw-trips');
+			if (!raw) return null;
+			const parsed = JSON.parse(raw);
+			const key = Object.keys(parsed).find((k) => k.startsWith('europe-2027'));
+			return key ? parsed[key].days.map((d: { location: string }) => d.location) : null;
+		});
+		expect(locations).toBeTruthy();
+		const unique = new Set(locations);
+		expect(unique).toEqual(new Set(['Barcelona', 'Cannes', 'Lisbon']));
+		expect(locations![0]).toBe('Barcelona');
+		expect(locations![locations!.length - 1]).toBe('Lisbon');
 	});
 
 	test('Escape key closes the modal', async ({ page }) => {

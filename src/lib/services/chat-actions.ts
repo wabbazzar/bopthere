@@ -218,6 +218,24 @@ export function slugifyTripId(name: string, startDate: string, existing: Set<str
 	return `${candidate}-${i}`;
 }
 
+/**
+ * Spread N destinations evenly across D days — e.g. 3 destinations over
+ * 21 days → days 0-6 get destinations[0], 7-13 get [1], 14-20 get [2].
+ * Used when a newly created trip has destinations but empty day locations.
+ */
+export function distributeDestinations(days: number, destinations: string[]): string[] {
+	if (days <= 0 || destinations.length === 0) return [];
+	const out: string[] = new Array(days);
+	for (let i = 0; i < days; i++) {
+		const idx = Math.min(
+			destinations.length - 1,
+			Math.floor((i * destinations.length) / days)
+		);
+		out[i] = destinations[idx];
+	}
+	return out;
+}
+
 function weekdayShort(date: string): string {
 	const d = new Date(date + 'T12:00:00');
 	if (isNaN(d.getTime())) return '';

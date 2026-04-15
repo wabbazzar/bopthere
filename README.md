@@ -1,303 +1,166 @@
-# Wedding Website
+# H&W Travel Portal
 
-A beautiful React-based wedding website built with modern web technologies, featuring a character-based experience and AWS serverless backend for RSVP management.
+Personal travel-planning app for Wesley & Heather. SvelteKit front end on
+GitHub Pages, FastAPI backend on a home server (`wabbazzar-ice`) with a
+small SQLite DB. The old React wedding site is archived at `/archive/`.
 
-## Getting Started
+See [`CLAUDE.md`](./CLAUDE.md) for the full contributor playbook
+(architecture, conventions, testing rules). This README is the short
+orientation.
 
-**Development Setup**
-
-To work locally using your IDE, clone this repo and follow these steps:
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Quick start
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Configure AWS environment variables (see AWS Setup below)
-cp .env.example .env
-# Edit .env with your API Gateway URL
-
-# Step 5: Start the development server with auto-reloading and an instant preview.
-npm run dev
+npm install
+npm run dev -- --port 5174     # keep this running; see CLAUDE.md §0
 ```
 
-**Edit a file directly in GitHub**
+The dev server talks to the production backend at `api.heatherandwesley.com`
+by default. Set `PUBLIC_CHAT_API_URL` in `.env` to point at a local
+backend instead.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Architecture
 
-**Use GitHub Codespaces**
+| Layer | What | Where |
+|-------|------|-------|
+| Frontend | SvelteKit 2 + Svelte 5 + TypeScript, Tailwind for layout | `src/` — static-adapter build deployed to GitHub Pages |
+| Chat / trip backend | FastAPI + SQLite (WAL), shells to Claude Code CLI for LLM | `server/`, runs on `wabbazzar-ice` as a systemd user unit |
+| Auth | JWT (HS256, 30-day). Lambda + DynamoDB table `heatherandwesley-auth-users`. Being kept on AWS for now. | `aws/lambda/auth-handler.py` |
+| Archive | Prebuilt React wedding site, served at `/archive/` | `static/archive/` |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Active development goes into `server/` on wabbazzar-ice, **not** AWS —
+the Lambda/DynamoDB footprint is frozen to the auth path only.
 
-## AWS Setup
+## Server data model
 
-### Prerequisites
+Everything persists to `server/data/chat.db` (gitignored). WAL mode;
+tiny today (~64 KB). All four tables are keyed by `trip_id` — there is
+**no per-user partitioning**, Wesley and Heather share one row per trip.
 
-1. AWS CLI installed and configured with `--profile personal`
-2. Appropriate AWS permissions for DynamoDB, Lambda, and API Gateway in us-east-1 region
-3. Updated API Gateway endpoint configured with proper CORS headers
+| Table | Primary key | Columns | Contents |
+|-------|-------------|---------|----------|
+| `trips` | `trip_id` | `trip_json`, `updated_at` | The full `Trip` object as JSON: `{id, name, startDate, endDate, destinations, links, days[]}`. Each `day` has `{date, dayOfWeek, location, travel, morning, afternoon, evening, accommodation, notes, ooo, mapLinks?}`. |
+| `trip_bookings` | `trip_id` | `bookings_json`, `updated_at` | Flights + hotels: `[{type, label, date, confirmation, details[], bookingUrl?, ticketUrl?}]`. Seeded once from `server/data/bookings-seed.json` (renamed `.used` after ingestion). |
+| `trip_todos` | `trip_id` | `todos_json`, `updated_at` | `[{text, done}]`. |
+| `conversations` | `trip_id` | `messages_json`, `updated_at` | Full chat history: `[{id, role, content, timestamp, user}]`. |
 
-### Infrastructure Deployment
+Alongside the DB, ticket PDFs live at
+`server/data/tickets/<trip_id>/*.pdf`. They're served via HMAC-signed
+120 s URLs (`POST /attachments/sign` → `GET /attachments/{name}?exp=…&sig=…`)
+so browsers can open them without a Bearer header.
+
+### Sync semantics
+
+- **Last-write-wins** on `updated_at` for `trips` and `trip_todos`.
+  Stale writes get a 409 with the server's current state in the body so
+  the client can reconcile in one round-trip.
+- **Server is authoritative on init.** The client pushes any pending
+  edits, then pulls the server version.
+- **Trip discovery:** `GET /api/trips` returns `[{tripId, updatedAt}]` —
+  the client uses it on init to pull any trips created on another
+  device that aren't in localStorage yet.
+
+### Writing to the DB directly
+
+From `wabbazzar-ice`:
 
 ```sh
-# Initialize OpenTofu
-make tofu-init
-
-# Deploy all AWS infrastructure (DynamoDB, Lambda, API Gateway)
-make deploy-all
-
-# Get the API Gateway URL
-cd infrastructure && tofu output api_gateway_url
+cd server/
+python3 -c "from db import list_trips, get_trip; print(list_trips())"
 ```
 
-### Environment Configuration
+## HTTP endpoints (server)
 
-1. Copy `.env.example` to `.env`
-2. Update `VITE_API_GATEWAY_URL` with the URL from the OpenTofu output
+All require `Authorization: Bearer <JWT>` except `/health` and the
+signed attachment URLs.
 
-### Managing Infrastructure
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/health` | Liveness |
+| `GET` | `/api/trips` | List catalog `[{tripId, updatedAt}]` |
+| `GET` | `/api/trips/{id}` | Fetch full trip |
+| `PUT` | `/api/trips/{id}` | Upsert trip (LWW, validated: slug regex + body.id matches path + required fields) |
+| `GET` | `/api/trips/{id}/todos` | Fetch todos |
+| `PUT` | `/api/trips/{id}/todos` | Upsert todos (LWW) |
+| `GET` | `/api/trips/{id}/bookings` | Fetch bookings |
+| `POST` | `/api/trips/{id}/attachments/sign` | Issue a signed URL for a PDF |
+| `GET` | `/api/trips/{id}/attachments/{name}?exp=…&sig=…` | Serve the PDF |
+| `GET` | `/api/chat/conversations/{id}` | Fetch chat history |
+| `POST` | `/api/chat/messages` | Send a message, get a Claude reply |
+| `DELETE` | `/api/chat/conversations/{id}` | Clear history |
+
+Trip ids are slugs: `^[a-z0-9][a-z0-9-]{0,47}$`.
+
+## Chat agent tool-style blocks
+
+The chat agent can emit structured blocks that the frontend renders as
+action cards the user explicitly applies:
+
+- ` ```TRIP_UPDATE ` — mutate a specific day/field.
+- ` ```TRIP_CREATE ` — create a new trip (navigates to `/trip/<id>` on
+  apply; the app seeds one empty day per calendar date by default).
+- ` ```MAP_LINKS ` — add Google Maps directions for a day.
+
+Rules and examples live in the system prompt built by
+`src/lib/services/chat.ts`.
+
+## Auth (legacy AWS)
+
+JWT (HS256) from `POST /auth/login` at
+`https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod`. Users live
+in DynamoDB (`heatherandwesley-auth-users`). Tokens go into
+`localStorage.hw-auth-token`. Root layout redirects unauthenticated users
+to the login portal.
+
+## Testing
 
 ```sh
-# View all available commands
-make help
-
-# Test the complete integration
-make test-all
-
-# Update Lambda function code
-make update-lambda
-
-# View DynamoDB table details
-make describe-table
-
-# Destroy all infrastructure (use with caution)
-make cleanup-all
+npm test                       # vitest unit tests
+npm run test:e2e               # Playwright
+npm run check                  # svelte-check + TypeScript
+bash scripts/guardian-claude.sh hook   # fast regression guard
+bash scripts/guardian-claude.sh daily  # full: scripts + Playwright + GUI + DB
 ```
 
-## What technologies are used for this project?
+Testing rules in [`CLAUDE.md §10`](./CLAUDE.md). Notably: Svelte 5 hashes
+CSS class names, so Playwright selectors must use `aria-label`,
+`role`, text content, or `data-testid` — **never** a component's scoped
+class name.
 
-This project is built with:
+## Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-- AWS DynamoDB (for RSVP storage)
-- AWS Lambda (for serverless RSVP processing)
-- AWS API Gateway (for REST API)
-- OpenTofu (for infrastructure as code)
+Frontend:
 
-## How can I deploy this project?
-
-Run `npm run build` to create a production build, then deploy the `dist` folder to your hosting provider.
-
-## Custom Domain
-
-You can connect your own custom domain by deploying the built files to your hosting provider and configuring your domain's DNS settings to point to your hosting service.
-
-## Testing Infrastructure
-
-The project includes comprehensive testing infrastructure with multiple test types and quality assurance measures:
-
-### Test Types
-
-**Unit Tests**
-```bash
-# Python unit tests
-make test-unit-python
-
-# Frontend Jest unit tests  
-make test-unit-frontend
+```sh
+npm run build                  # static-adapter build to build/
+# Pushed to main → GitHub Pages rebuild (~1–2 min)
 ```
 
-**Integration Tests**
-```bash
-# Python integration tests (API + Database)
-make test-integration-python
+Backend: systemd user service on wabbazzar-ice.
 
-# Frontend integration tests
-npm test
+```sh
+systemctl --user restart hw-chat
+journalctl --user -u hw-chat -f
 ```
 
-**End-to-End Tests**
-```bash
-# Playwright browser automation tests
-make test-e2e-playwright
+Nginx reverse-proxies `https://api.heatherandwesley.com` → `127.0.0.1:8089`.
 
-# API smoke tests (critical path verification)
-make test-e2e-smoke
+## Repo layout (high level)
 
-# Integration smoke tests (no AWS required)
-make test-e2e-smoke-integration
 ```
-
-**Comprehensive Test Suites**
-```bash
-# Run all Python tests (unit + integration + smoke)
-make test-python
-
-# Run all frontend tests (unit + e2e)
-make test-frontend
-
-# Run complete test suite
-make test-all-new
+src/                    SvelteKit app
+  routes/               pages (dashboard, trip/[id], login)
+  lib/
+    components/         UI (trip, chat, ui primitives like DateRangePicker)
+    stores/             trips, chat, auth
+    services/           API wrappers + chat-action parsers
+    types/              Trip, ChatMessage, etc.
+    data/               default trip seeds (china-2026.ts)
+server/                 FastAPI backend
+  chat_proxy.py         endpoints
+  db.py                 SQLite helpers
+  data/                 chat.db + tickets/ (GITIGNORED — contains real data)
+aws/lambda/             legacy auth handler
+static/archive/         prebuilt React wedding site
+tests/                  Playwright specs + unit/ (vitest) + guardian-checklist.md
 ```
-
-### Git Hooks for Quality Assurance
-
-The project includes automated Git hooks to ensure code quality:
-
-**Setup Git Hooks**
-```bash
-# Install pre-commit and pre-push hooks
-make hooks-setup
-
-# Check hook status
-make hooks-status
-
-# Test hook functionality
-make hooks-test
-```
-
-**Hook Behavior:**
-- **Pre-commit**: Fast checks (linting, unit tests, AWS region consistency)
-- **Pre-push**: Comprehensive testing (integration tests, smoke tests, migration verification)
-
-**Hook Management**
-```bash
-# Enable/disable hooks
-make hooks-enable
-make hooks-disable
-
-# Bypass hooks if needed (use sparingly)
-git commit --no-verify
-git push --no-verify
-```
-
-### Health Monitoring
-
-**Health Check Endpoint**
-```bash
-# Test health status of all services
-make test-health
-
-# Deploy health check Lambda (if needed)
-make deploy-health-lambda
-```
-
-The health endpoint monitors:
-- DynamoDB table status
-- Lambda function availability
-- Service region consistency
-- Overall system health
-
-### Migration Verification
-
-**Verify AWS Migration**
-```bash
-# Verify all resources are in us-east-1
-make verify-migration
-
-# Complete comprehensive migration verification
-make verify-migration-complete
-
-# Migration to us-east-1 completed - all resources migrated
-make cleanup-west-2-final
-```
-
-### Test Organization
-
-Tests are organized in the `tests/` directory:
-```
-tests/
-├── unit/
-│   ├── frontend/     # Jest tests for React components
-│   └── backend/      # Python tests for Lambda/API logic
-├── integration/
-│   ├── frontend/     # React + API integration tests
-│   └── backend/      # Lambda + DynamoDB integration tests
-├── e2e/
-│   ├── playwright/   # Browser automation tests
-│   └── smoke/        # API smoke tests for critical paths
-```
-
-### Debugging and Development
-
-**Playwright Testing for Complex UI Issues**
-```bash
-# Install Playwright (if not already installed)
-npm install -D @playwright/test
-npx playwright install chromium
-
-# Run with debug mode
-npm run dev  # Start dev server
-# Add ?nav-debug to any URL for debug mode
-```
-
-For navigation debugging, use the navigation debugger:
-```javascript
-// In browser console
-navDebugger.showBlockers()  // Shows elements blocking clicks
-navDebugger.exportLogs()    // Exports debug information
-```
-
-**Specialized Testing Agents**
-
-Use Claude agents for comprehensive testing:
-```bash
-# Generate comprehensive test suites
-claude --agent test-writer "Write tests for [component/function]"
-
-# Review and improve existing tests  
-claude --agent test-critic "Review tests for [component/function]"
-```
-
-### API Schema Management
-
-The project includes automated API schema documentation and field integrity validation:
-
-**Update Schemas**
-```bash
-# Update all API schemas and documentation
-make update-schemas
-```
-
-This command will:
-- Extract DynamoDB table schemas
-- Document API Gateway routes
-- Capture Lambda request/response patterns
-- Generate human-readable documentation
-
-**Test Field Consistency**
-```bash
-# Validate field consistency across all layers
-make test-api-consistency
-```
-
-**Schema Files**
-Generated schemas are stored in `.wedding/context/`:
-- `dynamodb-schemas.json` - DynamoDB table field definitions
-- `api-endpoints.md` - Human-readable API documentation
-- `api-gateway-routes.json` - Route configurations
-- `lambda-patterns.json` - Request/response patterns
-- `field-mappings.md` - Field reference documentation
-- `agent-schema-rules.md` - Validation rules for AI agents
-
-**Automated Updates**
-GitHub Actions automatically updates schemas every 4 hours or when backend code changes. Check `.github/workflows/update-schemas.yml` for details.
