@@ -84,6 +84,7 @@ async def _log_request(request: Request, call_next):
         log_event(
             "hw-chat",
             "http.request",
+            source="user",
             actor=actor,
             method=request.method,
             path=request.url.path,
@@ -94,6 +95,7 @@ async def _log_request(request: Request, call_next):
     log_event(
         "hw-chat",
         "http.request",
+        source="user",
         actor=actor,
         method=request.method,
         path=request.url.path,

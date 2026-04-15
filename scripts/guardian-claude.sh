@@ -7,6 +7,8 @@
 
 set -euo pipefail
 
+export WABBAZZAR_SOURCE="${WABBAZZAR_SOURCE:-system}"
+
 MODE="${1:-hook}"
 HW_DIR="/home/wabbazzar/code/heatherandwesley"
 NOTIFY="/home/wabbazzar/code/wabbazzar-ice/scripts/notify.sh"
