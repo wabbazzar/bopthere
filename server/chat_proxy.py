@@ -62,45 +62,65 @@ app.add_middleware(
 )
 
 
+def _is_known_ip(ip: str) -> bool:
+    return (
+        ip.startswith("192.168.")
+        or ip.startswith("100.64.")
+        or ip.startswith("100.77.")
+        or ip in ("127.0.0.1", "::1")
+    )
+
+
+def _resolve_identity(auth: str | None, client_ip: str) -> tuple[str, str]:
+    """Return (actor, source). Three-way: user / user-unauth / external."""
+    if auth and auth.startswith("Bearer "):
+        try:
+            payload = jwt.decode(auth[7:], JWT_SECRET, algorithms=["HS256"])
+            return payload.get("username") or payload.get("sub") or "anonymous", "user"
+        except jwt.ExpiredSignatureError:
+            return "unauth_failed", "unauth_failed"
+        except jwt.InvalidTokenError:
+            return "unauth_failed", "unauth_failed"
+        except Exception:
+            return "unauth_failed", "unauth_failed"
+    if _is_known_ip(client_ip):
+        return "pre-auth", "user-unauth"
+    return "external", "external"
+
+
 @app.middleware("http")
 async def _log_request(request: Request, call_next):
     """Emit one http.request event per response. Fire-and-forget."""
     t0 = time.monotonic()
-    actor = "anonymous"
-    auth = request.headers.get("authorization")
-    if auth and auth.startswith("Bearer "):
-        try:
-            payload = jwt.decode(auth[7:], JWT_SECRET, algorithms=["HS256"])
-            actor = payload.get("username") or payload.get("sub") or "anonymous"
-        except jwt.ExpiredSignatureError:
-            actor = "unauth_failed"
-        except jwt.InvalidTokenError:
-            actor = "unauth_failed"
-        except Exception:
-            actor = "unauth_failed"
+    xff = request.headers.get("x-forwarded-for", "")
+    client_ip = xff.split(",")[0].strip() if xff else (request.client.host if request.client else "127.0.0.1")
+    actor, source = _resolve_identity(request.headers.get("authorization"), client_ip)
+    extra = {"client_ip": client_ip} if source == "external" else {}
     try:
         response = await call_next(request)
     except Exception:
         log_event(
             "hw-chat",
             "http.request",
-            source="user",
+            source=source,
             actor=actor,
             method=request.method,
             path=request.url.path,
             status=500,
             latency_ms=int((time.monotonic() - t0) * 1000),
+            **extra,
         )
         raise
     log_event(
         "hw-chat",
         "http.request",
-        source="user",
+        source=source,
         actor=actor,
         method=request.method,
         path=request.url.path,
         status=response.status_code,
         latency_ms=int((time.monotonic() - t0) * 1000),
+        **extra,
     )
     return response
 
