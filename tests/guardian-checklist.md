@@ -75,3 +75,4 @@ _Dev agent appends new checks here as features are built._
 - [ ] Bookings: served from /api/trips/{id}/bookings (JWT-gated), NOT from repo source code
 - [ ] Ticket PDFs: "View ticket" → signed URL → PDF streams with correct Content-Type
 - [ ] Todos: server-persisted via /api/trips/{id}/todos, shared across devices
+- [ ] Day-nav location: tapping the location text (or "No location" placeholder) in the day header opens an inline editor; Enter saves to trips store, Escape cancels, edits persist across day navigation

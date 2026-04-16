@@ -237,6 +237,89 @@ test.describe('Field Editing — Tap to edit', () => {
 	});
 });
 
+// ─── DAY-NAV LOCATION — inline tap-to-edit in the day header ─────
+
+test.describe('Day-nav location — tap to edit', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Tapping the location text in day-nav opens an editor and saves', async ({ page }) => {
+		await goToDayView(page);
+
+		const locBtn = page.getByRole('button', { name: 'Edit location' });
+		await expect(locBtn).toBeVisible();
+
+		await locBtn.click();
+		const input = page.getByRole('textbox', { name: 'Edit location' });
+		await expect(input).toBeVisible();
+
+		await input.fill('Edited Location ZZZ');
+		await input.press('Enter');
+
+		// Button comes back with the new value
+		await expect(page.getByRole('button', { name: 'Edit location' })).toContainText('Edited Location ZZZ');
+		// And the inline Location row in the day card mirrors the change
+		await expect(page.locator('text=Edited Location ZZZ').first()).toBeVisible();
+	});
+
+	test('Empty-state "No location" placeholder also taps to edit', async ({ page }) => {
+		await goToDayView(page);
+
+		// Clear the location first (so we get the "No location" placeholder)
+		const locBtn = page.getByRole('button', { name: 'Edit location' });
+		await locBtn.click();
+		let input = page.getByRole('textbox', { name: 'Edit location' });
+		await input.fill('');
+		await input.press('Enter');
+
+		// Button should now read "No location"
+		const placeholder = page.getByRole('button', { name: 'Edit location' });
+		await expect(placeholder).toContainText('No location');
+
+		// Tapping it should still open the editor
+		await placeholder.click();
+		input = page.getByRole('textbox', { name: 'Edit location' });
+		await input.fill('Brand New City');
+		await input.press('Enter');
+		await expect(page.getByRole('button', { name: 'Edit location' })).toContainText('Brand New City');
+	});
+
+	test('Escape cancels the day-nav location edit', async ({ page }) => {
+		await goToDayView(page);
+
+		const locBtn = page.getByRole('button', { name: 'Edit location' });
+		const original = (await locBtn.textContent())?.trim();
+
+		await locBtn.click();
+		const input = page.getByRole('textbox', { name: 'Edit location' });
+		await input.fill('SHOULD NOT SAVE');
+		await input.press('Escape');
+
+		await expect(page.getByRole('button', { name: 'Edit location' })).toContainText(original!);
+	});
+
+	test('Edited day-nav location persists after navigating away and back', async ({ page }) => {
+		await goToDayView(page);
+		// Let the initial server pull settle so it can't race-overwrite our edit.
+		await page.waitForLoadState('networkidle');
+
+		const locBtn = page.getByRole('button', { name: 'Edit location' });
+		await locBtn.click();
+		const input = page.getByRole('textbox', { name: 'Edit location' });
+		await input.fill('Persisted City 7');
+		await input.press('Enter');
+
+		await page.click('button[aria-label="Next day"]');
+		await page.waitForTimeout(200);
+		await page.click('button[aria-label="Previous day"]');
+		await page.waitForTimeout(200);
+
+		await expect(page.getByRole('button', { name: 'Edit location' })).toContainText('Persisted City 7');
+	});
+});
+
 // ─── TRIP HEADER — Undo / Export / Reset / Name Edit ────────────
 
 test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {

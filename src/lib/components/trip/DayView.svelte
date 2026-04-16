@@ -7,6 +7,8 @@
 	import MapLinks from './MapLinks.svelte';
 	import MiniCalendar from './MiniCalendar.svelte';
 
+	import { tick } from 'svelte';
+
 	let suggestTarget: { field: string; element: HTMLElement } | null = null;
 
 	function handleSuggest(e: CustomEvent<{ field: string; element: HTMLElement }>) {
@@ -26,6 +28,38 @@
 
 	$: day = trip.days[currentDayIndex];
 	$: totalDays = trip.days.length;
+
+	// Inline location edit (in the day-nav header)
+	let editingLocation = false;
+	let locationDraft = '';
+	let locationInput: HTMLInputElement | null = null;
+
+	async function startEditLocation() {
+		if (!day) return;
+		locationDraft = day.location ?? '';
+		editingLocation = true;
+		await tick();
+		locationInput?.focus();
+		locationInput?.select();
+	}
+
+	function commitLocation() {
+		if (!editingLocation) return;
+		const next = locationDraft.trim();
+		if (next !== (day?.location ?? '')) {
+			trips.updateDayField(tripId, currentDayIndex, 'location', next);
+		}
+		editingLocation = false;
+	}
+
+	function cancelLocation() {
+		editingLocation = false;
+	}
+
+	function onLocationKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter') { e.preventDefault(); commitLocation(); }
+		else if (e.key === 'Escape') { e.preventDefault(); cancelLocation(); }
+	}
 
 	// Swipe detection
 	let touchStartX = 0;
@@ -57,6 +91,8 @@
 	function next() { if (currentDayIndex < totalDays - 1) currentDayIndex++; }
 
 	function handleKeydown(e: KeyboardEvent) {
+		const target = e.target as HTMLElement | null;
+		if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
 		if (e.key === 'ArrowLeft') prev();
 		else if (e.key === 'ArrowRight') next();
 	}
@@ -88,7 +124,30 @@
 
 			<div class="day-nav-center">
 				<span class="day-nav-title">
-					{day.dayOfWeek} {day.date.slice(5)} {'\u00B7'} {day.location || 'No location'}
+					{day.dayOfWeek} {day.date.slice(5)} {'\u00B7'}
+					{#if editingLocation}
+						<input
+							bind:this={locationInput}
+							type="text"
+							bind:value={locationDraft}
+							on:blur={commitLocation}
+							on:keydown={onLocationKeydown}
+							placeholder="Location"
+							aria-label="Edit location"
+							class="location-input"
+						/>
+					{:else}
+						<button
+							type="button"
+							class="location-edit-btn"
+							class:location-edit-btn--empty={!day.location}
+							on:click={startEditLocation}
+							aria-label="Edit location"
+							title="Tap to edit location"
+						>
+							{day.location || 'No location'}
+						</button>
+					{/if}
 				</span>
 				<span class="day-nav-subtitle">
 					Day {currentDayIndex + 1} of {totalDays}
@@ -202,6 +261,37 @@
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		margin-top: 0.125rem;
+	}
+	.location-edit-btn {
+		background: none;
+		border: none;
+		padding: 0;
+		margin: 0;
+		font: inherit;
+		color: inherit;
+		cursor: pointer;
+		text-align: left;
+		border-bottom: 1px dashed transparent;
+		transition: border-color 150ms ease, color 150ms ease;
+	}
+	.location-edit-btn:hover {
+		border-bottom-color: var(--accent);
+	}
+	.location-edit-btn--empty {
+		color: var(--ink-faint);
+		font-style: italic;
+		font-weight: 500;
+	}
+	.location-input {
+		font: inherit;
+		font-weight: 600;
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--accent);
+		border-radius: 4px;
+		padding: 0 0.25rem;
+		max-width: 60%;
+		min-width: 6rem;
 	}
 
 	/* Fields card */
