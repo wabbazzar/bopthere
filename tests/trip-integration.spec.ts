@@ -320,6 +320,69 @@ test.describe('Day-nav location — tap to edit', () => {
 	});
 });
 
+// ─── MINI-CAL — weekday-aligned grid (Mon–Sun) ───────────────────
+
+test.describe('MiniCalendar — Mon–Sun weekday alignment', () => {
+	test.beforeEach(async ({ page }) => {
+		await injectAuth(page);
+		await resetTripData(page);
+	});
+
+	test('Renders M T W T F S S headers in order', async ({ page }) => {
+		await goToDayView(page);
+		const headers = page.locator('[data-testid="mini-cal-headers"] > *');
+		await expect(headers).toHaveCount(7);
+		await expect(headers.nth(0)).toHaveText('M');
+		await expect(headers.nth(1)).toHaveText('T');
+		await expect(headers.nth(2)).toHaveText('W');
+		await expect(headers.nth(3)).toHaveText('T');
+		await expect(headers.nth(4)).toHaveText('F');
+		await expect(headers.nth(5)).toHaveText('S');
+		await expect(headers.nth(6)).toHaveText('S');
+	});
+
+	test('Each week row has exactly 7 columns', async ({ page }) => {
+		await goToDayView(page);
+		const weeks = page.locator('[data-testid="mini-cal-week"]');
+		const count = await weeks.count();
+		expect(count).toBeGreaterThan(0);
+		for (let i = 0; i < count; i++) {
+			const cells = weeks.nth(i).locator(':scope > *');
+			await expect(cells).toHaveCount(7);
+		}
+	});
+
+	test('Day 1 sits in the column matching its weekday (Mon=0..Sun=6)', async ({ page }) => {
+		await goToDayView(page);
+		const firstWeek = page.locator('[data-testid="mini-cal-week"]').first();
+		const cells = firstWeek.locator(':scope > *');
+		await expect(cells).toHaveCount(7);
+
+		// Read the weekday off day 1's title (e.g. "Wed 04-22 · Shanghai")
+		const day1 = page.locator('[aria-label="Go to day 1"]');
+		const title = (await day1.getAttribute('title')) || '';
+		const weekdayAbbr = title.split(' ')[0];
+		const monIdx: Record<string, number> = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+		const expectedCol = monIdx[weekdayAbbr];
+		expect(expectedCol).toBeGreaterThanOrEqual(0);
+
+		// Cells before day 1 must all be blanks
+		for (let i = 0; i < expectedCol; i++) {
+			await expect(cells.nth(i)).toHaveAttribute('data-testid', 'mini-cal-blank');
+		}
+		// Day 1 sits at the expected column
+		await expect(cells.nth(expectedCol)).toHaveAttribute('aria-label', 'Go to day 1');
+	});
+
+	test('Trailing blanks pad the final week to 7 cells', async ({ page }) => {
+		await goToDayView(page);
+		const weeks = page.locator('[data-testid="mini-cal-week"]');
+		const lastWeek = weeks.last();
+		const cells = lastWeek.locator(':scope > *');
+		await expect(cells).toHaveCount(7);
+	});
+});
+
 // ─── TRIP HEADER — Undo / Export / Reset / Name Edit ────────────
 
 test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {

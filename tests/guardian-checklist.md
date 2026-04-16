@@ -76,3 +76,4 @@ _Dev agent appends new checks here as features are built._
 - [ ] Ticket PDFs: "View ticket" → signed URL → PDF streams with correct Content-Type
 - [ ] Todos: server-persisted via /api/trips/{id}/todos, shared across devices
 - [ ] Day-nav location: tapping the location text (or "No location" placeholder) in the day header opens an inline editor; Enter saves to trips store, Escape cancels, edits persist across day navigation
+- [ ] MiniCalendar: weekday-aligned grid with Monday-first headers (M T W T F S S), each row has 7 columns, day 1 sits in the column matching its weekday, blank cells pad leading/trailing positions
