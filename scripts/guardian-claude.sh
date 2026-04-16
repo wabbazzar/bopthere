@@ -46,6 +46,7 @@ fi
 
 echo "[guardian-claude] Starting $MODE run at $(date)" > "$LOG_FILE"
 
+set +e
 claude -p \
   --model "$MODEL" \
   --dangerously-skip-permissions \
@@ -53,8 +54,8 @@ claude -p \
   --output-format text \
   "$PROMPT" \
   >> "$LOG_FILE" 2>&1
-
 EXIT=$?
+set -e
 
 echo "[guardian-claude] Claude exited with code $EXIT" >> "$LOG_FILE"
 
