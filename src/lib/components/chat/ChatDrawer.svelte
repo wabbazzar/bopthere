@@ -5,6 +5,14 @@
 
 	let inputValue = '';
 	let messagesEl: HTMLElement;
+	let isFullscreen = false;
+
+	function toggleFullscreen() {
+		isFullscreen = !isFullscreen;
+		tick().then(() => {
+			if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
+		});
+	}
 
 	// Only scroll when message count changes, not on every store update
 	let prevMsgCount = 0;
@@ -60,7 +68,7 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div class="backdrop" on:click={() => chat.close()}></div>
 
-	<div class="drawer">
+	<aside class="drawer" class:fullscreen={isFullscreen}>
 		<div class="drawer-header">
 			<div class="drawer-title">
 				<span class="section-label" style="margin:0; font-size: 0.65rem;">Trip Assistant</span>
@@ -68,6 +76,22 @@
 			<div class="drawer-actions">
 				<button class="drawer-btn" on:click={() => chat.clear()} title="Clear conversation">
 					Clear
+				</button>
+				<button
+					class="drawer-btn drawer-fullscreen"
+					on:click={toggleFullscreen}
+					title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+					aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+				>
+					{#if isFullscreen}
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M9 4v5H4M20 9h-5V4M4 15h5v5M15 20v-5h5" />
+						</svg>
+					{:else}
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+						</svg>
+					{/if}
 				</button>
 				<button class="drawer-btn drawer-close" on:click={() => chat.close()}>
 					&times;
@@ -137,7 +161,7 @@
 				&uarr;
 			</button>
 		</div>
-	</div>
+	</aside>
 {/if}
 
 <style>
@@ -166,7 +190,7 @@
 		box-shadow: 0 -4px 30px rgba(61, 43, 31, 0.12);
 	}
 
-	@media (min-width: 640px) {
+	@media (min-width: 640px) and (max-width: 1023px) {
 		.drawer {
 			max-width: 420px;
 			right: 1.5rem;
@@ -176,13 +200,66 @@
 		}
 	}
 
+	/* Desktop: full-height right sidebar */
+	@media (min-width: 1024px) {
+		.backdrop {
+			display: none;
+		}
+
+		.drawer {
+			position: fixed;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: auto;
+			width: 420px;
+			height: 100dvh;
+			max-height: 100dvh;
+			border-radius: 0;
+			border-top: none;
+			border-left: 1px solid var(--border);
+			box-shadow: -4px 0 30px rgba(61, 43, 31, 0.08);
+			animation: slideIn 300ms cubic-bezier(0.16, 1, 0.3, 1);
+		}
+	}
+
+	.drawer.fullscreen {
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100dvh;
+		max-height: 100dvh;
+		border-radius: 0;
+		border-top: none;
+	}
+
+	@media (min-width: 640px) {
+		.drawer.fullscreen {
+			right: 0;
+			left: 0;
+			max-width: 100%;
+			height: 100dvh;
+			max-height: 100dvh;
+		}
+	}
+
 	.drawer-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.5rem 0.75rem;
 		border-bottom: 1px solid var(--border);
+		background: var(--surface-alt);
 		flex-shrink: 0;
+	}
+
+	@media (min-width: 1024px) {
+		.drawer-header {
+			padding: 0.75rem 1rem;
+		}
 	}
 
 	.drawer-title {
@@ -218,6 +295,13 @@
 		font-size: 1.25rem;
 		line-height: 1;
 		padding: 0.125rem 0.375rem;
+	}
+
+	/* Hide fullscreen toggle on desktop — sidebar is already the right mode */
+	@media (min-width: 1024px) {
+		.drawer-fullscreen {
+			display: none;
+		}
 	}
 
 	.drawer-messages {
@@ -318,6 +402,11 @@
 	@keyframes slideUp {
 		from { transform: translateY(100%); }
 		to { transform: translateY(0); }
+	}
+
+	@keyframes slideIn {
+		from { transform: translateX(100%); }
+		to { transform: translateX(0); }
 	}
 
 	@keyframes fadeIn {

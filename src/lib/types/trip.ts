@@ -19,7 +19,7 @@ export interface TripDay {
 }
 
 export interface Booking {
-	type: 'flight' | 'hotel';
+	type: 'flight' | 'hotel' | 'train';
 	label: string;
 	date: string;
 	confirmation?: string;

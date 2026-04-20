@@ -65,4 +65,12 @@
 	.fab--open:hover {
 		background: var(--ink);
 	}
+
+	/* On desktop, move FAB left of the sidebar when chat is open */
+	@media (min-width: 1024px) {
+		.fab--open {
+			right: calc(420px + 1.5rem);
+			transition: right 300ms cubic-bezier(0.16, 1, 0.3, 1);
+		}
+	}
 </style>

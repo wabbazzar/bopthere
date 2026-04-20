@@ -46,7 +46,15 @@
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<div class="booking-header" on:click={() => toggle(i)}>
 					<span class="booking-type" class:booking-type--flight={booking.type === 'flight'}>
-						{booking.type === 'flight' ? '✈' : '🏨'}
+						{#if booking.type === 'flight'}
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="booking-icon"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.4-.1.9.3 1.1L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.7 5.3c.2.4.7.5 1.1.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
+						{:else if booking.type === 'train'}
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="booking-icon"><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>
+						{:else if booking.type === 'hotel'}
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="booking-icon"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/><path d="M9 16h.01"/><path d="M15 16h.01"/><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M9 22v-6h6v6"/></svg>
+						{:else}
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="booking-icon"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+						{/if}
 					</span>
 					<div class="booking-info">
 						<span class="booking-label">{booking.label}</span>
@@ -119,10 +127,15 @@
 	}
 
 	.booking-type {
-		font-size: 0.85rem;
 		width: 1.5rem;
 		text-align: center;
 		flex-shrink: 0;
+		color: var(--ink-muted);
+	}
+
+	.booking-type :global(.booking-icon) {
+		width: 1rem;
+		height: 1rem;
 	}
 
 	.booking-info {
