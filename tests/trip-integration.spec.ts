@@ -57,8 +57,18 @@ async function resetTripData(page: Page) {
 
 /** Navigate to trip page in day view */
 async function goToDayView(page: Page) {
+	// Arm the listener before navigation so we don't miss the initSync GET
+	const serverPullDone = page.waitForResponse(
+		(r) =>
+			r.url().includes('/api/trips/china-2026') &&
+			!r.url().includes('/todos') &&
+			!r.url().includes('/bookings') &&
+			r.request().method() === 'GET',
+		{ timeout: 10000 }
+	).catch(() => null);
 	await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
 	await page.waitForSelector('h1', { timeout: 10000 });
+	await serverPullDone; // ensure server truth is applied before we start editing
 	// Click the "Day" tab
 	await page.getByRole('tab', { name: 'Day' }).click();
 	await page.waitForSelector('button[aria-label="Next day"]', { timeout: 5000 });

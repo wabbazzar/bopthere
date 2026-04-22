@@ -100,7 +100,8 @@ test.describe('Chat E2E', () => {
 		await expect(page.locator('.drawer')).toBeVisible();
 		await page.screenshot({ path: 'test-results/02-drawer-open.png' });
 
-		await page.locator('.backdrop').click();
+		// Desktop has no backdrop (sidebar mode) — use the close button which works on all viewports
+		await page.locator('button[aria-label="Close"]').click();
 		await expect(page.locator('.drawer')).not.toBeVisible();
 	});
 

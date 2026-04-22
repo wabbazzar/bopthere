@@ -138,6 +138,20 @@ def save_trip(trip_id: str, trip_json: str, updated_at: str) -> tuple[bool, str 
     return True, updated_at
 
 
+def delete_trip(trip_id: str) -> bool:
+    """Delete a trip and all associated data (bookings, todos, conversations).
+
+    Returns True if a trip row was actually deleted, False if it didn't exist.
+    """
+    conn = get_db()
+    cursor = conn.execute("DELETE FROM trips WHERE trip_id = ?", (trip_id,))
+    conn.execute("DELETE FROM trip_bookings WHERE trip_id = ?", (trip_id,))
+    conn.execute("DELETE FROM trip_todos WHERE trip_id = ?", (trip_id,))
+    conn.execute("DELETE FROM conversations WHERE trip_id = ?", (trip_id,))
+    conn.commit()
+    return cursor.rowcount > 0
+
+
 def get_todos(trip_id: str) -> tuple[list, str] | None:
     """Return (todos_list, updated_at) or None if no row."""
     conn = get_db()

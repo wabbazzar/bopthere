@@ -17,7 +17,7 @@ const TEST_USER = {
 };
 
 const CHINA_ID = 'china-2026';
-const EUROPE_ID = 'europe-2026-2026';
+const EUROPE_ID = 'europe-2026';
 
 async function injectAuth(page: Page) {
 	await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });

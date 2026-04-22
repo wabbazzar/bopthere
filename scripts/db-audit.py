@@ -82,7 +82,7 @@ def main():
             check("bookings_json is valid JSON", True)
             check("≥5 bookings", len(bookings) >= 5, f"found {len(bookings)}")
             for b in bookings:
-                check(f"booking '{b.get('label','')}' has type", b.get("type") in ("flight", "hotel"))
+                check(f"booking '{b.get('label','')}' has type", b.get("type") in ("flight", "hotel", "train", "bus", "ferry", "car", "other"))
                 check(f"booking '{b.get('label','')}' has details", len(b.get("details", [])) >= 1)
         except json.JSONDecodeError as e:
             check("bookings_json is valid JSON", False, str(e))
@@ -120,6 +120,37 @@ def main():
         except json.JSONDecodeError as e:
             check(f"conversation '{r['trip_id']}' valid JSON", False, str(e))
         check(f"conversation '{r['trip_id']}' updated_at not future", r["updated_at"] <= now)
+
+    # ── ticket file integrity ──────────────────────────────────────
+    print("\nticket file integrity:", file=sys.stderr)
+
+    TICKETS_DIR = Path(__file__).parent.parent / "server" / "data" / "tickets"
+
+    all_bookings_rows = conn.execute(
+        "SELECT trip_id, bookings_json FROM trip_bookings"
+    ).fetchall()
+
+    for brow in all_bookings_rows:
+        trip_id = brow["trip_id"]
+        try:
+            bookings = json.loads(brow["bookings_json"])
+        except json.JSONDecodeError:
+            continue  # already caught by earlier check
+        for b in bookings:
+            ticket_url = b.get("ticketUrl")
+            if not ticket_url:
+                continue
+            names = ticket_url if isinstance(ticket_url, list) else [ticket_url]
+            for name in names:
+                if not name or ".." in name or "/" in name:
+                    check(f"ticket filename safe: {name}", False, f"booking '{b.get('label', '?')}'")
+                    continue
+                path = TICKETS_DIR / trip_id / name
+                check(
+                    f"ticket file exists: {trip_id}/{name}",
+                    path.is_file(),
+                    f"referenced by booking '{b.get('label', '?')}'",
+                )
 
     # ── summary ──────────────────────────────────────────────────
     conn.close()

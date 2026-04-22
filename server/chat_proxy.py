@@ -28,6 +28,7 @@ except Exception:  # pragma: no cover
 
 from db import (
     delete_conversation,
+    delete_trip,
     get_bookings,
     get_conversation,
     get_todos,
@@ -379,6 +380,16 @@ async def put_trip(trip_id: str, req: SaveTripRequest, authorization: str | None
             },
         )
     return {"ok": True, "updatedAt": server_ts}
+
+
+@app.delete("/api/trips/{trip_id}")
+async def remove_trip(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    deleted = delete_trip(trip_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    return {"ok": True}
 
 
 @app.get("/api/trips/{trip_id}/todos")

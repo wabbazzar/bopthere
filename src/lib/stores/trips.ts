@@ -485,6 +485,37 @@ function createTripsStore() {
 		},
 
 		/**
+		 * Remove a trip from the store, localStorage, and the server.
+		 * Returns true if removed, false if the trip didn't exist.
+		 */
+		async removeTrip(id: string): Promise<boolean> {
+			const current = get({ subscribe });
+			if (!current[id]) return false;
+			update((trips) => {
+				snapshot(trips);
+				delete trips[id];
+				saveTrips(trips);
+				return { ...trips };
+			});
+			// Clean up localStorage metadata
+			if (typeof localStorage !== 'undefined') {
+				const meta = loadMeta();
+				delete meta[id];
+				localStorage.setItem(META_KEY, JSON.stringify(meta));
+				clearSyncPending(id);
+				localStorage.removeItem(`hw-trip-day-${id}`);
+			}
+			// Delete from server
+			try {
+				const { deleteTrip } = await import('$lib/services/trips-api');
+				await deleteTrip(id);
+			} catch {
+				// Server delete failed — trip is already removed locally
+			}
+			return true;
+		},
+
+		/**
 		 * Add a brand-new trip to the store. Returns false if the id already
 		 * exists (refuse to overwrite). On success, persists locally and
 		 * pushes to the server via the normal debounced sync.

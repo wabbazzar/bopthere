@@ -93,7 +93,7 @@
 						</svg>
 					{/if}
 				</button>
-				<button class="drawer-btn drawer-close" on:click={() => chat.close()}>
+				<button class="drawer-btn drawer-close" aria-label="Close" on:click={() => chat.close()}>
 					&times;
 				</button>
 			</div>

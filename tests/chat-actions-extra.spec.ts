@@ -53,6 +53,7 @@ async function primeTrip(page: Page) {
 			]
 		};
 		localStorage.setItem('hw-trips', JSON.stringify({ 'china-2026': trip }));
+		localStorage.setItem('hw-todos-schema-version', '2');
 		localStorage.setItem('hw-trip-todos-china-2026', JSON.stringify([
 			{ text: 'Existing task A', done: false },
 			{ text: 'Existing task B', done: false }

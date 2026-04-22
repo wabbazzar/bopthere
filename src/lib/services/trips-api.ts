@@ -101,6 +101,14 @@ export async function saveTrip(
 	return { ok: true, updatedAt: data.updatedAt };
 }
 
+export async function deleteTrip(tripId: string): Promise<void> {
+	const res = await fetch(`${API_URL}/api/trips/${tripId}`, {
+		method: 'DELETE',
+		headers: headers()
+	});
+	if (!res.ok) throw new Error(`Failed to delete trip (${res.status})`);
+}
+
 export async function fetchTodos(tripId: string): Promise<TodosResponse> {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);

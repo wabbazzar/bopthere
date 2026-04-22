@@ -49,7 +49,8 @@ Edit this file to add new checks. Dev agent adds entries when new features are b
 - [ ] `python3 scripts/db-audit.py` exits 0 (runs ALL checks below in one shot)
 - [ ] trips table: china-2026 exists with valid JSON, ≥10 days, has name + startDate + destinations
 - [ ] trips table: days 7-9 (Apr 28-30) have populated morning + afternoon fields
-- [ ] trip_bookings table: china-2026 has ≥5 bookings, each with type (flight|hotel) + details array
+- [ ] trip_bookings table: china-2026 has ≥5 bookings, each with type (flight|hotel|train) + details array
+- [ ] ticket file integrity: every ticketUrl in trip_bookings has a corresponding PDF on disk under `server/data/tickets/{trip_id}/`
 - [ ] trip_todos table: valid JSON list if row exists, each item has text field
 - [ ] conversations table: all rows have valid JSON in messages_json
 - [ ] No updated_at timestamps in the future (UTC comparison)
@@ -69,6 +70,7 @@ _Dev agent appends new checks here as features are built._
 - [ ] Chat MAP_LINKS: chained links show "Full day route" composite multi-stop link
 - [ ] MapLinks component: multi-stop "Full day route" renders when links chain together
 - [ ] Chat drawer: opens scrolled to the most recent message, even on reopen (close, scroll up, reopen → scrolled to bottom again)
+- [ ] Chat drawer fullscreen: `button[aria-label="Full screen"]` in the drawer header expands drawer to fill the viewport (drawer gets `.fullscreen` class); toggling again via `button[aria-label="Exit full screen"]` restores the default bottom-sheet size
 - [ ] Chat recovery: if sendMessage fetch is killed mid-flight but server persisted reply, drawer shows the assistant message without an error flash
 - [ ] Trip persistence: editing a day field in the UI syncs to SQLite within 2s (debounced PUT)
 - [ ] Trip persistence: clearing localStorage and reloading pulls server data (trip-data-persistence.spec.ts)
@@ -78,3 +80,4 @@ _Dev agent appends new checks here as features are built._
 - [ ] Day-nav location: tapping the location text (or "No location" placeholder) in the day header opens an inline editor; Enter saves to trips store, Escape cancels, edits persist across day navigation
 - [ ] MiniCalendar: weekday-aligned grid with Monday-first headers (M T W T F S S), each row has 7 columns, day 1 sits in the column matching its weekday, blank cells pad leading/trailing positions
 - [ ] Todos isolation: each trip has its own todo list. A new trip with no server row shows empty (NOT seeded with China defaults). Adding/editing todos on trip A never bleeds into trip B. Backed by `tests/integration/backend/test_todos_api.py`, `tests/todos-isolation.spec.ts`, and `tests/unit/stores/todos.test.ts`.
+- [ ] Remove trip: trash icon appears on hover over trip card on dashboard; clicking shows confirm dialog; confirming removes trip from dashboard, server (trips + bookings + todos + conversations), and localStorage
