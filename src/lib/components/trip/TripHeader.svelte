@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Trip } from '$lib/types/trip';
 	import { trips } from '$lib/stores/trips';
+	import { goto } from '$app/navigation';
 
 	export let trip: Trip;
 	export let tripId: string;
@@ -31,6 +32,12 @@
 		if (confirm('Reset all itinerary changes to defaults? This cannot be undone.')) {
 			trips.resetTrip(tripId);
 		}
+	}
+	async function removeTrip() {
+		menuOpen = false;
+		if (!confirm(`Remove "${trip.name}"? This deletes the trip and all its bookings, todos, and chat history.`)) return;
+		await trips.removeTrip(tripId);
+		goto('/dashboard');
 	}
 	function exportTrip() {
 		menuOpen = false;
@@ -103,6 +110,8 @@
 					<button type="button" role="menuitem" on:click={undo}>Undo</button>
 					<button type="button" role="menuitem" on:click={exportTrip}>Export</button>
 					<button type="button" role="menuitem" class="danger" on:click={resetTrip}>Reset</button>
+					<div class="menu-divider"></div>
+					<button type="button" role="menuitem" class="danger" on:click={removeTrip}>Remove trip</button>
 				</div>
 			{/if}
 		</div>
@@ -224,6 +233,11 @@
 	.menu button:hover { background: var(--accent-muted); }
 	.menu button.danger { color: var(--danger); }
 	.menu button.danger:hover { background: var(--accent-muted); }
+	.menu-divider {
+		height: 1px;
+		background: var(--border);
+		margin: 0.25rem 0;
+	}
 
 	.meta-row {
 		display: flex;

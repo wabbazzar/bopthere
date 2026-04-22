@@ -36,6 +36,11 @@ def get_db() -> sqlite3.Connection:
             updated_at TEXT NOT NULL
         )
     """)
+    # Add deleted_at column for tombstone deletes (idempotent)
+    try:
+        conn.execute("ALTER TABLE trips ADD COLUMN deleted_at TEXT")
+    except sqlite3.OperationalError:
+        pass  # column already exists
     conn.execute("""
         CREATE TABLE IF NOT EXISTS trip_todos (
             trip_id    TEXT PRIMARY KEY,
@@ -100,19 +105,20 @@ def ticket_path(trip_id: str, name: str) -> Path:
 
 
 def list_trips() -> list[dict]:
-    """Return [{tripId, updatedAt}] for every persisted trip, newest first."""
+    """Return [{tripId, updatedAt}] for every live (non-deleted) trip, newest first."""
     conn = get_db()
     rows = conn.execute(
-        "SELECT trip_id, updated_at FROM trips ORDER BY updated_at DESC"
+        "SELECT trip_id, updated_at FROM trips WHERE deleted_at IS NULL ORDER BY updated_at DESC"
     ).fetchall()
     return [{"tripId": r["trip_id"], "updatedAt": r["updated_at"]} for r in rows]
 
 
 def get_trip(trip_id: str) -> tuple[dict, str] | None:
-    """Return (trip_dict, updated_at) or None if no row."""
+    """Return (trip_dict, updated_at) or None if no row or tombstoned."""
     conn = get_db()
     row = conn.execute(
-        "SELECT trip_json, updated_at FROM trips WHERE trip_id = ?", (trip_id,)
+        "SELECT trip_json, updated_at FROM trips WHERE trip_id = ? AND deleted_at IS NULL",
+        (trip_id,),
     ).fetchone()
     if not row:
         return None
@@ -121,17 +127,18 @@ def get_trip(trip_id: str) -> tuple[dict, str] | None:
 
 def save_trip(trip_id: str, trip_json: str, updated_at: str) -> tuple[bool, str | None]:
     """LWW save — writes only if updated_at >= stored value.
+    Clears any tombstone so re-created trips come back to life.
 
     Returns (True, updated_at) on success, (False, server_updated_at) if stale.
     """
     conn = get_db()
     existing = conn.execute(
-        "SELECT updated_at FROM trips WHERE trip_id = ?", (trip_id,)
+        "SELECT updated_at, deleted_at FROM trips WHERE trip_id = ?", (trip_id,)
     ).fetchone()
-    if existing and existing["updated_at"] > updated_at:
+    if existing and not existing["deleted_at"] and existing["updated_at"] > updated_at:
         return False, existing["updated_at"]
     conn.execute(
-        "INSERT OR REPLACE INTO trips (trip_id, trip_json, updated_at) VALUES (?, ?, ?)",
+        "INSERT OR REPLACE INTO trips (trip_id, trip_json, updated_at, deleted_at) VALUES (?, ?, ?, NULL)",
         (trip_id, trip_json, updated_at),
     )
     conn.commit()
@@ -139,15 +146,17 @@ def save_trip(trip_id: str, trip_json: str, updated_at: str) -> tuple[bool, str 
 
 
 def delete_trip(trip_id: str) -> bool:
-    """Delete a trip and all associated data (bookings, todos, conversations).
+    """Tombstone-delete a trip (set deleted_at). Associated data (bookings,
+    todos, conversations) is preserved for manual recovery.
 
-    Returns True if a trip row was actually deleted, False if it didn't exist.
+    Returns True if a live trip was tombstoned, False if it didn't exist.
     """
     conn = get_db()
-    cursor = conn.execute("DELETE FROM trips WHERE trip_id = ?", (trip_id,))
-    conn.execute("DELETE FROM trip_bookings WHERE trip_id = ?", (trip_id,))
-    conn.execute("DELETE FROM trip_todos WHERE trip_id = ?", (trip_id,))
-    conn.execute("DELETE FROM conversations WHERE trip_id = ?", (trip_id,))
+    now = datetime.now().isoformat()
+    cursor = conn.execute(
+        "UPDATE trips SET deleted_at = ? WHERE trip_id = ? AND deleted_at IS NULL",
+        (now, trip_id),
+    )
     conn.commit()
     return cursor.rowcount > 0
 
