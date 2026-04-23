@@ -38,6 +38,7 @@ export interface TripListEntry {
  * Returns [] on any error so the init flow can still proceed with local data.
  */
 export async function fetchTripList(): Promise<TripListEntry[]> {
+	if (!getToken()) return [];
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {
@@ -60,6 +61,7 @@ export async function fetchTripList(): Promise<TripListEntry[]> {
  * Returns null if the server has no row yet (first-time migration case).
  */
 export async function fetchTrip(tripId: string): Promise<TripResponse | null> {
+	if (!getToken()) return null;
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {
@@ -115,6 +117,7 @@ export async function deleteTrip(tripId: string): Promise<void> {
 }
 
 export async function fetchTodos(tripId: string): Promise<TodosResponse> {
+	if (!getToken()) return { todos: [], updatedAt: null };
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {
@@ -157,6 +160,7 @@ export async function saveTodos(
 }
 
 export async function fetchJournal(tripId: string): Promise<JournalResponse> {
+	if (!getToken()) return { journal: [], updatedAt: null };
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {

@@ -25,6 +25,7 @@ export function getCachedBookings(tripId: string): Booking[] {
 }
 
 export async function getBookings(tripId: string): Promise<Booking[]> {
+	if (!getToken()) return [];
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {
