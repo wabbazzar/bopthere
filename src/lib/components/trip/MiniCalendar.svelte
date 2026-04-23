@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Trip } from '$lib/types/trip';
+	import { journalStore } from '$lib/stores/journal';
 
 	export let trip: Trip;
 	export let currentDayIndex: number;
@@ -70,7 +71,12 @@
 						title="{day.dayOfWeek} {day.date.slice(5)} · {day.location}"
 					>
 						<span class="mini-cal-num">{dayIdx + 1}</span>
-						<span class="mini-cal-dot" style="background: {getLocationDot(day.location)}"></span>
+						<span class="mini-cal-dots">
+							<span class="mini-cal-dot" style="background: {getLocationDot(day.location)}"></span>
+							{#if ($journalStore[trip.id] ?? []).some((e) => e.dayIndex === dayIdx)}
+								<span class="mini-cal-dot mini-cal-dot--journal"></span>
+							{/if}
+						</span>
 					</button>
 				{/if}
 			{/each}
@@ -155,6 +161,11 @@
 		opacity: 0.6;
 	}
 
+	.mini-cal-day.active .mini-cal-dot--journal {
+		background: var(--surface) !important;
+		opacity: 0.8;
+	}
+
 	.mini-cal-day.ooo:not(.active) {
 		border-style: dashed;
 	}
@@ -167,10 +178,20 @@
 		line-height: 1;
 	}
 
+	.mini-cal-dots {
+		display: flex;
+		gap: 2px;
+		align-items: center;
+	}
+
 	.mini-cal-dot {
 		width: 4px;
 		height: 4px;
 		border-radius: 50%;
 		flex-shrink: 0;
+	}
+
+	.mini-cal-dot--journal {
+		background: var(--accent);
 	}
 </style>

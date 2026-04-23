@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { trips } from '$lib/stores/trips';
+	import { journalStore } from '$lib/stores/journal';
 	import { onMount } from 'svelte';
 	import TripHeader from '$lib/components/trip/TripHeader.svelte';
 	import ViewToggle from '$lib/components/trip/ViewToggle.svelte';
@@ -26,6 +27,7 @@
 
 	onMount(() => {
 		trips.init();
+		journalStore.init(tripId);
 		const saved = localStorage.getItem(DAY_KEY_PREFIX + tripId);
 		if (saved !== null) {
 			const idx = parseInt(saved, 10);

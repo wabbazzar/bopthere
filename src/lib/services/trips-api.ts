@@ -1,6 +1,6 @@
 import { PUBLIC_CHAT_API_URL } from '$env/static/public';
 import { getToken } from '$lib/services/auth';
-import type { Trip } from '$lib/types/trip';
+import type { Trip, JournalEntry } from '$lib/types/trip';
 
 const API_URL = PUBLIC_CHAT_API_URL;
 
@@ -19,6 +19,11 @@ export interface TripResponse {
 
 export interface TodosResponse {
 	todos: { text: string; done: boolean }[];
+	updatedAt: string | null;
+}
+
+export interface JournalResponse {
+	journal: JournalEntry[];
 	updatedAt: string | null;
 }
 
@@ -147,6 +152,48 @@ export async function saveTodos(
 		};
 	}
 	if (!res.ok) throw new Error(`Failed to save todos (${res.status})`);
+	const data = await res.json();
+	return { ok: true, updatedAt: data.updatedAt };
+}
+
+export async function fetchJournal(tripId: string): Promise<JournalResponse> {
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 8000);
+	try {
+		const res = await fetch(`${API_URL}/api/trips/${tripId}/journal`, {
+			headers: headers(),
+			signal: controller.signal
+		});
+		clearTimeout(timeout);
+		if (!res.ok) throw new Error(`Failed to fetch journal (${res.status})`);
+		const data = await res.json();
+		return { journal: data.journal ?? [], updatedAt: data.updatedAt };
+	} catch (e) {
+		clearTimeout(timeout);
+		throw e;
+	}
+}
+
+export async function saveJournal(
+	tripId: string,
+	journal: JournalEntry[],
+	updatedAt: string
+): Promise<{ ok: boolean; updatedAt: string; serverJournal?: JournalEntry[] }> {
+	const res = await fetch(`${API_URL}/api/trips/${tripId}/journal`, {
+		method: 'PUT',
+		headers: headers(),
+		body: JSON.stringify({ journal, updatedAt })
+	});
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return {
+			ok: false,
+			updatedAt: detail.updatedAt ?? updatedAt,
+			serverJournal: detail.journal
+		};
+	}
+	if (!res.ok) throw new Error(`Failed to save journal (${res.status})`);
 	const data = await res.json();
 	return { ok: true, updatedAt: data.updatedAt };
 }

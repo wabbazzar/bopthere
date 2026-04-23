@@ -48,6 +48,13 @@ def get_db() -> sqlite3.Connection:
             updated_at TEXT NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS trip_journal (
+            trip_id      TEXT PRIMARY KEY,
+            journal_json TEXT NOT NULL DEFAULT '[]',
+            updated_at   TEXT NOT NULL
+        )
+    """)
     conn.commit()
     return conn
 
@@ -183,6 +190,36 @@ def save_todos(trip_id: str, todos_json: str, updated_at: str) -> tuple[bool, st
     conn.execute(
         "INSERT OR REPLACE INTO trip_todos (trip_id, todos_json, updated_at) VALUES (?, ?, ?)",
         (trip_id, todos_json, updated_at),
+    )
+    conn.commit()
+    return True, updated_at
+
+
+# ── Journal persistence ────────────────────────────────────────
+
+
+def get_journal(trip_id: str) -> tuple[list, str] | None:
+    """Return (journal_list, updated_at) or None if no row."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT journal_json, updated_at FROM trip_journal WHERE trip_id = ?", (trip_id,)
+    ).fetchone()
+    if not row:
+        return None
+    return json.loads(row["journal_json"]), row["updated_at"]
+
+
+def save_journal(trip_id: str, journal_json: str, updated_at: str) -> tuple[bool, str | None]:
+    """LWW save for journal — same semantics as save_todos."""
+    conn = get_db()
+    existing = conn.execute(
+        "SELECT updated_at FROM trip_journal WHERE trip_id = ?", (trip_id,)
+    ).fetchone()
+    if existing and existing["updated_at"] > updated_at:
+        return False, existing["updated_at"]
+    conn.execute(
+        "INSERT OR REPLACE INTO trip_journal (trip_id, journal_json, updated_at) VALUES (?, ?, ?)",
+        (trip_id, journal_json, updated_at),
     )
     conn.commit()
     return True, updated_at

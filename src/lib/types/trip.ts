@@ -37,3 +37,33 @@ export interface Trip {
 	days: TripDay[];
 	links: string[];
 }
+
+// ── Journal ────────────────────────────────────────────────────
+
+export interface ItineraryCheckItem {
+	slot: 'travel' | 'morning' | 'afternoon' | 'evening';
+	text: string;
+	done: boolean;
+	notes?: string;
+}
+
+export interface JournalPhoto {
+	id: string;
+	url: string;
+	caption: string;
+	timestamp?: string;
+	slot?: 'travel' | 'morning' | 'afternoon' | 'evening';
+}
+
+export interface JournalEntry {
+	dayIndex: number;
+	date: string;
+	location: string;
+	body: string;
+	itinerary: ItineraryCheckItem[];
+	photos: JournalPhoto[];
+	mood?: 'great' | 'good' | 'okay' | 'tough';
+	weather?: string;
+	createdAt: string;
+	updatedAt: string;
+}

@@ -31,10 +31,12 @@ from db import (
     delete_trip,
     get_bookings,
     get_conversation,
+    get_journal,
     get_todos,
     get_trip,
     list_trips,
     save_conversation,
+    save_journal,
     save_todos,
     save_trip,
     ticket_path,
@@ -419,6 +421,42 @@ async def put_trip_todos(trip_id: str, req: SaveTodosRequest, authorization: str
             detail={
                 "message": "Server has newer data",
                 "todos": server_todos,
+                "updatedAt": server_updated,
+            },
+        )
+    return {"ok": True, "updatedAt": server_ts}
+
+
+# ── Journal ─────────────────────────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/journal")
+async def get_trip_journal(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    result = get_journal(trip_id)
+    if result is None:
+        return {"tripId": trip_id, "journal": [], "updatedAt": None}
+    journal_data, updated_at = result
+    return {"tripId": trip_id, "journal": journal_data, "updatedAt": updated_at}
+
+
+class SaveJournalRequest(BaseModel):
+    journal: list
+    updatedAt: str
+
+
+@app.put("/api/trips/{trip_id}/journal")
+async def put_trip_journal(trip_id: str, req: SaveJournalRequest, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    ok, server_ts = save_journal(trip_id, json.dumps(req.journal), req.updatedAt)
+    if not ok:
+        server_result = get_journal(trip_id)
+        server_journal, server_updated = server_result if server_result else ([], "")
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Server has newer data",
+                "journal": server_journal,
                 "updatedAt": server_updated,
             },
         )

@@ -81,3 +81,12 @@ _Dev agent appends new checks here as features are built._
 - [ ] MiniCalendar: weekday-aligned grid with Monday-first headers (M T W T F S S), each row has 7 columns, day 1 sits in the column matching its weekday, blank cells pad leading/trailing positions
 - [ ] Todos isolation: each trip has its own todo list. A new trip with no server row shows empty (NOT seeded with China defaults). Adding/editing todos on trip A never bleeds into trip B. Backed by `tests/integration/backend/test_todos_api.py`, `tests/todos-isolation.spec.ts`, and `tests/unit/stores/todos.test.ts`.
 - [ ] Remove trip: trash icon appears on hover over trip card on dashboard; clicking shows confirm dialog; confirming removes trip from dashboard, server (trips + bookings + todos + conversations), and localStorage
+- [ ] Journal button: visible in DayView actions bar next to OOO toggle
+- [ ] Journal drawer: opens on Journal button tap, shows day title + close button
+- [ ] Journal itinerary checklist: renders non-empty travel/morning/afternoon/evening as checkable items
+- [ ] Journal checklist: checking items persists after drawer close/reopen
+- [ ] Journal body: textarea accepts text, auto-saves, persists after close/reopen
+- [ ] Journal mood: 4 mood icons (Great/Good/Okay/Tough), selection persists
+- [ ] Journal badge: Journal button shows accent badge when day has an entry, faint text when empty
+- [ ] Journal MiniCalendar: days with journal entries show an extra dot indicator
+- [ ] Journal drawer: closes on X button, Escape key, and backdrop click

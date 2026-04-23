@@ -2,13 +2,16 @@
 	import type { Trip } from '$lib/types/trip';
 	import { trips } from '$lib/stores/trips';
 	import { chat } from '$lib/stores/chat';
+	import { journalStore } from '$lib/stores/journal';
 	import ExpandableField from './ExpandableField.svelte';
 	import SuggestPopover from './SuggestPopover.svelte';
 	import MapLinks from './MapLinks.svelte';
 	import MiniCalendar from './MiniCalendar.svelte';
+	import JournalDrawer from '../journal/JournalDrawer.svelte';
 
 	import { tick } from 'svelte';
 
+	let journalOpen = false;
 	let suggestTarget: { field: string; element: HTMLElement } | null = null;
 
 	function handleSuggest(e: CustomEvent<{ field: string; element: HTMLElement }>) {
@@ -28,6 +31,7 @@
 
 	$: day = trip.days[currentDayIndex];
 	$: totalDays = trip.days.length;
+	$: hasJournalEntry = ($journalStore[tripId] ?? []).some((e) => e.dayIndex === currentDayIndex);
 
 	// Inline location edit (in the day-nav header)
 	let editingLocation = false;
@@ -87,8 +91,8 @@
 		}
 	}
 
-	function prev() { if (currentDayIndex > 0) currentDayIndex--; }
-	function next() { if (currentDayIndex < totalDays - 1) currentDayIndex++; }
+	function prev() { if (currentDayIndex > 0) { journalOpen = false; currentDayIndex--; } }
+	function next() { if (currentDayIndex < totalDays - 1) { journalOpen = false; currentDayIndex++; } }
 
 	function handleKeydown(e: KeyboardEvent) {
 		const target = e.target as HTMLElement | null;
@@ -189,7 +193,31 @@
 					<span class="text-xs" style="color: var(--ink-faint)">OOO</span>
 				{/if}
 			</button>
+
+			<button class="day-action-btn" on:click={() => (journalOpen = true)} aria-label="Open journal">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: {hasJournalEntry ? 'var(--accent)' : 'var(--ink-faint)'}">
+					<path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+					{#if hasJournalEntry}
+						<path d="M8 7h8M8 11h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+					{/if}
+				</svg>
+				{#if hasJournalEntry}
+					<span class="badge badge-accent">Journal</span>
+				{:else}
+					<span class="text-xs" style="color: var(--ink-faint)">Journal</span>
+				{/if}
+			</button>
 		</div>
+
+		<JournalDrawer
+			bind:open={journalOpen}
+			{tripId}
+			dayIndex={currentDayIndex}
+			{day}
+			{totalDays}
+			on:close={() => (journalOpen = false)}
+		/>
 	{/if}
 
 	{#if suggestTarget && day}

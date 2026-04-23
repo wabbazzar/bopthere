@@ -166,4 +166,8 @@
 		background-color: rgba(74, 140, 92, 0.15);
 		color: var(--success);
 	}
+	.badge-accent {
+		background-color: var(--accent-muted);
+		color: var(--accent);
+	}
 }
