@@ -6,7 +6,10 @@
 	export let dayIndex: number;
 	export let itinerary: ItineraryCheckItem[];
 
+	let open = false;
 	let expandedNotes: Set<number> = new Set();
+
+	$: doneCount = itinerary.filter((i) => i.done).length;
 
 	const slotLabels: Record<string, string> = {
 		travel: 'Travel',
@@ -35,60 +38,73 @@
 
 {#if itinerary.length > 0}
 	<section class="checklist-section">
-		<h3 class="section-label">Itinerary</h3>
-		<div class="checklist">
-			{#each itinerary as item, i}
-				<div class="checklist-item">
-					<button
-						class="check-row"
-						on:click={() => toggle(i)}
-						aria-label="{item.done ? 'Uncheck' : 'Check'} {slotLabels[item.slot]}"
-					>
-						<span class="checkbox" class:checked={item.done}>
-							{#if item.done}
+		<button
+			class="section-toggle"
+			on:click={() => (open = !open)}
+			aria-expanded={open}
+			aria-label="{open ? 'Collapse' : 'Expand'} itinerary"
+		>
+			<h3 class="section-label">Itinerary</h3>
+			<span class="section-meta">{doneCount}/{itinerary.length}</span>
+			<svg class="chevron" class:open width="14" height="14" viewBox="0 0 24 24" fill="none">
+				<path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+		</button>
+		{#if open}
+			<div class="checklist">
+				{#each itinerary as item, i}
+					<div class="checklist-item">
+						<button
+							class="check-row"
+							on:click={() => toggle(i)}
+							aria-label="{item.done ? 'Uncheck' : 'Check'} {slotLabels[item.slot]}"
+						>
+							<span class="checkbox" class:checked={item.done}>
+								{#if item.done}
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+										<path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+									</svg>
+								{/if}
+							</span>
+							<span class="check-content">
+								<span class="slot-label">{slotLabels[item.slot]}</span>
+								<span class="plan-text" class:done={item.done}>{item.text}</span>
+							</span>
+						</button>
+						<button
+							class="notes-toggle"
+							on:click={() => toggleNotes(i)}
+							aria-label="Add notes for {slotLabels[item.slot]}"
+							title={item.notes ? 'Edit notes' : 'Add notes'}
+						>
+							{#if item.notes}
 								<svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-									<path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+									<path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+								</svg>
+							{:else}
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+									<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+									<path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 								</svg>
 							{/if}
-						</span>
-						<span class="check-content">
-							<span class="slot-label">{slotLabels[item.slot]}</span>
-							<span class="plan-text" class:done={item.done}>{item.text}</span>
-						</span>
-					</button>
-					<button
-						class="notes-toggle"
-						on:click={() => toggleNotes(i)}
-						aria-label="Add notes for {slotLabels[item.slot]}"
-						title={item.notes ? 'Edit notes' : 'Add notes'}
-					>
-						{#if item.notes}
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-								<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
-								<path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
-							</svg>
-						{:else}
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-								<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-								<path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-							</svg>
-						{/if}
-					</button>
+						</button>
 
-					{#if expandedNotes.has(i)}
-						<div class="notes-area">
-							<textarea
-								class="notes-input"
-								placeholder="What actually happened..."
-								value={item.notes ?? ''}
-								on:blur={(e) => updateNotes(i, e.currentTarget.value)}
-								rows="2"
-							></textarea>
-						</div>
-					{/if}
-				</div>
-			{/each}
-		</div>
+						{#if expandedNotes.has(i)}
+							<div class="notes-area">
+								<textarea
+									class="notes-input"
+									placeholder="What actually happened..."
+									value={item.notes ?? ''}
+									on:blur={(e) => updateNotes(i, e.currentTarget.value)}
+									rows="2"
+								></textarea>
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{/if}
 	</section>
 {/if}
 
@@ -99,6 +115,19 @@
 		gap: 0.5rem;
 	}
 
+	.section-toggle {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0.25rem 0;
+		width: 100%;
+		text-align: left;
+		font-family: var(--font-body);
+	}
+
 	.section-label {
 		font-size: 0.7rem;
 		font-weight: 600;
@@ -106,6 +135,22 @@
 		letter-spacing: 0.08em;
 		color: var(--ink-faint);
 		margin: 0;
+	}
+
+	.section-meta {
+		font-size: 0.65rem;
+		color: var(--ink-faint);
+		margin-left: auto;
+	}
+
+	.chevron {
+		color: var(--ink-faint);
+		transition: transform 200ms ease;
+		flex-shrink: 0;
+	}
+
+	.chevron.open {
+		transform: rotate(90deg);
 	}
 
 	.checklist {
