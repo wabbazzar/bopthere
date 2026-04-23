@@ -3,12 +3,16 @@
 	import { trips } from '$lib/stores/trips';
 	import { journalStore } from '$lib/stores/journal';
 	import { onMount } from 'svelte';
+	import type { JournalEntry } from '$lib/types/trip';
 	import TripHeader from '$lib/components/trip/TripHeader.svelte';
 	import ViewToggle from '$lib/components/trip/ViewToggle.svelte';
 	import WeekView from '$lib/components/trip/WeekView.svelte';
 	import DayView from '$lib/components/trip/DayView.svelte';
 	import BookingsSection from '$lib/components/trip/BookingsSection.svelte';
 	import TodosSection from '$lib/components/trip/TodosSection.svelte';
+	import JournalHeader from '$lib/components/journal/JournalHeader.svelte';
+	import ItineraryChecklist from '$lib/components/journal/ItineraryChecklist.svelte';
+	import JournalBlocks from '$lib/components/journal/JournalBlocks.svelte';
 	import { getBookings } from '$lib/services/bookings';
 	import { initPhotoQueue } from '$lib/services/photo-queue';
 	import type { Booking } from '$lib/types/trip';
@@ -55,6 +59,18 @@
 		localStorage.setItem(DAY_KEY_PREFIX + tripId, String(currentDayIndex));
 	}
 
+	// Journal entry for the current day
+	$: currentDay = trip?.days?.[currentDayIndex];
+	$: journalEntry = activeView === 'day' && currentDay
+		? journalStore.createOrHydrate(tripId, currentDayIndex, currentDay)
+		: undefined;
+	// Re-read from store when it updates (same pattern as JournalDrawer)
+	$: if (activeView === 'day') {
+		const storeEntries = $journalStore[tripId] ?? [];
+		const found = storeEntries.find((e: JournalEntry) => e.dayIndex === currentDayIndex);
+		if (found) journalEntry = found;
+	}
+
 	function handleSelectDay(e: CustomEvent<number>) {
 		currentDayIndex = e.detail;
 		activeView = 'day';
@@ -80,6 +96,17 @@
 	<div class="view-row">
 		<ViewToggle bind:activeView {tripId} />
 		<div class="jump-nav" role="group" aria-label="Jump to section">
+			{#if activeView === 'day'}
+				<button
+					type="button"
+					class="jump-link"
+					on:click={() => scrollToSection('journal-section')}
+					aria-label="Jump to journal"
+				>
+					Journal
+				</button>
+				<span class="jump-sep" aria-hidden="true">·</span>
+			{/if}
 			{#if bookings && bookings.length > 0}
 				<button
 					type="button"
@@ -106,6 +133,46 @@
 		<WeekView {trip} {tripId} on:selectDay={handleSelectDay} />
 	{:else}
 		<DayView {trip} {tripId} bind:currentDayIndex />
+	{/if}
+
+	{#if activeView === 'day' && journalEntry}
+		<div id="journal-section" class="section-wrap mt-6 scroll-mt-4">
+			<div class="card journal-card">
+				<div class="journal-card-header">
+					<h2 class="journal-card-title">Journal</h2>
+					<span class="journal-card-day">Day {currentDayIndex + 1}</span>
+				</div>
+				<div class="journal-card-body">
+					<JournalHeader
+						{tripId}
+						dayIndex={currentDayIndex}
+						mood={journalEntry.mood}
+						weather={journalEntry.weather}
+					/>
+					<ItineraryChecklist
+						{tripId}
+						dayIndex={currentDayIndex}
+						itinerary={journalEntry.itinerary}
+					/>
+					<JournalBlocks
+						{tripId}
+						dayIndex={currentDayIndex}
+						blocks={journalEntry.blocks}
+					/>
+				</div>
+			</div>
+			<button
+				type="button"
+				class="back-to-top"
+				on:click={scrollToTop}
+				aria-label="Back to top"
+				title="Back to top"
+			>
+				<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+					<path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</button>
+		</div>
 	{/if}
 
 	{#if bookings === null}
@@ -199,6 +266,38 @@
 	}
 	.scroll-mt-4 {
 		scroll-margin-top: 1rem;
+	}
+
+	.journal-card {
+		overflow: visible;
+	}
+	.journal-card-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.75rem 1rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.journal-card-title {
+		font-family: var(--font-display);
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--ink);
+		margin: 0;
+	}
+	.journal-card-day {
+		font-size: 0.7rem;
+		color: var(--ink-faint);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+	.journal-card-body {
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
 	}
 
 	.section-wrap {
