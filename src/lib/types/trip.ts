@@ -55,13 +55,38 @@ export interface JournalPhoto {
 	slot?: 'travel' | 'morning' | 'afternoon' | 'evening';
 }
 
+// ── Block-based journal editor ────────────────────────────────
+
+export interface JournalTextBlock {
+	id: string;
+	type: 'text';
+	content: string;
+}
+
+export interface JournalPhotoBlock {
+	id: string;
+	type: 'photo';
+	photoId: string;
+	caption: string;
+	uploadedBy: string;
+	/** Transient: local blob URL for immediate preview before upload completes */
+	_localObjectUrl?: string;
+	/** Transient: upload state (not persisted) */
+	_uploadPending?: boolean;
+}
+
+export type JournalBlock = JournalTextBlock | JournalPhotoBlock;
+
 export interface JournalEntry {
 	dayIndex: number;
 	date: string;
 	location: string;
-	body: string;
+	blocks: JournalBlock[];
+	/** @deprecated Legacy field — migrated to blocks on load */
+	body?: string;
+	/** @deprecated Legacy field — migrated to blocks on load */
+	photos?: JournalPhoto[];
 	itinerary: ItineraryCheckItem[];
-	photos: JournalPhoto[];
 	mood?: 'great' | 'good' | 'okay' | 'tough';
 	weather?: string;
 	createdAt: string;

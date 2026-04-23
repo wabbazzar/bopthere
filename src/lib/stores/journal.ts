@@ -1,5 +1,13 @@
 import { writable, get } from 'svelte/store';
-import type { JournalEntry, TripDay, ItineraryCheckItem, JournalPhoto } from '$lib/types/trip';
+import type {
+	JournalEntry,
+	TripDay,
+	ItineraryCheckItem,
+	JournalBlock,
+	JournalTextBlock,
+	JournalPhotoBlock
+} from '$lib/types/trip';
+import { migrateEntry, stripTransientFields } from '$lib/utils/journal-migration';
 
 type JournalByTrip = Record<string, JournalEntry[]>;
 
@@ -9,12 +17,16 @@ const SYNC_DEBOUNCE_MS = 2000;
 
 const ITINERARY_SLOTS = ['travel', 'morning', 'afternoon', 'evening'] as const;
 
+function migrateAll(entries: unknown[]): JournalEntry[] {
+	return entries.map((e) => migrateEntry(e as Record<string, unknown>));
+}
+
 function loadLocal(tripId: string): JournalEntry[] {
 	if (typeof localStorage === 'undefined') return [];
 	const raw = localStorage.getItem(JOURNAL_KEY_PREFIX + tripId);
 	if (!raw) return [];
 	try {
-		return JSON.parse(raw) as JournalEntry[];
+		return migrateAll(JSON.parse(raw));
 	} catch {
 		return [];
 	}
@@ -22,7 +34,12 @@ function loadLocal(tripId: string): JournalEntry[] {
 
 function saveLocal(tripId: string, entries: JournalEntry[]) {
 	if (typeof localStorage === 'undefined') return;
-	localStorage.setItem(JOURNAL_KEY_PREFIX + tripId, JSON.stringify(entries));
+	// Strip transient fields before persisting
+	const cleaned = entries.map((e) => ({
+		...e,
+		blocks: stripTransientFields(e.blocks)
+	}));
+	localStorage.setItem(JOURNAL_KEY_PREFIX + tripId, JSON.stringify(cleaned));
 }
 
 function loadMeta(): Record<string, string> {
@@ -83,14 +100,20 @@ function createJournalStore() {
 		try {
 			const { saveJournal } = await import('$lib/services/trips-api');
 			const entries = getEntries(tripId);
+			// Strip transient fields before sending to server
+			const cleaned = entries.map((e) => ({
+				...e,
+				blocks: stripTransientFields(e.blocks)
+			}));
 			const meta = loadMeta();
 			const updatedAt = meta[tripId] || new Date().toISOString();
-			const result = await saveJournal(tripId, entries, updatedAt);
+			const result = await saveJournal(tripId, cleaned, updatedAt);
 			if (result.ok) {
 				setMeta(tripId, result.updatedAt);
 			} else if (result.serverJournal) {
-				update((state) => ({ ...state, [tripId]: result.serverJournal! }));
-				saveLocal(tripId, result.serverJournal!);
+				const migrated = migrateAll(result.serverJournal);
+				update((state) => ({ ...state, [tripId]: migrated }));
+				saveLocal(tripId, migrated);
 				setMeta(tripId, result.updatedAt);
 			}
 		} catch {
@@ -111,8 +134,9 @@ function createJournalStore() {
 					if (saveResult.ok) setMeta(tripId, saveResult.updatedAt);
 				}
 			} else if (!localTs || result.updatedAt > localTs) {
-				update((state) => ({ ...state, [tripId]: result.journal }));
-				saveLocal(tripId, result.journal);
+				const migrated = migrateAll(result.journal);
+				update((state) => ({ ...state, [tripId]: migrated }));
+				saveLocal(tripId, migrated);
 				setMeta(tripId, result.updatedAt);
 			}
 		} catch {
@@ -163,9 +187,8 @@ function createJournalStore() {
 				dayIndex,
 				date: day.date,
 				location: day.location,
-				body: '',
+				blocks: [{ id: crypto.randomUUID(), type: 'text', content: '' }],
 				itinerary: deriveItinerary(day),
-				photos: [],
 				createdAt: now,
 				updatedAt: now
 			};
@@ -179,13 +202,119 @@ function createJournalStore() {
 			return entry;
 		},
 
-		updateBody(tripId: string, dayIndex: number, body: string) {
+		// ── Block mutations ───────────────────────────────────────
+
+		updateBlockContent(tripId: string, dayIndex: number, blockId: string, content: string) {
 			updateEntry(tripId, dayIndex, (e) => ({
 				...e,
-				body,
+				blocks: e.blocks.map((b) =>
+					b.id === blockId && b.type === 'text' ? { ...b, content } : b
+				),
 				updatedAt: new Date().toISOString()
 			}));
 		},
+
+		updatePhotoCaption(tripId: string, dayIndex: number, blockId: string, caption: string) {
+			updateEntry(tripId, dayIndex, (e) => ({
+				...e,
+				blocks: e.blocks.map((b) =>
+					b.id === blockId && b.type === 'photo' ? { ...b, caption } : b
+				),
+				updatedAt: new Date().toISOString()
+			}));
+		},
+
+		/** Insert a block after the block with the given id. If afterBlockId is null, append. */
+		insertBlock(tripId: string, dayIndex: number, afterBlockId: string | null, block: JournalBlock) {
+			updateEntry(tripId, dayIndex, (e) => {
+				const blocks = [...e.blocks];
+				if (afterBlockId === null) {
+					blocks.push(block);
+				} else {
+					const idx = blocks.findIndex((b) => b.id === afterBlockId);
+					if (idx !== -1) {
+						blocks.splice(idx + 1, 0, block);
+					} else {
+						blocks.push(block);
+					}
+				}
+				return { ...e, blocks, updatedAt: new Date().toISOString() };
+			});
+		},
+
+		/** Remove a block. If a photo block is removed between two text blocks, merge them. */
+		removeBlock(tripId: string, dayIndex: number, blockId: string) {
+			updateEntry(tripId, dayIndex, (e) => {
+				const idx = e.blocks.findIndex((b) => b.id === blockId);
+				if (idx === -1) return e;
+				const blocks = [...e.blocks];
+				blocks.splice(idx, 1);
+
+				// Merge adjacent text blocks
+				for (let i = blocks.length - 1; i > 0; i--) {
+					if (blocks[i].type === 'text' && blocks[i - 1].type === 'text') {
+						const prev = blocks[i - 1] as JournalTextBlock;
+						const curr = blocks[i] as JournalTextBlock;
+						blocks[i - 1] = {
+							...prev,
+							content: prev.content + (prev.content && curr.content ? '\n' : '') + curr.content
+						};
+						blocks.splice(i, 1);
+					}
+				}
+
+				// Ensure at least one text block
+				if (blocks.length === 0) {
+					blocks.push({ id: crypto.randomUUID(), type: 'text', content: '' });
+				}
+
+				return { ...e, blocks, updatedAt: new Date().toISOString() };
+			});
+		},
+
+		/** Split a text block at cursor position and insert a photo block between the halves. */
+		splitAndInsertPhoto(
+			tripId: string,
+			dayIndex: number,
+			textBlockId: string,
+			cursorPos: number,
+			photoBlock: JournalPhotoBlock
+		) {
+			updateEntry(tripId, dayIndex, (e) => {
+				const idx = e.blocks.findIndex((b) => b.id === textBlockId);
+				if (idx === -1 || e.blocks[idx].type !== 'text') return e;
+
+				const textBlock = e.blocks[idx] as JournalTextBlock;
+				const before = textBlock.content.slice(0, cursorPos);
+				const after = textBlock.content.slice(cursorPos);
+
+				const blocks = [...e.blocks];
+				blocks.splice(
+					idx,
+					1,
+					{ id: textBlock.id, type: 'text', content: before },
+					photoBlock,
+					{ id: crypto.randomUUID(), type: 'text', content: after }
+				);
+
+				return { ...e, blocks, updatedAt: new Date().toISOString() };
+			});
+		},
+
+		/** Update a photo block's photoId (after upload completes). */
+		updatePhotoId(tripId: string, dayIndex: number, blockId: string, photoId: string) {
+			updateEntry(tripId, dayIndex, (e) => ({
+				...e,
+				blocks: e.blocks.map((b) =>
+					b.id === blockId && b.type === 'photo'
+						? { ...b, photoId, _localObjectUrl: undefined, _uploadPending: undefined }
+						: b
+				),
+				updatedAt: new Date().toISOString()
+			}));
+		},
+
+		// ── Itinerary & metadata (unchanged) ──────────────────────
 
 		toggleItineraryItem(tripId: string, dayIndex: number, itemIndex: number) {
 			updateEntry(tripId, dayIndex, (e) => {
@@ -219,30 +348,6 @@ function createJournalStore() {
 			updateEntry(tripId, dayIndex, (e) => ({
 				...e,
 				weather: weather || undefined,
-				updatedAt: new Date().toISOString()
-			}));
-		},
-
-		addPhoto(tripId: string, dayIndex: number, photo: JournalPhoto) {
-			updateEntry(tripId, dayIndex, (e) => ({
-				...e,
-				photos: [...e.photos, photo],
-				updatedAt: new Date().toISOString()
-			}));
-		},
-
-		removePhoto(tripId: string, dayIndex: number, photoId: string) {
-			updateEntry(tripId, dayIndex, (e) => ({
-				...e,
-				photos: e.photos.filter((p) => p.id !== photoId),
-				updatedAt: new Date().toISOString()
-			}));
-		},
-
-		updatePhotoCaption(tripId: string, dayIndex: number, photoId: string, caption: string) {
-			updateEntry(tripId, dayIndex, (e) => ({
-				...e,
-				photos: e.photos.map((p) => (p.id === photoId ? { ...p, caption } : p)),
 				updatedAt: new Date().toISOString()
 			}));
 		},

@@ -90,3 +90,9 @@ _Dev agent appends new checks here as features are built._
 - [ ] Journal badge: Journal button shows accent badge when day has an entry, faint text when empty
 - [ ] Journal MiniCalendar: days with journal entries show an extra dot indicator
 - [ ] Journal drawer: closes on X button, Escape key, and backdrop click
+- [ ] Journal block editor: text blocks render as seamless borderless textareas (no visible form boundaries)
+- [ ] Journal block editor: "Add photo" button visible at bottom of block editor
+- [ ] Journal migration: legacy entries with body + photos auto-migrate to blocks format on load
+- [ ] Journal photo upload: POST /api/trips/{trip_id}/photos accepts image files, returns photoId
+- [ ] Journal photo serving: signed URL serves photo without auth header
+- [ ] Journal photo quota: 500MB per-trip limit enforced (413 on exceed)

@@ -8,6 +8,7 @@ from pathlib import Path
 DATA_DIR = Path(__file__).parent / "data"
 DB_PATH = DATA_DIR / "chat.db"
 TICKETS_DIR = DATA_DIR / "tickets"
+PHOTOS_DIR = DATA_DIR / "photos"
 
 
 def get_db() -> sqlite3.Connection:
@@ -55,6 +56,19 @@ def get_db() -> sqlite3.Connection:
             updated_at   TEXT NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS trip_photos (
+            photo_id    TEXT PRIMARY KEY,
+            trip_id     TEXT NOT NULL,
+            filename    TEXT NOT NULL,
+            size_bytes  INTEGER NOT NULL,
+            uploaded_by TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        )
+    """)
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_trip_photos_trip ON trip_photos(trip_id)"
+    )
     conn.commit()
     return conn
 
@@ -223,3 +237,43 @@ def save_journal(trip_id: str, journal_json: str, updated_at: str) -> tuple[bool
     )
     conn.commit()
     return True, updated_at
+
+
+# ── Photo storage ──────────────────────────────────────────────
+
+
+def photo_path(trip_id: str, name: str) -> Path:
+    """Resolve a photo path, rejecting anything outside the per-trip dir."""
+    base = (PHOTOS_DIR / trip_id).resolve()
+    target = (base / name).resolve()
+    if not str(target).startswith(str(base) + "/") and target != base:
+        raise ValueError("photo path escapes photos dir")
+    return target
+
+
+def save_photo_meta(
+    photo_id: str, trip_id: str, filename: str, size_bytes: int, uploaded_by: str
+) -> None:
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO trip_photos (photo_id, trip_id, filename, size_bytes, uploaded_by, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (photo_id, trip_id, filename, size_bytes, uploaded_by, datetime.now().isoformat()),
+    )
+    conn.commit()
+
+
+def get_trip_photo_usage(trip_id: str) -> int:
+    """Return total bytes used by photos for a trip."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT COALESCE(SUM(size_bytes), 0) AS total FROM trip_photos WHERE trip_id = ?",
+        (trip_id,),
+    ).fetchone()
+    return row["total"]
+
+
+def delete_photo_meta(photo_id: str) -> bool:
+    conn = get_db()
+    cursor = conn.execute("DELETE FROM trip_photos WHERE photo_id = ?", (photo_id,))
+    conn.commit()
+    return cursor.rowcount > 0

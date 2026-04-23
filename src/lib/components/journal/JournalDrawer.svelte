@@ -3,8 +3,7 @@
 	import type { TripDay, JournalEntry } from '$lib/types/trip';
 	import { journalStore } from '$lib/stores/journal';
 	import ItineraryChecklist from './ItineraryChecklist.svelte';
-	import JournalBody from './JournalBody.svelte';
-	import JournalPhotos from './JournalPhotos.svelte';
+	import JournalBlocks from './JournalBlocks.svelte';
 	import JournalHeader from './JournalHeader.svelte';
 
 	export let open = false;
@@ -133,16 +132,10 @@
 						itinerary={entry.itinerary}
 					/>
 
-					<JournalBody
+					<JournalBlocks
 						{tripId}
 						{dayIndex}
-						body={entry.body}
-					/>
-
-					<JournalPhotos
-						{tripId}
-						{dayIndex}
-						photos={entry.photos}
+						blocks={entry.blocks}
 					/>
 				{/if}
 			</div>

@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 import jwt
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -34,9 +34,12 @@ from db import (
     get_journal,
     get_todos,
     get_trip,
+    get_trip_photo_usage,
     list_trips,
+    photo_path,
     save_conversation,
     save_journal,
+    save_photo_meta,
     save_todos,
     save_trip,
     ticket_path,
@@ -461,6 +464,102 @@ async def put_trip_journal(trip_id: str, req: SaveJournalRequest, authorization:
             },
         )
     return {"ok": True, "updatedAt": server_ts}
+
+
+# ── Photos ──────────────────────────────────────────────────────
+
+MAX_PHOTO_SIZE = 10 * 1024 * 1024        # 10MB per file
+MAX_TRIP_PHOTO_QUOTA = 500 * 1024 * 1024  # 500MB per trip
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic"}
+
+MIME_MAP = {
+    "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
+    "webp": "image/webp", "heic": "image/heic", "gif": "image/gif",
+}
+
+
+def _photo_sig(trip_id: str, name: str, expires_at: int) -> str:
+    msg = f"photo|{trip_id}|{name}|{expires_at}".encode()
+    return hmac.new(JWT_SECRET.encode(), msg, hashlib.sha256).hexdigest()
+
+
+@app.post("/api/trips/{trip_id}/photos")
+async def upload_photo(
+    trip_id: str,
+    photo: UploadFile = File(...),
+    authorization: str | None = Header(None),
+):
+    user = verify_token(authorization)
+    _validate_trip_id(trip_id)
+
+    ct = (photo.content_type or "").lower()
+    if ct not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="File must be an image (JPEG, PNG, WebP, HEIC)")
+
+    data = await photo.read()
+    if len(data) > MAX_PHOTO_SIZE:
+        raise HTTPException(status_code=413, detail="Photo exceeds 10MB limit")
+
+    current_usage = get_trip_photo_usage(trip_id)
+    if current_usage + len(data) > MAX_TRIP_PHOTO_QUOTA:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Trip photo storage full ({current_usage // (1024 * 1024)}MB / 500MB)",
+        )
+
+    ext = (photo.filename or "").rsplit(".", 1)[-1].lower() if "." in (photo.filename or "") else "jpg"
+    if ext not in MIME_MAP:
+        ext = "jpg"
+    photo_id = str(uuid.uuid4())
+    filename = f"{photo_id}.{ext}"
+
+    dest = photo_path(trip_id, filename)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(data)
+
+    save_photo_meta(photo_id, trip_id, filename, len(data), user.get("username", "unknown"))
+    return {"photoId": photo_id, "filename": filename}
+
+
+class SignPhotoRequest(BaseModel):
+    name: str
+
+
+@app.post("/api/trips/{trip_id}/photos/sign")
+async def sign_photo(trip_id: str, req: SignPhotoRequest, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    try:
+        path = photo_path(trip_id, req.name)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid photo name")
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Photo not found")
+    expires_at = int(time.time()) + 3600  # 1 hour
+    sig = _photo_sig(trip_id, req.name, expires_at)
+    return {"url": f"/api/trips/{trip_id}/photos/{req.name}?exp={expires_at}&sig={sig}"}
+
+
+@app.get("/api/trips/{trip_id}/photos/{name}")
+async def get_photo(trip_id: str, name: str, exp: int, sig: str):
+    now = int(time.time())
+    if now > exp:
+        raise HTTPException(status_code=401, detail="Signature expired")
+    expected = _photo_sig(trip_id, name, exp)
+    if not hmac.compare_digest(expected, sig):
+        raise HTTPException(status_code=401, detail="Invalid signature")
+    try:
+        path = photo_path(trip_id, name)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid photo name")
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Photo not found")
+    ext = name.rsplit(".", 1)[-1].lower() if "." in name else "jpg"
+    media_type = MIME_MAP.get(ext, "image/jpeg")
+    return FileResponse(
+        path,
+        media_type=media_type,
+        headers={"Cache-Control": "private, max-age=3600"},
+    )
 
 
 @app.get("/health")
