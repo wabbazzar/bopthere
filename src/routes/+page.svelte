@@ -7,8 +7,15 @@
 	let error = '';
 	let submitting = false;
 
+	const LAST_PATH_KEY = 'hw-last-path';
+
+	function getResumePath(): string {
+		const saved = localStorage.getItem(LAST_PATH_KEY);
+		return saved && saved !== '/' ? saved : '/dashboard';
+	}
+
 	$: if (!$isLoading && $isAuthenticated) {
-		goto('/dashboard');
+		goto(getResumePath());
 	}
 
 	async function handleLogin(e: Event) {
@@ -18,7 +25,7 @@
 
 		try {
 			await auth.login(username, password);
-			goto('/dashboard');
+			goto(getResumePath());
 		} catch (err: unknown) {
 			error = err instanceof Error ? err.message : 'Login failed';
 		} finally {

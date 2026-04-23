@@ -17,6 +17,13 @@
 		goto('/');
 	}
 
+	const LAST_PATH_KEY = 'hw-last-path';
+
+	// Persist current path for authenticated users (skip login page)
+	$: if ($isAuthenticated && $page.url.pathname !== '/') {
+		localStorage.setItem(LAST_PATH_KEY, $page.url.pathname);
+	}
+
 	$: if (!$isLoading && !$isAuthenticated && $page.url.pathname !== '/') {
 		goto('/');
 	}
