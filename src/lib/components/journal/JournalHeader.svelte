@@ -89,25 +89,20 @@
 <style>
 	.journal-header {
 		display: flex;
-		gap: 1rem;
-		align-items: flex-start;
-		flex-wrap: wrap;
+		flex-direction: column;
+		gap: 0.75rem;
 	}
 
 	.mood-section {
 		display: flex;
 		flex-direction: column;
 		gap: 0.3rem;
-		flex: 1;
-		min-width: 180px;
 	}
 
 	.weather-section {
 		display: flex;
 		flex-direction: column;
 		gap: 0.3rem;
-		flex: 1;
-		min-width: 120px;
 	}
 
 	.mini-label {
