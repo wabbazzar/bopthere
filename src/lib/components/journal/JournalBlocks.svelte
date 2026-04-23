@@ -2,6 +2,7 @@
 	import type { JournalBlock, JournalPhotoBlock } from '$lib/types/trip';
 	import { journalStore } from '$lib/stores/journal';
 	import { uploadPhoto } from '$lib/services/photo-upload';
+	import { queueUpload } from '$lib/services/photo-queue';
 	import JournalTextBlock from './JournalTextBlock.svelte';
 	import JournalPhotoBlockComponent from './JournalPhotoBlock.svelte';
 
@@ -13,17 +14,36 @@
 	let activeTextBlockId: string | null = null;
 	let textBlockRefs: Record<string, JournalTextBlock> = {};
 	let saveTimer: ReturnType<typeof setTimeout> | null = null;
+	let dragOver = false;
+
+	// ── Text block events ─────────────────────────────────────
 
 	function onTextInput(e: CustomEvent<{ blockId: string; content: string }>) {
 		const { blockId, content } = e.detail;
-		// Debounce saves at the document level
 		if (saveTimer) clearTimeout(saveTimer);
 		saveTimer = setTimeout(() => {
 			journalStore.updateBlockContent(tripId, dayIndex, blockId, content);
 			saveTimer = null;
 		}, 2000);
-		activeTextBlockId = blockId;
 	}
+
+	function onTextFocus(e: CustomEvent<{ blockId: string }>) {
+		activeTextBlockId = e.detail.blockId;
+	}
+
+	function onBackspaceAtStart(e: CustomEvent<{ blockId: string }>) {
+		// Remove the empty text block (store will merge adjacent text blocks)
+		const idx = blocks.findIndex((b) => b.id === e.detail.blockId);
+		if (idx <= 0) return; // Can't remove the first block
+		journalStore.removeBlock(tripId, dayIndex, e.detail.blockId);
+		// Focus the previous text block at its end
+		const prev = blocks[idx - 1];
+		if (prev?.type === 'text') {
+			requestAnimationFrame(() => textBlockRefs[prev.id]?.focusAtEnd());
+		}
+	}
+
+	// ── Photo events ──────────────────────────────────────────
 
 	function onPhotoDelete(e: CustomEvent<{ blockId: string }>) {
 		journalStore.removeBlock(tripId, dayIndex, e.detail.blockId);
@@ -33,6 +53,8 @@
 		journalStore.updatePhotoCaption(tripId, dayIndex, e.detail.blockId, e.detail.caption);
 	}
 
+	// ── Photo insertion ───────────────────────────────────────
+
 	function triggerAddPhoto(afterBlockId: string | null) {
 		activeTextBlockId = afterBlockId;
 		fileInput?.click();
@@ -41,14 +63,18 @@
 	function onFileSelected(e: Event) {
 		const input = e.target as HTMLInputElement;
 		const file = input.files?.[0];
-		if (!file) return;
+		if (file) insertPhotoFile(file);
+		input.value = '';
+	}
 
-		// Create immediate preview
+	function insertPhotoFile(file: File) {
+		if (!file.type.startsWith('image/')) return;
+
 		const localUrl = URL.createObjectURL(file);
 		const photoBlock: JournalPhotoBlock = {
 			id: crypto.randomUUID(),
 			type: 'photo',
-			photoId: '', // Will be set after upload
+			photoId: '',
 			caption: '',
 			uploadedBy: '',
 			_localObjectUrl: localUrl,
@@ -56,7 +82,6 @@
 		};
 
 		if (activeTextBlockId) {
-			// Try to split at cursor if the active block is a text block
 			const ref = textBlockRefs[activeTextBlockId];
 			const block = blocks.find((b) => b.id === activeTextBlockId);
 			if (ref && block?.type === 'text') {
@@ -66,33 +91,88 @@
 				journalStore.insertBlock(tripId, dayIndex, activeTextBlockId, photoBlock);
 			}
 		} else {
-			// Append at end
 			const lastBlockId = blocks.length > 0 ? blocks[blocks.length - 1].id : null;
 			journalStore.insertBlock(tripId, dayIndex, lastBlockId, photoBlock);
 		}
 
-		// Upload to server, update block with real photoId on success
+		// Ensure a text block follows the photo for continued typing
+		requestAnimationFrame(() => {
+			const updatedBlocks = blocks;
+			const photoIdx = updatedBlocks.findIndex((b) => b.id === photoBlock.id);
+			if (photoIdx !== -1 && photoIdx === updatedBlocks.length - 1) {
+				// Photo is last block — add an empty text block after it
+				journalStore.insertBlock(tripId, dayIndex, photoBlock.id, {
+					id: crypto.randomUUID(),
+					type: 'text',
+					content: ''
+				});
+			}
+		});
+
+		// Upload to server
 		uploadPhoto(tripId, file)
 			.then(({ filename }) => {
 				journalStore.updatePhotoId(tripId, dayIndex, photoBlock.id, filename);
 				URL.revokeObjectURL(localUrl);
 			})
 			.catch(() => {
-				// Upload failed — keep local preview, clear pending state
-				// The blob URL remains as the photoId for now
+				// Upload failed — queue for retry, keep local preview
+				queueUpload(tripId, dayIndex, photoBlock.id, file);
 				journalStore.updatePhotoId(tripId, dayIndex, photoBlock.id, localUrl);
 			});
-
-		// Reset file input
-		input.value = '';
 	}
 
-	function registerTextBlockRef(blockId: string, ref: JournalTextBlock) {
-		textBlockRefs[blockId] = ref;
+	// ── Drag and drop ─────────────────────────────────────────
+
+	function onDragOver(e: DragEvent) {
+		if (e.dataTransfer?.types.includes('Files')) {
+			e.preventDefault();
+			dragOver = true;
+		}
+	}
+
+	function onDragLeave() {
+		dragOver = false;
+	}
+
+	function onDrop(e: DragEvent) {
+		e.preventDefault();
+		dragOver = false;
+		const files = e.dataTransfer?.files;
+		if (!files) return;
+		for (const file of Array.from(files)) {
+			if (file.type.startsWith('image/')) {
+				insertPhotoFile(file);
+			}
+		}
+	}
+
+	// ── Paste image from clipboard ────────────────────────────
+
+	function onPaste(e: ClipboardEvent) {
+		const items = e.clipboardData?.items;
+		if (!items) return;
+		for (const item of Array.from(items)) {
+			if (item.type.startsWith('image/')) {
+				e.preventDefault();
+				const file = item.getAsFile();
+				if (file) insertPhotoFile(file);
+				return;
+			}
+		}
+		// Not an image paste — let the textarea handle it normally
 	}
 </script>
 
-<div class="journal-blocks">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+	class="journal-blocks"
+	class:drag-over={dragOver}
+	on:dragover={onDragOver}
+	on:dragleave={onDragLeave}
+	on:drop={onDrop}
+	on:paste={onPaste}
+>
 	<input
 		bind:this={fileInput}
 		type="file"
@@ -109,15 +189,19 @@
 				content={block.content}
 				placeholder={i === 0 && !block.content ? 'Write about your day...' : ''}
 				on:input={onTextInput}
+				on:focus={onTextFocus}
+				on:backspaceatstart={onBackspaceAtStart}
 				bind:this={textBlockRefs[block.id]}
 			/>
 		{:else if block.type === 'photo'}
-			<JournalPhotoBlockComponent
-				{block}
-				{tripId}
-				on:delete={onPhotoDelete}
-				on:captionedit={onCaptionEdit}
-			/>
+			<div class="photo-block-wrap">
+				<JournalPhotoBlockComponent
+					{block}
+					{tripId}
+					on:delete={onPhotoDelete}
+					on:captionedit={onCaptionEdit}
+				/>
+			</div>
 		{/if}
 
 		<!-- Insert photo button between blocks -->
@@ -148,17 +232,40 @@
 		</svg>
 		Add photo
 	</button>
+
+	{#if dragOver}
+		<div class="drop-overlay">
+			<div class="drop-label">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+					<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+					<circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+					<path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+				Drop photo here
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
 	.journal-blocks {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 0.15rem;
+		position: relative;
 	}
 
 	.file-input-hidden {
 		display: none;
+	}
+
+	.photo-block-wrap {
+		animation: photo-fade-in 250ms ease-out;
+	}
+
+	@keyframes photo-fade-in {
+		from { opacity: 0; transform: scale(0.97); }
+		to { opacity: 1; transform: scale(1); }
 	}
 
 	.insert-btn {
@@ -179,7 +286,7 @@
 	}
 
 	.journal-blocks:hover .insert-btn {
-		opacity: 0.5;
+		opacity: 0.4;
 	}
 
 	.insert-btn:hover {
@@ -208,5 +315,38 @@
 	.add-photo-end:hover {
 		border-color: var(--accent);
 		color: var(--accent);
+	}
+
+	/* Drag-and-drop overlay */
+	.journal-blocks.drag-over {
+		outline: 2px dashed var(--accent);
+		outline-offset: 4px;
+		border-radius: var(--radius);
+	}
+
+	.drop-overlay {
+		position: absolute;
+		inset: 0;
+		background: rgba(184, 110, 43, 0.06);
+		border-radius: var(--radius);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+		z-index: 2;
+	}
+
+	.drop-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-family: var(--font-body);
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--accent);
+		background: var(--surface);
+		padding: 0.5rem 1rem;
+		border-radius: var(--radius);
+		box-shadow: 0 2px 8px rgba(61, 43, 31, 0.1);
 	}
 </style>

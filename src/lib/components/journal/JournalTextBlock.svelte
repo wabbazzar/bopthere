@@ -7,7 +7,8 @@
 
 	const dispatch = createEventDispatcher<{
 		input: { blockId: string; content: string };
-		cursorposition: { blockId: string; cursorPos: number };
+		focus: { blockId: string };
+		backspaceatstart: { blockId: string };
 	}>();
 
 	let draft = content;
@@ -21,9 +22,23 @@
 		dispatch('input', { blockId, content: draft });
 	}
 
+	function onFocus() {
+		dispatch('focus', { blockId });
+	}
+
+	function onKeydown(e: KeyboardEvent) {
+		// Backspace at position 0 of an empty block → merge with previous
+		if (e.key === 'Backspace' && textareaEl?.selectionStart === 0 && textareaEl?.selectionEnd === 0) {
+			if (!draft) {
+				e.preventDefault();
+				dispatch('backspaceatstart', { blockId });
+			}
+		}
+	}
+
 	function autoGrow(el: HTMLTextAreaElement) {
 		el.style.height = 'auto';
-		el.style.height = Math.max(48, el.scrollHeight) + 'px';
+		el.style.height = Math.max(32, el.scrollHeight) + 'px';
 	}
 
 	function initTextarea(el: HTMLTextAreaElement): { destroy?: () => void } {
@@ -39,12 +54,22 @@
 	export function focus() {
 		textareaEl?.focus();
 	}
+
+	export function focusAtEnd() {
+		if (textareaEl) {
+			textareaEl.focus();
+			textareaEl.selectionStart = textareaEl.value.length;
+			textareaEl.selectionEnd = textareaEl.value.length;
+		}
+	}
 </script>
 
 <textarea
 	class="text-block"
 	value={draft}
 	on:input={onInput}
+	on:focus={onFocus}
+	on:keydown={onKeydown}
 	use:initTextarea
 	{placeholder}
 	rows="1"
@@ -61,7 +86,7 @@
 		padding: 0.25rem 0;
 		resize: none;
 		line-height: 1.55;
-		min-height: 48px;
+		min-height: 32px;
 		outline: none;
 	}
 

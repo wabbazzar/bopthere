@@ -10,6 +10,7 @@
 	import BookingsSection from '$lib/components/trip/BookingsSection.svelte';
 	import TodosSection from '$lib/components/trip/TodosSection.svelte';
 	import { getBookings } from '$lib/services/bookings';
+	import { initPhotoQueue } from '$lib/services/photo-queue';
 	import type { Booking } from '$lib/types/trip';
 
 	$: tripId = $page.params.id as string;
@@ -28,6 +29,7 @@
 	onMount(() => {
 		trips.init();
 		journalStore.init(tripId);
+		initPhotoQueue();
 		const saved = localStorage.getItem(DAY_KEY_PREFIX + tripId);
 		if (saved !== null) {
 			const idx = parseInt(saved, 10);
