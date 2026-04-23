@@ -11,13 +11,18 @@
 	}>();
 
 	let resolvedSrc = '';
+	let imgError = false;
 
 	$: if (block._localObjectUrl) {
 		resolvedSrc = block._localObjectUrl;
+		imgError = false;
 	} else if (block.photoId.startsWith('http://') || block.photoId.startsWith('https://') || block.photoId.startsWith('blob:')) {
 		resolvedSrc = block.photoId;
+		imgError = false;
 	} else if (block.photoId && tripId) {
-		// Server-hosted photo — resolve signed URL
+		// Server-hosted photo — clear stale src while resolving
+		resolvedSrc = '';
+		imgError = false;
 		resolveSignedUrl(block.photoId);
 	}
 
@@ -28,6 +33,10 @@
 		} catch {
 			resolvedSrc = '';
 		}
+	}
+
+	function onImgError() {
+		imgError = true;
 	}
 
 	$: imgSrc = resolvedSrc;
@@ -48,8 +57,17 @@
 
 <div class="photo-block" class:uploading={block._uploadPending}>
 	<div class="photo-img-wrap">
-		{#if imgSrc}
-			<img src={imgSrc} alt={block.caption || 'Journal photo'} loading="lazy" />
+		{#if imgSrc && !imgError}
+			<img src={imgSrc} alt={block.caption || 'Journal photo'} loading="lazy" on:error={onImgError} />
+		{:else if imgError}
+			<div class="photo-error">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+					<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+					<circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+					<path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+				<span>Photo unavailable</span>
+			</div>
 		{/if}
 		{#if block._uploadPending}
 			<div class="upload-overlay">
@@ -94,6 +112,17 @@
 		display: block;
 		object-fit: contain;
 		max-height: 400px;
+	}
+
+	.photo-error {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 2rem 1rem;
+		color: var(--ink-faint);
+		font-size: 0.75rem;
 	}
 
 	.upload-overlay {

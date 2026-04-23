@@ -3,6 +3,7 @@
 import asyncio
 import hashlib
 import hmac
+import io
 import json
 import os
 import sys
@@ -470,6 +471,7 @@ async def put_trip_journal(trip_id: str, req: SaveJournalRequest, authorization:
 
 MAX_PHOTO_SIZE = 10 * 1024 * 1024        # 10MB per file
 MAX_TRIP_PHOTO_QUOTA = 500 * 1024 * 1024  # 500MB per trip
+MAX_PHOTO_DIMENSION = 2048               # max px on longest side
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic"}
 
 MIME_MAP = {
@@ -507,17 +509,45 @@ async def upload_photo(
             detail=f"Trip photo storage full ({current_usage // (1024 * 1024)}MB / 500MB)",
         )
 
-    ext = (photo.filename or "").rsplit(".", 1)[-1].lower() if "." in (photo.filename or "") else "jpg"
-    if ext not in MIME_MAP:
-        ext = "jpg"
+    # Resize large images to stay within mobile Safari's decode limits
+    from PIL import Image, ImageOps
+
+    try:
+        img = Image.open(io.BytesIO(data))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Cannot read image file")
+
+    # Auto-rotate based on EXIF orientation
+    try:
+        img = ImageOps.exif_transpose(img)
+    except Exception:
+        pass
+
+    # Always save as JPEG for consistency and smaller file sizes
+    ext = "jpg"
     photo_id = str(uuid.uuid4())
     filename = f"{photo_id}.{ext}"
 
+    w, h = img.size
+    longest = max(w, h)
+    if longest > MAX_PHOTO_DIMENSION:
+        ratio = MAX_PHOTO_DIMENSION / longest
+        new_w, new_h = int(w * ratio), int(h * ratio)
+        img = img.resize((new_w, new_h), Image.LANCZOS)
+
+    # Convert to RGB if needed (e.g. RGBA PNGs, HEIC)
+    if img.mode not in ("RGB", "L"):
+        img = img.convert("RGB")
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85, optimize=True)
+    out_data = buf.getvalue()
+
     dest = photo_path(trip_id, filename)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(data)
+    dest.write_bytes(out_data)
 
-    save_photo_meta(photo_id, trip_id, filename, len(data), user.get("username", "unknown"))
+    save_photo_meta(photo_id, trip_id, filename, len(out_data), user.get("username", "unknown"))
     return {"photoId": photo_id, "filename": filename}
 
 

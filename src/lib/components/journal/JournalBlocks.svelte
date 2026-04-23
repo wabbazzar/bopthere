@@ -112,13 +112,13 @@
 		// Upload to server
 		uploadPhoto(tripId, file)
 			.then(({ filename }) => {
-				journalStore.updatePhotoId(tripId, dayIndex, photoBlock.id, filename);
 				URL.revokeObjectURL(localUrl);
+				journalStore.updatePhotoId(tripId, dayIndex, photoBlock.id, filename);
 			})
 			.catch(() => {
-				// Upload failed — queue for retry, keep local preview
+				// Upload failed — queue for retry, keep local preview.
+				// Do NOT store the blob URL as photoId — blob URLs expire on reload.
 				queueUpload(tripId, dayIndex, photoBlock.id, file);
-				journalStore.updatePhotoId(tripId, dayIndex, photoBlock.id, localUrl);
 			});
 	}
 
