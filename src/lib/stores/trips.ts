@@ -40,125 +40,300 @@ function normalizeTrips(trips: Record<string, Trip>): Record<string, Trip> {
 	return trips;
 }
 
+/** Extract metadata fields from a Trip (everything except days) */
+function extractMeta(trip: Trip): Record<string, unknown> {
+	return {
+		name: trip.name,
+		startDate: trip.startDate,
+		endDate: trip.endDate,
+		destinations: trip.destinations,
+		links: trip.links
+	};
+}
+
+/** Apply metadata fields to a Trip object */
+function applyMeta(trip: Trip, meta: Record<string, unknown>): void {
+	if (meta.name !== undefined) trip.name = meta.name as string;
+	if (meta.startDate !== undefined) trip.startDate = meta.startDate as string;
+	if (meta.endDate !== undefined) trip.endDate = meta.endDate as string;
+	if (meta.destinations !== undefined) trip.destinations = meta.destinations as string[];
+	if (meta.links !== undefined) trip.links = meta.links as string[];
+}
+
 function createTripsStore() {
 	// Start with defaults — init() will hydrate from IndexedDB + server
 	const { subscribe, set, update } = writable<Record<string, Trip>>(normalizeTrips(cloneDefaults()));
 	const undoStack: string[] = [];
+
+	// Debounce timers keyed by "day:{tripId}:{dayIndex}" or "meta:{tripId}"
 	const syncTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+	// Track meta versions per trip (from server)
+	const metaVersions = new Map<string, number>();
 
 	function snapshot(trips: Record<string, Trip>) {
 		undoStack.push(JSON.stringify(trips));
 		if (undoStack.length > UNDO_LIMIT) undoStack.shift();
 	}
 
-	/**
-	 * Persist to IndexedDB and schedule a debounced PUT to the server.
-	 */
-	function persistAndSync(trips: Record<string, Trip>, tripId: string) {
-		saveTrips(trips);
-		const now = new Date().toISOString();
-		saveMetaField(tripId, now);
-		scheduleSyncToServer(tripId);
+	// ── IndexedDB persistence ──────────────────────────────────
+
+	/** Save a single day to IndexedDB */
+	function saveDayToDb(tripId: string, dayIndex: number, day: TripDay) {
+		if (!isBrowser) return;
+		dbPut('trips', `trip-day:${tripId}:${dayIndex}`, day).catch(() => {});
 	}
 
-	function saveTrips(trips: Record<string, Trip>) {
+	/** Save trip metadata to IndexedDB */
+	function saveMetaToDb(tripId: string, meta: Record<string, unknown>) {
 		if (!isBrowser) return;
-		// Save each trip as its own IndexedDB row
-		for (const [id, trip] of Object.entries(trips)) {
-			dbPut('trips', id, trip).catch(() => {});
+		dbPut('trips', `trip-meta:${tripId}`, meta).catch(() => {});
+	}
+
+	/** Save all days for a trip to IndexedDB */
+	function saveAllDaysToDb(tripId: string, days: TripDay[]) {
+		if (!isBrowser) return;
+		for (let i = 0; i < days.length; i++) {
+			saveDayToDb(tripId, i, days[i]);
 		}
 	}
 
-	async function loadMeta(): Promise<Record<string, string>> {
-		const meta = await dbGet<Record<string, string>>('meta', 'hw-trips-meta');
-		return meta ?? {};
-	}
-
-	function saveMetaField(tripId: string, updatedAt: string) {
+	/** Delete all per-day keys for a trip from IndexedDB beyond a given count */
+	async function trimDayKeysInDb(tripId: string, newCount: number) {
 		if (!isBrowser) return;
-		loadMeta().then((meta) => {
-			meta[tripId] = updatedAt;
-			dbPut('meta', 'hw-trips-meta', meta).catch(() => {});
-		});
+		// Get all keys and delete anything beyond newCount
+		const rows = await dbGetAll<TripDay>('trips');
+		const prefix = `trip-day:${tripId}:`;
+		for (const row of rows) {
+			if (row.key.startsWith(prefix)) {
+				const idx = parseInt(row.key.slice(prefix.length), 10);
+				if (idx >= newCount) {
+					dbDelete('trips', row.key).catch(() => {});
+				}
+			}
+		}
 	}
 
-	function scheduleSyncToServer(tripId: string) {
-		const existing = syncTimers.get(tripId);
+	/** Persist changed day + meta after a day mutation */
+	function persistDay(tripId: string, dayIndex: number, trips: Record<string, Trip>) {
+		const trip = trips[tripId];
+		if (!trip) return;
+		saveDayToDb(tripId, dayIndex, trip.days[dayIndex]);
+		saveMetaToDb(tripId, extractMeta(trip));
+		scheduleDaySync(tripId, dayIndex);
+	}
+
+	/** Persist all days + meta (for structural changes like add/delete/move/duplicate) */
+	function persistAllDays(tripId: string, trips: Record<string, Trip>) {
+		const trip = trips[tripId];
+		if (!trip) return;
+		saveAllDaysToDb(tripId, trip.days);
+		saveMetaToDb(tripId, extractMeta(trip));
+	}
+
+	/** Persist only metadata */
+	function persistMeta(tripId: string, trips: Record<string, Trip>) {
+		const trip = trips[tripId];
+		if (!trip) return;
+		saveMetaToDb(tripId, extractMeta(trip));
+		scheduleMetaSync(tripId);
+	}
+
+	// ── Server sync ────────────────────────────────────────────
+
+	function scheduleDaySync(tripId: string, dayIndex: number) {
+		const key = `day:${tripId}:${dayIndex}`;
+		const existing = syncTimers.get(key);
 		if (existing) clearTimeout(existing);
-		syncTimers.set(tripId, setTimeout(() => {
-			syncTimers.delete(tripId);
-			pushToServer(tripId);
+		syncTimers.set(key, setTimeout(() => {
+			syncTimers.delete(key);
+			pushDayToServer(tripId, dayIndex);
 		}, SYNC_DEBOUNCE_MS));
 	}
 
-	/** Push local trip state to the server. On 409 (stale), accept server version. */
-	async function pushToServer(tripId: string) {
+	function scheduleMetaSync(tripId: string) {
+		const key = `meta:${tripId}`;
+		const existing = syncTimers.get(key);
+		if (existing) clearTimeout(existing);
+		syncTimers.set(key, setTimeout(() => {
+			syncTimers.delete(key);
+			pushMetaToServer(tripId);
+		}, SYNC_DEBOUNCE_MS));
+	}
+
+	/** Push a single day to the server. On 409 (stale), accept server version. */
+	async function pushDayToServer(tripId: string, dayIndex: number) {
 		try {
-			const { saveTrip } = await import('$lib/services/trips-api');
+			const { saveTripDay } = await import('$lib/services/trips-api');
 			const trips = get({ subscribe });
 			const trip = trips[tripId];
-			if (!trip) return;
-			const meta = await loadMeta();
-			const updatedAt = meta[tripId] || new Date().toISOString();
-			const result = await saveTrip(tripId, trip, updatedAt);
+			if (!trip || !trip.days[dayIndex]) return;
+			const day = trip.days[dayIndex];
+			const result = await saveTripDay(tripId, dayIndex, day, day.version ?? null);
 			if (result.ok) {
-				saveMetaField(tripId, result.updatedAt);
-				clearSyncPending(tripId);
-			} else if (result.serverTrip) {
+				// Update version in-memory
 				update((t) => {
-					t[tripId] = normalizeTrips({ [tripId]: result.serverTrip! })[tripId];
-					saveTrips(t);
+					if (t[tripId]?.days[dayIndex]) {
+						t[tripId].days[dayIndex].version = result.version;
+						saveDayToDb(tripId, dayIndex, t[tripId].days[dayIndex]);
+					}
+					return t;
+				});
+				clearSyncPending(`day:${tripId}:${dayIndex}`);
+			} else if (result.serverDay) {
+				// Server wins on conflict
+				update((t) => {
+					if (t[tripId]?.days[dayIndex]) {
+						const serverDay = { ...result.serverDay!, version: result.version };
+						t[tripId].days[dayIndex] = serverDay;
+						saveDayToDb(tripId, dayIndex, serverDay);
+					}
 					return { ...t };
 				});
-				saveMetaField(tripId, result.updatedAt);
-				clearSyncPending(tripId);
+				clearSyncPending(`day:${tripId}:${dayIndex}`);
 			}
 		} catch {
-			markSyncPending(tripId);
+			markSyncPending(`day:${tripId}:${dayIndex}`);
 		}
 	}
 
-	/** Pull server state on init. Server is authoritative. */
+	/** Push trip metadata to the server */
+	async function pushMetaToServer(tripId: string) {
+		try {
+			const { saveTripMeta } = await import('$lib/services/trips-api');
+			const trips = get({ subscribe });
+			const trip = trips[tripId];
+			if (!trip) return;
+			const meta = extractMeta(trip);
+			const version = metaVersions.get(tripId) ?? null;
+			const result = await saveTripMeta(tripId, meta, version);
+			if (result.ok) {
+				metaVersions.set(tripId, result.version);
+				clearSyncPending(`meta:${tripId}`);
+			} else if (result.serverMeta) {
+				// Server wins
+				update((t) => {
+					if (t[tripId]) {
+						applyMeta(t[tripId], result.serverMeta!);
+						saveMetaToDb(tripId, result.serverMeta!);
+					}
+					return { ...t };
+				});
+				metaVersions.set(tripId, result.version);
+				clearSyncPending(`meta:${tripId}`);
+			}
+		} catch {
+			markSyncPending(`meta:${tripId}`);
+		}
+	}
+
+	/** Push all days + meta to server (for addTrip / structural changes) */
+	async function pushAllToServer(tripId: string) {
+		const trips = get({ subscribe });
+		const trip = trips[tripId];
+		if (!trip) return;
+
+		// Push meta
+		pushMetaToServer(tripId);
+
+		// Push each day
+		for (let i = 0; i < trip.days.length; i++) {
+			pushDayToServer(tripId, i);
+		}
+	}
+
+	/** Pull server state on init. Server is authoritative for per-entry data. */
 	async function pullFromServer(tripId: string) {
 		try {
-			const { fetchTrip, saveTrip } = await import('$lib/services/trips-api');
-			const serverResult = await fetchTrip(tripId);
+			const { fetchTripDays, fetchTripMeta, fetchTrip, saveTrip } = await import('$lib/services/trips-api');
 
-			if (serverResult === null) {
-				const trips = get({ subscribe });
-				const trip = trips[tripId];
-				if (trip) {
-					const now = new Date().toISOString();
-					const result = await saveTrip(tripId, trip, now);
-					if (result.ok) saveMetaField(tripId, result.updatedAt);
+			// Try per-entry endpoints first
+			let gotPerEntry = false;
+			try {
+				const [daysResult, metaResult] = await Promise.all([
+					fetchTripDays(tripId),
+					fetchTripMeta(tripId)
+				]);
+
+				if (daysResult.days.length > 0 || metaResult !== null) {
+					gotPerEntry = true;
+					update((trips) => {
+						const trip = trips[tripId];
+						if (!trip) return trips;
+
+						// Apply days from server
+						if (daysResult.days.length > 0) {
+							trip.days = daysResult.days.map((d) => {
+								const { _version, ...dayFields } = d;
+								return { ...dayFields, version: _version } as TripDay;
+							});
+							saveAllDaysToDb(tripId, trip.days);
+						}
+
+						// Apply meta from server
+						if (metaResult !== null) {
+							applyMeta(trip, metaResult.meta);
+							metaVersions.set(tripId, metaResult.version);
+							saveMetaToDb(tripId, metaResult.meta);
+						}
+
+						trip.destinations = computeDestinations(trip.days);
+
+						const dates = trip.days.map((d) => d.date).filter(Boolean).sort();
+						if (dates.length) {
+							trip.startDate = dates[0];
+							trip.endDate = dates[dates.length - 1];
+						}
+
+						return { ...trips };
+					});
 				}
-			} else {
-				update((trips) => {
-					trips[tripId] = normalizeTrips({ [tripId]: serverResult.trip })[tripId];
-					saveTrips(trips);
-					return { ...trips };
-				});
-				saveMetaField(tripId, serverResult.updatedAt);
+			} catch {
+				// Per-entry endpoints not available yet, fall through to blob
+			}
+
+			if (!gotPerEntry) {
+				// Fall back to blob endpoint for backward compat
+				const serverResult = await fetchTrip(tripId);
+				if (serverResult === null) {
+					// Server has no data — push local state
+					const trips = get({ subscribe });
+					const trip = trips[tripId];
+					if (trip) {
+						const now = new Date().toISOString();
+						await saveTrip(tripId, trip, now);
+						// Also push per-entry
+						pushAllToServer(tripId);
+					}
+				} else {
+					update((trips) => {
+						trips[tripId] = normalizeTrips({ [tripId]: serverResult.trip })[tripId];
+						persistAllDays(tripId, trips);
+						return { ...trips };
+					});
+					// Seed per-entry endpoints from blob data
+					pushAllToServer(tripId);
+				}
 			}
 		} catch {
 			// Offline — use IndexedDB as-is
 		}
 	}
 
-	function markSyncPending(tripId: string) {
+	function markSyncPending(syncKey: string) {
 		if (!isBrowser) return;
 		dbGet<string>('meta', 'hw-trips-sync-pending').then((raw) => {
 			const pending = new Set((raw || '').split(',').filter(Boolean));
-			pending.add(tripId);
+			pending.add(syncKey);
 			dbPut('meta', 'hw-trips-sync-pending', [...pending].join(',')).catch(() => {});
 		});
 	}
 
-	function clearSyncPending(tripId: string) {
+	function clearSyncPending(syncKey: string) {
 		if (!isBrowser) return;
 		dbGet<string>('meta', 'hw-trips-sync-pending').then((raw) => {
 			const pending = new Set((raw || '').split(',').filter(Boolean));
-			pending.delete(tripId);
+			pending.delete(syncKey);
 			const next = [...pending].join(',');
 			if (next) {
 				dbPut('meta', 'hw-trips-sync-pending', next).catch(() => {});
@@ -184,9 +359,20 @@ function createTripsStore() {
 	}
 
 	async function initSync(tripId: string) {
+		// Flush any pending syncs first
 		const raw = await dbGet<string>('meta', 'hw-trips-sync-pending');
-		if (raw && raw.split(',').includes(tripId)) {
-			await pushToServer(tripId);
+		if (raw) {
+			const pending = raw.split(',').filter(Boolean);
+			for (const syncKey of pending) {
+				if (syncKey.startsWith(`day:${tripId}:`)) {
+					const dayIndex = parseInt(syncKey.split(':')[2], 10);
+					if (!isNaN(dayIndex)) {
+						await pushDayToServer(tripId, dayIndex);
+					}
+				} else if (syncKey === `meta:${tripId}`) {
+					await pushMetaToServer(tripId);
+				}
+			}
 		}
 		await pullFromServer(tripId);
 	}
@@ -196,8 +382,18 @@ function createTripsStore() {
 		dbGet<string>('meta', 'hw-trips-sync-pending').then((raw) => {
 			if (!raw) return;
 			const pending = raw.split(',').filter(Boolean);
-			for (const tripId of pending) {
-				scheduleSyncToServer(tripId);
+			for (const syncKey of pending) {
+				if (syncKey.startsWith('day:')) {
+					const parts = syncKey.split(':');
+					const tripId = parts[1];
+					const dayIndex = parseInt(parts[2], 10);
+					if (!isNaN(dayIndex)) {
+						scheduleDaySync(tripId, dayIndex);
+					}
+				} else if (syncKey.startsWith('meta:')) {
+					const tripId = syncKey.slice(5);
+					scheduleMetaSync(tripId);
+				}
 			}
 		});
 	}
@@ -207,20 +403,76 @@ function createTripsStore() {
 		window.addEventListener('online', () => flushPendingSyncs());
 	}
 
+	/** Load trips from IndexedDB, supporting both per-day and legacy blob keys */
+	async function loadFromDb(): Promise<Record<string, Trip>> {
+		const rows = await dbGetAll<unknown>('trips');
+		if (rows.length === 0) return {};
+
+		const fromDb: Record<string, Trip> = {};
+		const perDayData = new Map<string, Map<number, TripDay>>();
+		const metaData = new Map<string, Record<string, unknown>>();
+
+		for (const row of rows) {
+			if (row.key.startsWith('trip-day:')) {
+				// Per-day key: trip-day:{tripId}:{dayIndex}
+				const parts = row.key.split(':');
+				const tripId = parts[1];
+				const dayIndex = parseInt(parts[2], 10);
+				if (!perDayData.has(tripId)) perDayData.set(tripId, new Map());
+				perDayData.get(tripId)!.set(dayIndex, row.value as TripDay);
+			} else if (row.key.startsWith('trip-meta:')) {
+				// Per-meta key: trip-meta:{tripId}
+				const tripId = row.key.slice(10);
+				metaData.set(tripId, row.value as Record<string, unknown>);
+			} else {
+				// Legacy blob key (tripId -> full Trip object)
+				fromDb[row.key] = row.value as Trip;
+			}
+		}
+
+		// Reconstruct trips from per-day + per-meta data
+		const allTripIds = new Set([...perDayData.keys(), ...metaData.keys()]);
+		for (const tripId of allTripIds) {
+			const dayMap = perDayData.get(tripId);
+			const meta = metaData.get(tripId);
+
+			if (dayMap && dayMap.size > 0) {
+				// Build days array from indexed entries
+				const maxIdx = Math.max(...dayMap.keys());
+				const days: TripDay[] = [];
+				for (let i = 0; i <= maxIdx; i++) {
+					days.push(dayMap.get(i) ?? {
+						date: '', dayOfWeek: '', location: '', travel: '',
+						morning: '', afternoon: '', evening: '',
+						accommodation: '', notes: '', ooo: false
+					});
+				}
+
+				// Start from existing (legacy blob or defaults) or create from scratch
+				const base = fromDb[tripId] ?? defaults[tripId];
+				const trip: Trip = base
+					? { ...JSON.parse(JSON.stringify(base)), days }
+					: { id: tripId, name: '', startDate: '', endDate: '', destinations: [], days, links: [] };
+
+				if (meta) applyMeta(trip, meta);
+				trip.destinations = computeDestinations(trip.days);
+				fromDb[tripId] = trip;
+			}
+		}
+
+		return fromDb;
+	}
+
 	return {
 		subscribe,
 
 		async init() {
-			// Load from IndexedDB
-			const rows = await dbGetAll<Trip>('trips');
+			// Load from IndexedDB (supports both per-day and legacy blob keys)
+			const fromDb = await loadFromDb();
 			let trips: Record<string, Trip>;
-			if (rows.length === 0) {
+			if (Object.keys(fromDb).length === 0) {
 				trips = normalizeTrips(cloneDefaults());
 			} else {
-				const fromDb: Record<string, Trip> = {};
-				for (const row of rows) {
-					fromDb[row.key] = row.value;
-				}
 				trips = normalizeTrips({ ...cloneDefaults(), ...fromDb });
 			}
 			set(trips);
@@ -243,7 +495,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				(trip as unknown as Record<string, unknown>)[field] = value;
-				persistAndSync(trips, id);
+				persistMeta(id, trips);
 				return { ...trips };
 			});
 		},
@@ -254,7 +506,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				trip.destinations = destinations;
-				persistAndSync(trips, id);
+				persistMeta(id, trips);
 				return { ...trips };
 			});
 		},
@@ -280,7 +532,13 @@ function createTripsStore() {
 				}
 
 				trip.destinations = computeDestinations(trip.days);
-				persistAndSync(trips, id);
+
+				// Persist the specific day + updated meta
+				persistDay(id, dayIndex, trips);
+				// Also sync meta if dates/destinations changed
+				if (field === 'date' || field === 'location') {
+					scheduleMetaSync(id);
+				}
 				return { ...trips };
 			});
 		},
@@ -322,7 +580,13 @@ function createTripsStore() {
 					trip.endDate = dates[dates.length - 1];
 				}
 
-				persistAndSync(trips, id);
+				// Structural change: save all days from the insertion point onward
+				persistAllDays(id, trips);
+				// Push all affected days (idx and beyond shifted)
+				for (let i = idx; i < trip.days.length; i++) {
+					scheduleDaySync(id, i);
+				}
+				scheduleMetaSync(id);
 				return { ...trips };
 			});
 		},
@@ -332,6 +596,9 @@ function createTripsStore() {
 				const trip = trips[id];
 				if (!trip || trip.days.length <= 1) return trips;
 				snapshot(trips);
+
+				const deletedDay = trip.days[dayIndex];
+				const deletedVersion = deletedDay.version;
 				trip.days.splice(dayIndex, 1);
 
 				const dates = trip.days.map((d) => d.date).filter(Boolean).sort();
@@ -341,7 +608,26 @@ function createTripsStore() {
 				}
 				trip.destinations = computeDestinations(trip.days);
 
-				persistAndSync(trips, id);
+				// Structural change: resave all days, trim extra keys
+				persistAllDays(id, trips);
+				trimDayKeysInDb(id, trip.days.length);
+
+				// Delete from server, then re-push shifted days
+				(async () => {
+					try {
+						const { deleteTripDay } = await import('$lib/services/trips-api');
+						if (deletedVersion !== undefined) {
+							await deleteTripDay(id, dayIndex, deletedVersion);
+						}
+					} catch {
+						// Best effort — next full pull will reconcile
+					}
+					// Re-push days that shifted
+					for (let i = dayIndex; i < trip.days.length; i++) {
+						scheduleDaySync(id, i);
+					}
+				})();
+				scheduleMetaSync(id);
 				return { ...trips };
 			});
 		},
@@ -355,7 +641,11 @@ function createTripsStore() {
 				snapshot(trips);
 				const [day] = trip.days.splice(dayIndex, 1);
 				trip.days.splice(newIndex, 0, day);
-				persistAndSync(trips, id);
+
+				// Both the old and new index changed
+				persistAllDays(id, trips);
+				scheduleDaySync(id, dayIndex);
+				scheduleDaySync(id, newIndex);
 				return { ...trips };
 			});
 		},
@@ -365,7 +655,8 @@ function createTripsStore() {
 				const trip = trips[id];
 				if (!trip) return trips;
 				snapshot(trips);
-				const copy = { ...trip.days[dayIndex] };
+				const copy: TripDay = { ...JSON.parse(JSON.stringify(trip.days[dayIndex])) };
+				delete copy.version; // New day, no server version yet
 				if (copy.date) {
 					const d = new Date(copy.date + 'T12:00:00');
 					d.setDate(d.getDate() + 1);
@@ -373,7 +664,12 @@ function createTripsStore() {
 					copy.dayOfWeek = d.toLocaleDateString('en-US', { weekday: 'short' });
 				}
 				trip.days.splice(dayIndex + 1, 0, copy);
-				persistAndSync(trips, id);
+
+				// Structural change: save all days from insert point onward
+				persistAllDays(id, trips);
+				for (let i = dayIndex + 1; i < trip.days.length; i++) {
+					scheduleDaySync(id, i);
+				}
 				return { ...trips };
 			});
 		},
@@ -384,7 +680,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				trip.links.push(url);
-				persistAndSync(trips, id);
+				persistMeta(id, trips);
 				return { ...trips };
 			});
 		},
@@ -395,7 +691,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				trip.links[linkIndex] = url;
-				persistAndSync(trips, id);
+				persistMeta(id, trips);
 				return { ...trips };
 			});
 		},
@@ -406,7 +702,7 @@ function createTripsStore() {
 				if (!trip) return trips;
 				snapshot(trips);
 				trip.links.splice(linkIndex, 1);
-				persistAndSync(trips, id);
+				persistMeta(id, trips);
 				return { ...trips };
 			});
 		},
@@ -417,7 +713,7 @@ function createTripsStore() {
 				if (!trip || !trip.days[dayIndex]) return trips;
 				snapshot(trips);
 				trip.days[dayIndex].mapLinks = mapLinks;
-				persistAndSync(trips, id);
+				persistDay(id, dayIndex, trips);
 				return { ...trips };
 			});
 		},
@@ -425,13 +721,17 @@ function createTripsStore() {
 		undo() {
 			const prev = undoStack.pop();
 			if (!prev) return;
-			const trips = JSON.parse(prev);
+			const trips: Record<string, Trip> = JSON.parse(prev);
 			set(trips);
-			saveTrips(trips);
+			// Persist all days and meta for affected trips, then sync
 			for (const tripId of Object.keys(trips)) {
-				const now = new Date().toISOString();
-				saveMetaField(tripId, now);
-				scheduleSyncToServer(tripId);
+				const trip = trips[tripId];
+				if (!trip) continue;
+				persistAllDays(tripId, trips);
+				for (let i = 0; i < trip.days.length; i++) {
+					scheduleDaySync(tripId, i);
+				}
+				scheduleMetaSync(tripId);
 			}
 		},
 
@@ -444,7 +744,12 @@ function createTripsStore() {
 				if (defaults[id]) {
 					snapshot(trips);
 					trips[id] = JSON.parse(JSON.stringify(defaults[id]));
-					persistAndSync(trips, id);
+					persistAllDays(id, trips);
+					// Sync all days + meta
+					for (let i = 0; i < trips[id].days.length; i++) {
+						scheduleDaySync(id, i);
+					}
+					scheduleMetaSync(id);
 				}
 				return { ...trips };
 			});
@@ -463,17 +768,23 @@ function createTripsStore() {
 			update((trips) => {
 				snapshot(trips);
 				delete trips[id];
-				saveTrips(trips);
 				return { ...trips };
 			});
-			// Clean up IndexedDB metadata
+			// Clean up IndexedDB per-day and per-meta keys
 			if (isBrowser) {
-				const meta = await loadMeta();
-				delete meta[id];
-				await dbPut('meta', 'hw-trips-meta', meta);
-				clearSyncPending(id);
-				await dbDelete('prefs', `hw-trip-day-${id}`);
+				const rows = await dbGetAll<unknown>('trips');
+				const prefix = `trip-day:${id}:`;
+				for (const row of rows) {
+					if (row.key.startsWith(prefix) || row.key === `trip-meta:${id}`) {
+						dbDelete('trips', row.key).catch(() => {});
+					}
+				}
+				// Clean up legacy blob key too
 				await dbDelete('trips', id);
+				// Clean up other metadata
+				clearSyncPending(`meta:${id}`);
+				await dbDelete('prefs', `hw-trip-day-${id}`);
+				metaVersions.delete(id);
 			}
 			try {
 				const { deleteTrip } = await import('$lib/services/trips-api');
@@ -494,7 +805,9 @@ function createTripsStore() {
 				const clone = JSON.parse(JSON.stringify(trip)) as Trip;
 				clone.destinations = computeDestinations(clone.days);
 				trips[trip.id] = clone;
-				persistAndSync(trips, trip.id);
+				persistAllDays(trip.id, trips);
+				// Push all days + meta to server
+				pushAllToServer(trip.id);
 				accepted = true;
 				return { ...trips };
 			});
