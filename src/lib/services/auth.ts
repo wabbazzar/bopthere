@@ -1,9 +1,21 @@
 import { PUBLIC_API_GATEWAY_URL } from '$env/static/public';
 import type { LoginResponse, User } from '$lib/types/auth';
+import { dbGet, dbPut, dbDelete } from '$lib/stores/db';
 
 const API_URL = PUBLIC_API_GATEWAY_URL;
-const TOKEN_KEY = 'hw-auth-token';
-const USER_KEY = 'hw-auth-user';
+
+// In-memory cache for synchronous access after hydration
+let cachedToken: string | null = null;
+let cachedUser: User | null = null;
+
+/**
+ * Hydrate the in-memory auth cache from IndexedDB.
+ * Must be called once during app init (before any getToken() calls).
+ */
+export async function hydrateAuth(): Promise<void> {
+	cachedToken = (await dbGet<string>('auth', 'token')) ?? null;
+	cachedUser = (await dbGet<User>('auth', 'user')) ?? null;
+}
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
 	const res = await fetch(`${API_URL}/auth/login`, {
@@ -18,7 +30,7 @@ export async function login(username: string, password: string): Promise<LoginRe
 	}
 
 	const data: LoginResponse = await res.json();
-	saveAuth(data.token, data.user);
+	await saveAuth(data.token, data.user);
 	return data;
 }
 
@@ -36,7 +48,7 @@ export async function verifyToken(): Promise<User | null> {
 		});
 
 		if (!res.ok) {
-			clearAuth();
+			await clearAuth();
 			return null;
 		}
 
@@ -61,44 +73,40 @@ export async function refreshToken(): Promise<LoginResponse | null> {
 		});
 
 		if (!res.ok) {
-			clearAuth();
+			await clearAuth();
 			return null;
 		}
 
 		const data: LoginResponse = await res.json();
-		saveAuth(data.token, data.user);
+		await saveAuth(data.token, data.user);
 		return data;
 	} catch {
 		return null;
 	}
 }
 
-export function logout(): void {
-	clearAuth();
+export async function logout(): Promise<void> {
+	await clearAuth();
 }
 
 export function getToken(): string | null {
-	if (typeof localStorage === 'undefined') return null;
-	return localStorage.getItem(TOKEN_KEY);
+	return cachedToken;
 }
 
 export function getStoredUser(): User | null {
-	if (typeof localStorage === 'undefined') return null;
-	const raw = localStorage.getItem(USER_KEY);
-	if (!raw) return null;
-	try {
-		return JSON.parse(raw);
-	} catch {
-		return null;
-	}
+	return cachedUser;
 }
 
-function saveAuth(token: string, user: User): void {
-	localStorage.setItem(TOKEN_KEY, token);
-	localStorage.setItem(USER_KEY, JSON.stringify(user));
+async function saveAuth(token: string, user: User): Promise<void> {
+	cachedToken = token;
+	cachedUser = user;
+	await dbPut('auth', 'token', token);
+	await dbPut('auth', 'user', user);
 }
 
-function clearAuth(): void {
-	localStorage.removeItem(TOKEN_KEY);
-	localStorage.removeItem(USER_KEY);
+async function clearAuth(): Promise<void> {
+	cachedToken = null;
+	cachedUser = null;
+	await dbDelete('auth', 'token');
+	await dbDelete('auth', 'user');
 }

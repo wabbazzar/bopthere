@@ -1,21 +1,20 @@
 <script lang="ts">
 	import { auth, isAuthenticated, isLoading } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
+	import { dbGet } from '$lib/stores/db';
 
 	let username = '';
 	let password = '';
 	let error = '';
 	let submitting = false;
 
-	const LAST_PATH_KEY = 'hw-last-path';
-
-	function getResumePath(): string {
-		const saved = localStorage.getItem(LAST_PATH_KEY);
+	async function getResumePath(): Promise<string> {
+		const saved = await dbGet<string>('prefs', 'hw-last-path');
 		return saved && saved !== '/' ? saved : '/dashboard';
 	}
 
 	$: if (!$isLoading && $isAuthenticated) {
-		goto(getResumePath());
+		getResumePath().then((path) => goto(path));
 	}
 
 	async function handleLogin(e: Event) {
@@ -25,7 +24,8 @@
 
 		try {
 			await auth.login(username, password);
-			goto(getResumePath());
+			const path = await getResumePath();
+			goto(path);
 		} catch (err: unknown) {
 			error = err instanceof Error ? err.message : 'Login failed';
 		} finally {

@@ -15,11 +15,14 @@ export const auth = {
 	subscribe,
 
 	async init() {
+		// Hydrate in-memory cache from IndexedDB
+		await authService.hydrateAuth();
+
 		const storedUser = authService.getStoredUser();
 		const token = authService.getToken();
 
 		if (storedUser && token) {
-			// Trust localStorage immediately — no loading screen for returning users
+			// Trust IndexedDB immediately — no loading screen for returning users
 			set({ user: storedUser, token, isAuthenticated: true, isLoading: false });
 
 			// Verify token in background; log out only if expired/invalid
@@ -45,8 +48,8 @@ export const auth = {
 		});
 	},
 
-	logout() {
-		authService.logout();
+	async logout() {
+		await authService.logout();
 		set({ user: null, token: null, isAuthenticated: false, isLoading: false });
 	}
 };

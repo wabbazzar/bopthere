@@ -1,12 +1,12 @@
 import { writable, get } from 'svelte/store';
 import type { Trip, TripDay, MapLink } from '$lib/types/trip';
 import { chinaTrip } from '$lib/data/china-2026';
+import { dbGet, dbPut, dbDelete, dbGetAll } from '$lib/stores/db';
 
-const STORAGE_KEY = 'hw-trips';
-const META_KEY = 'hw-trips-meta';
-const SYNC_PENDING_KEY = 'hw-trips-sync-pending';
 const UNDO_LIMIT = 50;
 const SYNC_DEBOUNCE_MS = 2000;
+
+const isBrowser = typeof window !== 'undefined';
 
 // Default trips keyed by id — deep frozen copy so mutations never leak back
 const defaults: Record<string, Trip> = JSON.parse(JSON.stringify({
@@ -20,8 +20,7 @@ function cloneDefaults(): Record<string, Trip> {
 
 /**
  * Derive the header destinations list from day locations, excluding split-day
- * locations like "Zhangjiajie / Shanghai" — those transit/overlap days already
- * show up individually and their component cities already have dedicated days.
+ * locations like "Zhangjiajie / Shanghai".
  */
 function computeDestinations(days: TripDay[]): string[] {
 	return [
@@ -33,18 +32,6 @@ function computeDestinations(days: TripDay[]): string[] {
 	];
 }
 
-function loadTrips(): Record<string, Trip> {
-	if (typeof localStorage === 'undefined') return normalizeTrips(cloneDefaults());
-	const raw = localStorage.getItem(STORAGE_KEY);
-	if (!raw) return normalizeTrips(cloneDefaults());
-	try {
-		const saved = JSON.parse(raw) as Record<string, Trip>;
-		return normalizeTrips({ ...cloneDefaults(), ...saved });
-	} catch {
-		return normalizeTrips(cloneDefaults());
-	}
-}
-
 /** Recompute derived fields (destinations) for every trip — heals legacy state */
 function normalizeTrips(trips: Record<string, Trip>): Record<string, Trip> {
 	for (const trip of Object.values(trips)) {
@@ -53,31 +40,9 @@ function normalizeTrips(trips: Record<string, Trip>): Record<string, Trip> {
 	return trips;
 }
 
-function saveTrips(trips: Record<string, Trip>) {
-	if (typeof localStorage === 'undefined') return;
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
-}
-
-// ── Server sync metadata (per-trip updatedAt timestamps) ────────
-
-function loadMeta(): Record<string, string> {
-	if (typeof localStorage === 'undefined') return {};
-	try {
-		return JSON.parse(localStorage.getItem(META_KEY) || '{}');
-	} catch {
-		return {};
-	}
-}
-
-function saveMetaField(tripId: string, updatedAt: string) {
-	if (typeof localStorage === 'undefined') return;
-	const meta = loadMeta();
-	meta[tripId] = updatedAt;
-	localStorage.setItem(META_KEY, JSON.stringify(meta));
-}
-
 function createTripsStore() {
-	const { subscribe, set, update } = writable<Record<string, Trip>>(loadTrips());
+	// Start with defaults — init() will hydrate from IndexedDB + server
+	const { subscribe, set, update } = writable<Record<string, Trip>>(normalizeTrips(cloneDefaults()));
 	const undoStack: string[] = [];
 	const syncTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -87,14 +52,34 @@ function createTripsStore() {
 	}
 
 	/**
-	 * Persist to localStorage (instant) and schedule a debounced PUT to
-	 * the server. Every mutation calls this instead of raw saveTrips().
+	 * Persist to IndexedDB and schedule a debounced PUT to the server.
 	 */
 	function persistAndSync(trips: Record<string, Trip>, tripId: string) {
 		saveTrips(trips);
 		const now = new Date().toISOString();
 		saveMetaField(tripId, now);
 		scheduleSyncToServer(tripId);
+	}
+
+	function saveTrips(trips: Record<string, Trip>) {
+		if (!isBrowser) return;
+		// Save each trip as its own IndexedDB row
+		for (const [id, trip] of Object.entries(trips)) {
+			dbPut('trips', id, trip).catch(() => {});
+		}
+	}
+
+	async function loadMeta(): Promise<Record<string, string>> {
+		const meta = await dbGet<Record<string, string>>('meta', 'hw-trips-meta');
+		return meta ?? {};
+	}
+
+	function saveMetaField(tripId: string, updatedAt: string) {
+		if (!isBrowser) return;
+		loadMeta().then((meta) => {
+			meta[tripId] = updatedAt;
+			dbPut('meta', 'hw-trips-meta', meta).catch(() => {});
+		});
 	}
 
 	function scheduleSyncToServer(tripId: string) {
@@ -113,14 +98,13 @@ function createTripsStore() {
 			const trips = get({ subscribe });
 			const trip = trips[tripId];
 			if (!trip) return;
-			const meta = loadMeta();
+			const meta = await loadMeta();
 			const updatedAt = meta[tripId] || new Date().toISOString();
 			const result = await saveTrip(tripId, trip, updatedAt);
 			if (result.ok) {
 				saveMetaField(tripId, result.updatedAt);
 				clearSyncPending(tripId);
 			} else if (result.serverTrip) {
-				// Server had newer data — accept it
 				update((t) => {
 					t[tripId] = normalizeTrips({ [tripId]: result.serverTrip! })[tripId];
 					saveTrips(t);
@@ -130,19 +114,17 @@ function createTripsStore() {
 				clearSyncPending(tripId);
 			}
 		} catch {
-			// Network error — mark pending for retry when online
 			markSyncPending(tripId);
 		}
 	}
 
-	/** Pull server state on init. Server is authoritative — always use it if available. */
+	/** Pull server state on init. Server is authoritative. */
 	async function pullFromServer(tripId: string) {
 		try {
 			const { fetchTrip, saveTrip } = await import('$lib/services/trips-api');
 			const serverResult = await fetchTrip(tripId);
 
 			if (serverResult === null) {
-				// Server has no row — push current local state (first-user migration)
 				const trips = get({ subscribe });
 				const trip = trips[tripId];
 				if (trip) {
@@ -151,8 +133,6 @@ function createTripsStore() {
 					if (result.ok) saveMetaField(tripId, result.updatedAt);
 				}
 			} else {
-				// Server has data — always use it. The server is the source of
-				// truth; localStorage is just a cache for offline + instant render.
 				update((trips) => {
 					trips[tripId] = normalizeTrips({ [tripId]: serverResult.trip })[tripId];
 					saveTrips(trips);
@@ -161,30 +141,33 @@ function createTripsStore() {
 				saveMetaField(tripId, serverResult.updatedAt);
 			}
 		} catch {
-			// Offline — use localStorage as-is
+			// Offline — use IndexedDB as-is
 		}
 	}
 
 	function markSyncPending(tripId: string) {
-		if (typeof localStorage === 'undefined') return;
-		const pending = new Set((localStorage.getItem(SYNC_PENDING_KEY) || '').split(',').filter(Boolean));
-		pending.add(tripId);
-		localStorage.setItem(SYNC_PENDING_KEY, [...pending].join(','));
+		if (!isBrowser) return;
+		dbGet<string>('meta', 'hw-trips-sync-pending').then((raw) => {
+			const pending = new Set((raw || '').split(',').filter(Boolean));
+			pending.add(tripId);
+			dbPut('meta', 'hw-trips-sync-pending', [...pending].join(',')).catch(() => {});
+		});
 	}
 
 	function clearSyncPending(tripId: string) {
-		if (typeof localStorage === 'undefined') return;
-		const pending = new Set((localStorage.getItem(SYNC_PENDING_KEY) || '').split(',').filter(Boolean));
-		pending.delete(tripId);
-		if (pending.size === 0) localStorage.removeItem(SYNC_PENDING_KEY);
-		else localStorage.setItem(SYNC_PENDING_KEY, [...pending].join(','));
+		if (!isBrowser) return;
+		dbGet<string>('meta', 'hw-trips-sync-pending').then((raw) => {
+			const pending = new Set((raw || '').split(',').filter(Boolean));
+			pending.delete(tripId);
+			const next = [...pending].join(',');
+			if (next) {
+				dbPut('meta', 'hw-trips-sync-pending', next).catch(() => {});
+			} else {
+				dbDelete('meta', 'hw-trips-sync-pending').catch(() => {});
+			}
+		});
 	}
 
-	/**
-	 * Ask the server which trips exist and pull any that aren't in the
-	 * local store. Silent on errors — offline clients keep working with
-	 * whatever they already had.
-	 */
 	async function discoverServerTrips() {
 		try {
 			const { fetchTripList } = await import('$lib/services/trips-api');
@@ -196,51 +179,57 @@ function createTripsStore() {
 				}
 			}
 		} catch {
-			// offline / network error — fine
+			// offline
 		}
 	}
 
-	/** On page load: push any unsaved edits, then pull server state. */
 	async function initSync(tripId: string) {
-		// If there are pending local edits from a previous session, push first
-		if (typeof localStorage !== 'undefined') {
-			const raw = localStorage.getItem(SYNC_PENDING_KEY);
-			if (raw && raw.split(',').includes(tripId)) {
-				await pushToServer(tripId);
-			}
+		const raw = await dbGet<string>('meta', 'hw-trips-sync-pending');
+		if (raw && raw.split(',').includes(tripId)) {
+			await pushToServer(tripId);
 		}
-		// Then pull (server always wins after any pending push)
 		await pullFromServer(tripId);
 	}
 
 	function flushPendingSyncs() {
-		if (typeof localStorage === 'undefined') return;
-		const raw = localStorage.getItem(SYNC_PENDING_KEY);
-		if (!raw) return;
-		const pending = raw.split(',').filter(Boolean);
-		for (const tripId of pending) {
-			scheduleSyncToServer(tripId);
-		}
+		if (!isBrowser) return;
+		dbGet<string>('meta', 'hw-trips-sync-pending').then((raw) => {
+			if (!raw) return;
+			const pending = raw.split(',').filter(Boolean);
+			for (const tripId of pending) {
+				scheduleSyncToServer(tripId);
+			}
+		});
 	}
 
 	// Listen for online recovery
-	if (typeof window !== 'undefined') {
+	if (isBrowser) {
 		window.addEventListener('online', () => flushPendingSyncs());
 	}
 
 	return {
 		subscribe,
 
-		init() {
-			set(loadTrips());
-			// Sync the trips we already know about (push pending, pull server truth).
-			const trips = get({ subscribe });
+		async init() {
+			// Load from IndexedDB
+			const rows = await dbGetAll<Trip>('trips');
+			let trips: Record<string, Trip>;
+			if (rows.length === 0) {
+				trips = normalizeTrips(cloneDefaults());
+			} else {
+				const fromDb: Record<string, Trip> = {};
+				for (const row of rows) {
+					fromDb[row.key] = row.value;
+				}
+				trips = normalizeTrips({ ...cloneDefaults(), ...fromDb });
+			}
+			set(trips);
+
+			// Sync known trips
 			for (const tripId of Object.keys(trips)) {
 				initSync(tripId);
 			}
-			// Then discover any trips created on other devices that we don't
-			// have locally yet — this is how a new trip made on Wesley's phone
-			// reaches Heather's desktop.
+			// Discover new trips from server
 			discoverServerTrips();
 		},
 
@@ -248,7 +237,6 @@ function createTripsStore() {
 			return get({ subscribe })[id];
 		},
 
-		// Update a single field on the trip
 		updateTrip(id: string, field: keyof Omit<Trip, 'id' | 'days' | 'links'>, value: string) {
 			update((trips) => {
 				const trip = trips[id];
@@ -260,7 +248,6 @@ function createTripsStore() {
 			});
 		},
 
-		// Update destinations array
 		updateDestinations(id: string, destinations: string[]) {
 			update((trips) => {
 				const trip = trips[id];
@@ -272,7 +259,6 @@ function createTripsStore() {
 			});
 		},
 
-		// Update a cell in a day
 		updateDayField(id: string, dayIndex: number, field: keyof TripDay, value: string | boolean) {
 			update((trips) => {
 				const trip = trips[id];
@@ -280,7 +266,6 @@ function createTripsStore() {
 				snapshot(trips);
 				(trip.days[dayIndex] as unknown as Record<string, unknown>)[field] = value;
 
-				// Auto-update dayOfWeek when date changes
 				if (field === 'date' && typeof value === 'string') {
 					const d = new Date(value + 'T12:00:00');
 					if (!isNaN(d.getTime())) {
@@ -288,22 +273,18 @@ function createTripsStore() {
 					}
 				}
 
-				// Auto-update trip startDate/endDate from days
 				const dates = trip.days.map((d) => d.date).filter(Boolean).sort();
 				if (dates.length) {
 					trip.startDate = dates[0];
 					trip.endDate = dates[dates.length - 1];
 				}
 
-				// Auto-update destinations from unique locations
 				trip.destinations = computeDestinations(trip.days);
-
 				persistAndSync(trips, id);
 				return { ...trips };
 			});
 		},
 
-		// Add a new day
 		addDay(id: string, afterIndex?: number) {
 			update((trips) => {
 				const trip = trips[id];
@@ -335,7 +316,6 @@ function createTripsStore() {
 				const idx = afterIndex !== undefined ? afterIndex + 1 : trip.days.length;
 				trip.days.splice(idx, 0, newDay);
 
-				// Update trip dates
 				const dates = trip.days.map((d) => d.date).filter(Boolean).sort();
 				if (dates.length) {
 					trip.startDate = dates[0];
@@ -347,7 +327,6 @@ function createTripsStore() {
 			});
 		},
 
-		// Delete a day
 		deleteDay(id: string, dayIndex: number) {
 			update((trips) => {
 				const trip = trips[id];
@@ -367,7 +346,6 @@ function createTripsStore() {
 			});
 		},
 
-		// Move a day up or down
 		moveDay(id: string, dayIndex: number, direction: 'up' | 'down') {
 			update((trips) => {
 				const trip = trips[id];
@@ -382,7 +360,6 @@ function createTripsStore() {
 			});
 		},
 
-		// Duplicate a day
 		duplicateDay(id: string, dayIndex: number) {
 			update((trips) => {
 				const trip = trips[id];
@@ -401,7 +378,6 @@ function createTripsStore() {
 			});
 		},
 
-		// Links management
 		addLink(id: string, url: string) {
 			update((trips) => {
 				const trip = trips[id];
@@ -452,7 +428,6 @@ function createTripsStore() {
 			const trips = JSON.parse(prev);
 			set(trips);
 			saveTrips(trips);
-			// Sync all trips after undo
 			for (const tripId of Object.keys(trips)) {
 				const now = new Date().toISOString();
 				saveMetaField(tripId, now);
@@ -464,7 +439,6 @@ function createTripsStore() {
 			return undoStack.length > 0;
 		},
 
-		// Reset trip to defaults
 		resetTrip(id: string) {
 			update((trips) => {
 				if (defaults[id]) {
@@ -476,7 +450,6 @@ function createTripsStore() {
 			});
 		},
 
-		// Export trip as JSON
 		exportTrip(id: string): string {
 			const trips = get({ subscribe });
 			const trip = trips[id];
@@ -484,10 +457,6 @@ function createTripsStore() {
 			return JSON.stringify(trip, null, 2);
 		},
 
-		/**
-		 * Remove a trip from the store, localStorage, and the server.
-		 * Returns true if removed, false if the trip didn't exist.
-		 */
 		async removeTrip(id: string): Promise<boolean> {
 			const current = get({ subscribe });
 			if (!current[id]) return false;
@@ -497,15 +466,15 @@ function createTripsStore() {
 				saveTrips(trips);
 				return { ...trips };
 			});
-			// Clean up localStorage metadata
-			if (typeof localStorage !== 'undefined') {
-				const meta = loadMeta();
+			// Clean up IndexedDB metadata
+			if (isBrowser) {
+				const meta = await loadMeta();
 				delete meta[id];
-				localStorage.setItem(META_KEY, JSON.stringify(meta));
+				await dbPut('meta', 'hw-trips-meta', meta);
 				clearSyncPending(id);
-				localStorage.removeItem(`hw-trip-day-${id}`);
+				await dbDelete('prefs', `hw-trip-day-${id}`);
+				await dbDelete('trips', id);
 			}
-			// Delete from server
 			try {
 				const { deleteTrip } = await import('$lib/services/trips-api');
 				await deleteTrip(id);
@@ -515,11 +484,6 @@ function createTripsStore() {
 			return true;
 		},
 
-		/**
-		 * Add a brand-new trip to the store. Returns false if the id already
-		 * exists (refuse to overwrite). On success, persists locally and
-		 * pushes to the server via the normal debounced sync.
-		 */
 		addTrip(trip: Trip): boolean {
 			const current = get({ subscribe });
 			if (current[trip.id]) return false;

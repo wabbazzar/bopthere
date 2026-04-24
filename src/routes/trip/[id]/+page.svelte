@@ -15,6 +15,7 @@
 	import JournalBlocks from '$lib/components/journal/JournalBlocks.svelte';
 	import { getBookings } from '$lib/services/bookings';
 	import { initPhotoQueue } from '$lib/services/photo-queue';
+	import { dbGet, dbPut } from '$lib/stores/db';
 	import type { Booking } from '$lib/types/trip';
 
 	$: tripId = $page.params.id as string;
@@ -28,14 +29,12 @@
 	let bookings: Booking[] | null = null;
 	let bookingsError: string | null = null;
 
-	const DAY_KEY_PREFIX = 'hw-trip-day-';
-
-	onMount(() => {
+	onMount(async () => {
 		trips.init();
 		journalStore.init(tripId);
 		initPhotoQueue();
-		const saved = localStorage.getItem(DAY_KEY_PREFIX + tripId);
-		if (saved !== null) {
+		const saved = await dbGet<string>('prefs', `hw-trip-day-${tripId}`);
+		if (saved !== undefined) {
 			const idx = parseInt(saved, 10);
 			const maxIdx = (trip?.days?.length ?? 1) - 1;
 			if (!isNaN(idx) && idx >= 0) currentDayIndex = Math.min(idx, maxIdx);
@@ -55,8 +54,8 @@
 		}
 	}
 
-	$: if (tripId && typeof localStorage !== 'undefined') {
-		localStorage.setItem(DAY_KEY_PREFIX + tripId, String(currentDayIndex));
+	$: if (tripId) {
+		dbPut('prefs', `hw-trip-day-${tripId}`, String(currentDayIndex));
 	}
 
 	// Journal entry for the current day
@@ -140,7 +139,20 @@
 			<div class="card journal-card">
 				<div class="journal-card-header">
 					<h2 class="journal-card-title">Journal</h2>
-					<span class="journal-card-day">Day {currentDayIndex + 1}</span>
+					<div class="journal-card-header-right">
+						<span class="journal-card-day">Day {currentDayIndex + 1}</span>
+						<button
+							type="button"
+							class="back-to-top-inline"
+							on:click={scrollToTop}
+							aria-label="Back to top"
+							title="Back to top"
+						>
+							<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+								<path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</button>
+					</div>
 				</div>
 				<div class="journal-card-body">
 					<JournalHeader
@@ -161,17 +173,6 @@
 					/>
 				</div>
 			</div>
-			<button
-				type="button"
-				class="back-to-top"
-				on:click={scrollToTop}
-				aria-label="Back to top"
-				title="Back to top"
-			>
-				<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-					<path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
-				</svg>
-			</button>
 		</div>
 	{/if}
 
@@ -287,11 +288,36 @@
 		color: var(--ink);
 		margin: 0;
 	}
+	.journal-card-header-right {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
 	.journal-card-day {
 		font-size: 0.7rem;
 		color: var(--ink-faint);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
+	}
+	.back-to-top-inline {
+		width: 28px;
+		height: 28px;
+		border-radius: 999px;
+		border: 1px solid var(--border);
+		background: var(--surface);
+		color: var(--ink-faint);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+		padding: 0;
+		flex-shrink: 0;
+	}
+	.back-to-top-inline:hover {
+		color: var(--ink);
+		background: var(--accent-muted);
+		border-color: var(--accent);
 	}
 	.journal-card-body {
 		padding: 1rem;

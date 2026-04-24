@@ -5,23 +5,26 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { chat } from '$lib/stores/chat';
+	import { migrateLocalStorageToIndexedDB } from '$lib/stores/db-migration';
+	import { dbPut } from '$lib/stores/db';
 	import ChatFab from '$lib/components/chat/ChatFab.svelte';
 	import ChatDrawer from '$lib/components/chat/ChatDrawer.svelte';
 
-	onMount(() => {
-		auth.init();
+	onMount(async () => {
+		// Run one-time migration FIRST (no-op if already done)
+		await migrateLocalStorageToIndexedDB();
+		// Then init auth from IndexedDB
+		await auth.init();
 	});
 
-	function handleLogout() {
-		auth.logout();
+	async function handleLogout() {
+		await auth.logout();
 		goto('/');
 	}
 
-	const LAST_PATH_KEY = 'hw-last-path';
-
 	// Persist current path for authenticated users (skip login page)
 	$: if ($isAuthenticated && $page.url.pathname !== '/') {
-		localStorage.setItem(LAST_PATH_KEY, $page.url.pathname);
+		dbPut('prefs', 'hw-last-path', $page.url.pathname);
 	}
 
 	$: if (!$isLoading && !$isAuthenticated && $page.url.pathname !== '/') {

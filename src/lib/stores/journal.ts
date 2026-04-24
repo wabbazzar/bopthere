@@ -8,54 +8,14 @@ import type {
 	JournalPhotoBlock
 } from '$lib/types/trip';
 import { migrateEntry, stripTransientFields } from '$lib/utils/journal-migration';
+import { dbGet, dbPut } from '$lib/stores/db';
 
 type JournalByTrip = Record<string, JournalEntry[]>;
-
-const JOURNAL_KEY_PREFIX = 'hw-journal-';
-const META_KEY = 'hw-journal-meta';
-const SYNC_DEBOUNCE_MS = 2000;
 
 const ITINERARY_SLOTS = ['travel', 'morning', 'afternoon', 'evening'] as const;
 
 function migrateAll(entries: unknown[]): JournalEntry[] {
 	return entries.map((e) => migrateEntry(e as Record<string, unknown>));
-}
-
-function loadLocal(tripId: string): JournalEntry[] {
-	if (typeof localStorage === 'undefined') return [];
-	const raw = localStorage.getItem(JOURNAL_KEY_PREFIX + tripId);
-	if (!raw) return [];
-	try {
-		return migrateAll(JSON.parse(raw));
-	} catch {
-		return [];
-	}
-}
-
-function saveLocal(tripId: string, entries: JournalEntry[]) {
-	if (typeof localStorage === 'undefined') return;
-	// Strip transient fields before persisting
-	const cleaned = entries.map((e) => ({
-		...e,
-		blocks: stripTransientFields(e.blocks)
-	}));
-	localStorage.setItem(JOURNAL_KEY_PREFIX + tripId, JSON.stringify(cleaned));
-}
-
-function loadMeta(): Record<string, string> {
-	if (typeof localStorage === 'undefined') return {};
-	try {
-		return JSON.parse(localStorage.getItem(META_KEY) || '{}');
-	} catch {
-		return {};
-	}
-}
-
-function setMeta(tripId: string, ts: string) {
-	if (typeof localStorage === 'undefined') return;
-	const m = loadMeta();
-	m[tripId] = ts;
-	localStorage.setItem(META_KEY, JSON.stringify(m));
 }
 
 /** Snapshot non-empty planning fields into checklist items. */
@@ -72,52 +32,48 @@ function deriveItinerary(day: TripDay): ItineraryCheckItem[] {
 
 function createJournalStore() {
 	const { subscribe, update } = writable<JournalByTrip>({});
-	const syncTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 	function getEntries(tripId: string): JournalEntry[] {
 		return get({ subscribe })[tripId] ?? [];
 	}
 
+	/**
+	 * Persist to IndexedDB and sync to server IMMEDIATELY.
+	 * No debounce — journal data is Tier 1.
+	 */
 	function persistAndSync(tripId: string, next: JournalEntry[]) {
-		saveLocal(tripId, next);
-		setMeta(tripId, new Date().toISOString());
-		scheduleSync(tripId);
-	}
-
-	function scheduleSync(tripId: string) {
-		const existing = syncTimers.get(tripId);
-		if (existing) clearTimeout(existing);
-		syncTimers.set(
-			tripId,
-			setTimeout(() => {
-				syncTimers.delete(tripId);
-				pushToServer(tripId);
-			}, SYNC_DEBOUNCE_MS)
-		);
+		const now = new Date().toISOString();
+		const cleaned = next.map((e) => ({
+			...e,
+			blocks: stripTransientFields(e.blocks)
+		}));
+		// Fire-and-forget IndexedDB write (the in-memory store is source of truth for UI)
+		dbPut('journal', tripId, cleaned).catch(() => {});
+		dbPut('meta', `hw-journal-meta-${tripId}`, now).catch(() => {});
+		// Sync to server immediately — no debounce
+		pushToServer(tripId).catch(() => {});
 	}
 
 	async function pushToServer(tripId: string) {
 		try {
 			const { saveJournal } = await import('$lib/services/trips-api');
 			const entries = getEntries(tripId);
-			// Strip transient fields before sending to server
 			const cleaned = entries.map((e) => ({
 				...e,
 				blocks: stripTransientFields(e.blocks)
 			}));
-			const meta = loadMeta();
-			const updatedAt = meta[tripId] || new Date().toISOString();
+			const updatedAt = (await dbGet<string>('meta', `hw-journal-meta-${tripId}`)) || new Date().toISOString();
 			const result = await saveJournal(tripId, cleaned, updatedAt);
 			if (result.ok) {
-				setMeta(tripId, result.updatedAt);
+				dbPut('meta', `hw-journal-meta-${tripId}`, result.updatedAt).catch(() => {});
 			} else if (result.serverJournal) {
 				const migrated = migrateAll(result.serverJournal);
 				update((state) => ({ ...state, [tripId]: migrated }));
-				saveLocal(tripId, migrated);
-				setMeta(tripId, result.updatedAt);
+				dbPut('journal', tripId, migrated).catch(() => {});
+				dbPut('meta', `hw-journal-meta-${tripId}`, result.updatedAt).catch(() => {});
 			}
 		} catch {
-			// offline — localStorage has latest, will retry on next save
+			// offline — IndexedDB has latest, will retry on next save
 		}
 	}
 
@@ -125,19 +81,20 @@ function createJournalStore() {
 		try {
 			const { fetchJournal, saveJournal } = await import('$lib/services/trips-api');
 			const result = await fetchJournal(tripId);
-			const meta = loadMeta();
-			const localTs = meta[tripId] || '';
+			const localTs = (await dbGet<string>('meta', `hw-journal-meta-${tripId}`)) || '';
 			if (result.updatedAt === null) {
 				if (localTs) {
 					const entries = getEntries(tripId);
 					const saveResult = await saveJournal(tripId, entries, localTs);
-					if (saveResult.ok) setMeta(tripId, saveResult.updatedAt);
+					if (saveResult.ok) {
+						await dbPut('meta', `hw-journal-meta-${tripId}`, saveResult.updatedAt);
+					}
 				}
 			} else if (!localTs || result.updatedAt > localTs) {
 				const migrated = migrateAll(result.journal);
 				update((state) => ({ ...state, [tripId]: migrated }));
-				saveLocal(tripId, migrated);
-				setMeta(tripId, result.updatedAt);
+				await dbPut('journal', tripId, migrated);
+				await dbPut('meta', `hw-journal-meta-${tripId}`, result.updatedAt);
 			}
 		} catch {
 			// offline
@@ -163,9 +120,12 @@ function createJournalStore() {
 	return {
 		subscribe,
 
-		init(tripId: string) {
-			const local = loadLocal(tripId);
-			update((state) => ({ ...state, [tripId]: local }));
+		async init(tripId: string) {
+			// Load from IndexedDB first
+			const local = (await dbGet<JournalEntry[]>('journal', tripId)) ?? [];
+			const migrated = local.length > 0 ? migrateAll(local) : [];
+			update((state) => ({ ...state, [tripId]: migrated }));
+			// Then pull from server (server wins if newer)
 			pullFromServer(tripId);
 		},
 
