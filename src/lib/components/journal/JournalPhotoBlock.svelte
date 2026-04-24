@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import type { JournalPhotoBlock as PhotoBlockType } from '$lib/types/trip';
+	import { getCachedPhotoUrl, fetchAndCachePhoto } from '$lib/services/photo-cache';
 
 	export let block: PhotoBlockType;
 	export let tripId: string = '';
@@ -20,15 +21,24 @@
 		resolvedSrc = block.photoId;
 		imgError = false;
 	} else if (block.photoId && tripId) {
-		// Server-hosted photo — keep previous src visible while resolving
+		// Server-hosted photo — try local cache first, then fetch
 		imgError = false;
-		resolveSignedUrl(block.photoId);
+		resolvePhoto(block.photoId);
 	}
 
-	async function resolveSignedUrl(filename: string) {
+	async function resolvePhoto(filename: string) {
+		// 1. Check IndexedDB blob cache (instant, no network)
+		const cached = await getCachedPhotoUrl(tripId, filename);
+		if (cached) {
+			resolvedSrc = cached;
+			return;
+		}
+
+		// 2. No local cache — get signed URL, fetch blob, cache it
 		try {
 			const { getPhotoUrl } = await import('$lib/utils/signed-url-cache');
-			resolvedSrc = await getPhotoUrl(tripId, filename);
+			const signedUrl = await getPhotoUrl(tripId, filename);
+			resolvedSrc = await fetchAndCachePhoto(tripId, filename, signedUrl);
 		} catch {
 			resolvedSrc = '';
 		}

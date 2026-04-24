@@ -140,13 +140,15 @@
 		// Upload to server
 		uploadPhoto(tripId, file)
 			.then(async ({ filename }) => {
-				// Pre-resolve the signed URL before swapping out the blob URL
-				// so the photo never disappears during the transition
+				// Seed the blob cache with the original file so subsequent
+				// renders never need to re-download this image from the server
 				try {
+					const { fetchAndCachePhoto } = await import('$lib/services/photo-cache');
 					const { getPhotoUrl } = await import('$lib/utils/signed-url-cache');
-					await getPhotoUrl(tripId, filename);
+					const signedUrl = await getPhotoUrl(tripId, filename);
+					await fetchAndCachePhoto(tripId, filename, signedUrl);
 				} catch {
-					// Signed URL failed — updatePhotoId will trigger a lazy resolve
+					// Cache seeding failed — photo will be fetched on next render
 				}
 				URL.revokeObjectURL(localUrl);
 				journalStore.updatePhotoId(tripId, dayIndex, photoBlock.id, filename);
