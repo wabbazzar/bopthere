@@ -8,7 +8,7 @@ import type {
 	JournalPhotoBlock
 } from '$lib/types/trip';
 import { migrateEntry, stripTransientFields } from '$lib/utils/journal-migration';
-import { dbGet, dbPut } from '$lib/stores/db';
+import { dbGet, dbPut, dbDelete, dbGetAll } from '$lib/stores/db';
 
 type JournalByTrip = Record<string, JournalEntry[]>;
 
@@ -16,6 +16,13 @@ const ITINERARY_SLOTS = ['travel', 'morning', 'afternoon', 'evening'] as const;
 
 function migrateAll(entries: unknown[]): JournalEntry[] {
 	return entries.map((e) => migrateEntry(e as Record<string, unknown>));
+}
+
+/** Strip _version and _deleted metadata from server responses before storing in UI state. */
+function cleanServerEntry(e: Record<string, unknown>): JournalEntry {
+	const entry = migrateEntry(e);
+	if ('_version' in e) entry.version = e._version as number;
+	return entry;
 }
 
 /** Snapshot non-empty planning fields into checklist items. */
@@ -30,6 +37,19 @@ function deriveItinerary(day: TripDay): ItineraryCheckItem[] {
 	return items;
 }
 
+/** IndexedDB key for a per-entry journal record. */
+function idbKey(tripId: string, dayIndex: number): string {
+	return `${tripId}:${dayIndex}`;
+}
+
+/** Prepare an entry for persistence — strip transient fields. */
+function cleanForPersist(entry: JournalEntry): JournalEntry {
+	return {
+		...entry,
+		blocks: stripTransientFields(entry.blocks)
+	};
+}
+
 function createJournalStore() {
 	const { subscribe, update } = writable<JournalByTrip>({});
 
@@ -38,39 +58,56 @@ function createJournalStore() {
 	}
 
 	/**
-	 * Persist to IndexedDB and sync to server IMMEDIATELY.
+	 * Persist a SINGLE entry to IndexedDB and sync to server IMMEDIATELY.
 	 * No debounce — journal data is Tier 1.
 	 */
-	function persistAndSync(tripId: string, next: JournalEntry[]) {
-		const now = new Date().toISOString();
-		const cleaned = next.map((e) => ({
-			...e,
-			blocks: stripTransientFields(e.blocks)
-		}));
-		// Fire-and-forget IndexedDB write (the in-memory store is source of truth for UI)
-		dbPut('journal', tripId, cleaned).catch(() => {});
-		dbPut('meta', `hw-journal-meta-${tripId}`, now).catch(() => {});
-		// Sync to server immediately — no debounce
-		pushToServer(tripId).catch(() => {});
+	function persistAndSyncEntry(tripId: string, entry: JournalEntry) {
+		const cleaned = cleanForPersist(entry);
+		// Write to IndexedDB (fire-and-forget — in-memory store is UI source of truth)
+		dbPut('journal', idbKey(tripId, entry.dayIndex), cleaned).catch(() => {});
+		// Sync this single entry to server immediately
+		pushEntryToServer(tripId, entry.dayIndex).catch(() => {});
 	}
 
-	async function pushToServer(tripId: string) {
+	async function pushEntryToServer(tripId: string, dayIndex: number) {
 		try {
-			const { saveJournal } = await import('$lib/services/trips-api');
-			const entries = getEntries(tripId);
-			const cleaned = entries.map((e) => ({
-				...e,
-				blocks: stripTransientFields(e.blocks)
-			}));
-			const updatedAt = (await dbGet<string>('meta', `hw-journal-meta-${tripId}`)) || new Date().toISOString();
-			const result = await saveJournal(tripId, cleaned, updatedAt);
+			const { saveJournalEntry } = await import('$lib/services/trips-api');
+			const entry = getEntries(tripId).find((e) => e.dayIndex === dayIndex);
+			if (!entry) return;
+			const cleaned = cleanForPersist(entry);
+			// Strip version from the entry body (it's sent separately)
+			const { version, ...entryBody } = cleaned;
+			const result = await saveJournalEntry(tripId, dayIndex, entryBody as JournalEntry, version ?? null);
 			if (result.ok) {
-				dbPut('meta', `hw-journal-meta-${tripId}`, result.updatedAt).catch(() => {});
-			} else if (result.serverJournal) {
-				const migrated = migrateAll(result.serverJournal);
-				update((state) => ({ ...state, [tripId]: migrated }));
-				dbPut('journal', tripId, migrated).catch(() => {});
-				dbPut('meta', `hw-journal-meta-${tripId}`, result.updatedAt).catch(() => {});
+				// Update the version in the in-memory store
+				update((state) => {
+					const entries = state[tripId] ?? [];
+					const idx = entries.findIndex((e) => e.dayIndex === dayIndex);
+					if (idx !== -1) {
+						const next = [...entries];
+						next[idx] = { ...next[idx], version: result.version };
+						// Also update IndexedDB with the new version
+						dbPut('journal', idbKey(tripId, dayIndex), cleanForPersist(next[idx])).catch(() => {});
+						return { ...state, [tripId]: next };
+					}
+					return state;
+				});
+			} else if (result.serverEntry) {
+				// Server has newer data — accept it (conflict resolution)
+				const serverEntry = cleanServerEntry(result.serverEntry as unknown as Record<string, unknown>);
+				serverEntry.version = result.version;
+				update((state) => {
+					const entries = state[tripId] ?? [];
+					const idx = entries.findIndex((e) => e.dayIndex === dayIndex);
+					const next = [...entries];
+					if (idx !== -1) {
+						next[idx] = serverEntry;
+					} else {
+						next.push(serverEntry);
+					}
+					dbPut('journal', idbKey(tripId, dayIndex), cleanForPersist(serverEntry)).catch(() => {});
+					return { ...state, [tripId]: next };
+				});
 			}
 		} catch {
 			// offline — IndexedDB has latest, will retry on next save
@@ -79,23 +116,39 @@ function createJournalStore() {
 
 	async function pullFromServer(tripId: string) {
 		try {
-			const { fetchJournal, saveJournal } = await import('$lib/services/trips-api');
-			const result = await fetchJournal(tripId);
-			const localTs = (await dbGet<string>('meta', `hw-journal-meta-${tripId}`)) || '';
-			if (result.updatedAt === null) {
-				if (localTs) {
-					const entries = getEntries(tripId);
-					const saveResult = await saveJournal(tripId, entries, localTs);
-					if (saveResult.ok) {
-						await dbPut('meta', `hw-journal-meta-${tripId}`, saveResult.updatedAt);
+			const { fetchJournalEntries } = await import('$lib/services/trips-api');
+			const result = await fetchJournalEntries(tripId);
+			if (!result.entries.length) return;
+
+			const serverEntries = result.entries.map((e) => {
+				const entry = cleanServerEntry(e as unknown as Record<string, unknown>);
+				return entry;
+			});
+
+			update((state) => {
+				const local = state[tripId] ?? [];
+				const merged = [...local];
+
+				for (const serverEntry of serverEntries) {
+					const localIdx = merged.findIndex((e) => e.dayIndex === serverEntry.dayIndex);
+					const localVersion = localIdx !== -1 ? (merged[localIdx].version ?? 0) : 0;
+					const serverVersion = serverEntry.version ?? 1;
+
+					if (serverVersion > localVersion) {
+						// Server is newer — accept
+						if (localIdx !== -1) {
+							merged[localIdx] = serverEntry;
+						} else {
+							merged.push(serverEntry);
+						}
+						dbPut('journal', idbKey(tripId, serverEntry.dayIndex), cleanForPersist(serverEntry)).catch(() => {});
 					}
 				}
-			} else if (!localTs || result.updatedAt > localTs) {
-				const migrated = migrateAll(result.journal);
-				update((state) => ({ ...state, [tripId]: migrated }));
-				await dbPut('journal', tripId, migrated);
-				await dbPut('meta', `hw-journal-meta-${tripId}`, result.updatedAt);
-			}
+
+				// Sort by dayIndex for consistent ordering
+				merged.sort((a, b) => a.dayIndex - b.dayIndex);
+				return { ...state, [tripId]: merged };
+			});
 		} catch {
 			// offline
 		}
@@ -112,7 +165,8 @@ function createJournalStore() {
 			if (idx === -1) return state;
 			const next = [...entries];
 			next[idx] = updater({ ...next[idx] });
-			persistAndSync(tripId, next);
+			// Persist and sync just this one entry
+			persistAndSyncEntry(tripId, next[idx]);
 			return { ...state, [tripId]: next };
 		});
 	}
@@ -121,11 +175,31 @@ function createJournalStore() {
 		subscribe,
 
 		async init(tripId: string) {
-			// Load from IndexedDB first
-			const local = (await dbGet<JournalEntry[]>('journal', tripId)) ?? [];
-			const migrated = local.length > 0 ? migrateAll(local) : [];
-			update((state) => ({ ...state, [tripId]: migrated }));
-			// Then pull from server (server wins if newer)
+			// Load from IndexedDB — try per-entry keys first, fall back to old blob
+			const allRows = await dbGetAll<JournalEntry>('journal');
+			const prefix = `${tripId}:`;
+			const perEntryRows = allRows.filter((r) => r.key.startsWith(prefix));
+
+			let entries: JournalEntry[];
+			if (perEntryRows.length > 0) {
+				entries = perEntryRows.map((r) => migrateEntry(r.value as unknown as Record<string, unknown>));
+			} else {
+				// Fall back to old blob key
+				const blob = await dbGet<JournalEntry[]>('journal', tripId);
+				entries = blob ? migrateAll(blob) : [];
+				// Migrate blob data to per-entry keys
+				if (entries.length > 0) {
+					for (const e of entries) {
+						await dbPut('journal', idbKey(tripId, e.dayIndex), cleanForPersist(e));
+					}
+					// Clean up old blob key
+					await dbDelete('journal', tripId);
+				}
+			}
+
+			entries.sort((a, b) => a.dayIndex - b.dayIndex);
+			update((state) => ({ ...state, [tripId]: entries }));
+			// Pull from server (server entries with higher versions win)
 			pullFromServer(tripId);
 		},
 
@@ -151,11 +225,12 @@ function createJournalStore() {
 				itinerary: deriveItinerary(day),
 				createdAt: now,
 				updatedAt: now
+				// version is undefined — will be set to 1 by server on first save
 			};
 
 			update((state) => {
 				const next = [...(state[tripId] ?? []), entry];
-				persistAndSync(tripId, next);
+				persistAndSyncEntry(tripId, entry);
 				return { ...state, [tripId]: next };
 			});
 
@@ -184,7 +259,6 @@ function createJournalStore() {
 			}));
 		},
 
-		/** Insert a block after the block with the given id. If afterBlockId is null, append. */
 		insertBlock(tripId: string, dayIndex: number, afterBlockId: string | null, block: JournalBlock) {
 			updateEntry(tripId, dayIndex, (e) => {
 				const blocks = [...e.blocks];
@@ -202,7 +276,6 @@ function createJournalStore() {
 			});
 		},
 
-		/** Remove a block. If a photo block is removed between two text blocks, merge them. */
 		removeBlock(tripId: string, dayIndex: number, blockId: string) {
 			updateEntry(tripId, dayIndex, (e) => {
 				const idx = e.blocks.findIndex((b) => b.id === blockId);
@@ -210,7 +283,6 @@ function createJournalStore() {
 				const blocks = [...e.blocks];
 				blocks.splice(idx, 1);
 
-				// Merge adjacent text blocks
 				for (let i = blocks.length - 1; i > 0; i--) {
 					if (blocks[i].type === 'text' && blocks[i - 1].type === 'text') {
 						const prev = blocks[i - 1] as JournalTextBlock;
@@ -223,7 +295,6 @@ function createJournalStore() {
 					}
 				}
 
-				// Ensure at least one text block
 				if (blocks.length === 0) {
 					blocks.push({ id: crypto.randomUUID(), type: 'text', content: '' });
 				}
@@ -232,7 +303,6 @@ function createJournalStore() {
 			});
 		},
 
-		/** Split a text block at cursor position and insert a photo block between the halves. */
 		splitAndInsertPhoto(
 			tripId: string,
 			dayIndex: number,
@@ -261,7 +331,6 @@ function createJournalStore() {
 			});
 		},
 
-		/** Update a photo block's photoId (after upload completes). */
 		updatePhotoId(tripId: string, dayIndex: number, blockId: string, photoId: string) {
 			updateEntry(tripId, dayIndex, (e) => ({
 				...e,
@@ -274,7 +343,7 @@ function createJournalStore() {
 			}));
 		},
 
-		// ── Itinerary & metadata (unchanged) ──────────────────────
+		// ── Itinerary & metadata ──────────────────────────────────
 
 		toggleItineraryItem(tripId: string, dayIndex: number, itemIndex: number) {
 			updateEntry(tripId, dayIndex, (e) => {
@@ -312,13 +381,29 @@ function createJournalStore() {
 			}));
 		},
 
-		deleteEntry(tripId: string, dayIndex: number) {
+		async deleteEntry(tripId: string, dayIndex: number) {
+			const entry = getEntries(tripId).find((e) => e.dayIndex === dayIndex);
+			const version = entry?.version;
+
+			// Remove from in-memory state immediately
 			update((state) => {
 				const entries = state[tripId] ?? [];
 				const next = entries.filter((e) => e.dayIndex !== dayIndex);
-				persistAndSync(tripId, next);
 				return { ...state, [tripId]: next };
 			});
+
+			// Tombstone on server (if it has a version)
+			if (version) {
+				try {
+					const { deleteJournalEntry } = await import('$lib/services/trips-api');
+					await deleteJournalEntry(tripId, dayIndex, version);
+				} catch {
+					// offline — entry is removed locally
+				}
+			}
+
+			// Remove from IndexedDB
+			dbDelete('journal', idbKey(tripId, dayIndex)).catch(() => {});
 		}
 	};
 }

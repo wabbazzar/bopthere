@@ -1,6 +1,6 @@
 import { PUBLIC_CHAT_API_URL } from '$env/static/public';
 import { getToken } from '$lib/services/auth';
-import type { Trip, JournalEntry } from '$lib/types/trip';
+import type { Trip, JournalEntry, TripDay, Todo } from '$lib/types/trip';
 
 const API_URL = PUBLIC_CHAT_API_URL;
 
@@ -200,4 +200,241 @@ export async function saveJournal(
 	if (!res.ok) throw new Error(`Failed to save journal (${res.status})`);
 	const data = await res.json();
 	return { ok: true, updatedAt: data.updatedAt };
+}
+
+// ── Journal per-entry API ────────────────────────────────────
+
+export async function fetchJournalEntries(
+	tripId: string
+): Promise<{ entries: JournalEntry[] }> {
+	if (!getToken()) return { entries: [] };
+	const res = await fetch(`${API_URL}/api/trips/${tripId}/journal/entries`, {
+		headers: headers()
+	});
+	if (!res.ok) throw new Error(`Failed to fetch journal entries (${res.status})`);
+	const data = await res.json();
+	return { entries: data.entries ?? [] };
+}
+
+export async function saveJournalEntry(
+	tripId: string,
+	dayIndex: number,
+	entry: JournalEntry,
+	version: number | null
+): Promise<{ ok: boolean; version: number; serverEntry?: JournalEntry }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/journal/entries/${dayIndex}`,
+		{
+			method: 'PUT',
+			headers: headers(),
+			body: JSON.stringify({ entry, version })
+		}
+	);
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version, serverEntry: detail.serverEntry };
+	}
+	if (!res.ok) throw new Error(`Failed to save journal entry (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
+}
+
+export async function deleteJournalEntry(
+	tripId: string,
+	dayIndex: number,
+	version: number
+): Promise<{ ok: boolean; version: number }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/journal/entries/${dayIndex}`,
+		{
+			method: 'DELETE',
+			headers: headers(),
+			body: JSON.stringify({ version })
+		}
+	);
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version };
+	}
+	if (!res.ok) throw new Error(`Failed to delete journal entry (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
+}
+
+// ── Trip day per-entry API ───────────────────────────────────
+
+export async function fetchTripDays(
+	tripId: string
+): Promise<{ days: (TripDay & { _version: number })[] }> {
+	if (!getToken()) return { days: [] };
+	const res = await fetch(`${API_URL}/api/trips/${tripId}/days`, {
+		headers: headers()
+	});
+	if (!res.ok) throw new Error(`Failed to fetch trip days (${res.status})`);
+	const data = await res.json();
+	return { days: data.days ?? [] };
+}
+
+export async function saveTripDay(
+	tripId: string,
+	dayIndex: number,
+	day: TripDay,
+	version: number | null
+): Promise<{ ok: boolean; version: number; serverDay?: TripDay }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/days/${dayIndex}`,
+		{
+			method: 'PUT',
+			headers: headers(),
+			body: JSON.stringify({ day, version })
+		}
+	);
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version, serverDay: detail.serverDay };
+	}
+	if (!res.ok) throw new Error(`Failed to save trip day (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
+}
+
+export async function deleteTripDay(
+	tripId: string,
+	dayIndex: number,
+	version: number
+): Promise<{ ok: boolean; version: number }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/days/${dayIndex}`,
+		{
+			method: 'DELETE',
+			headers: headers(),
+			body: JSON.stringify({ version })
+		}
+	);
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version };
+	}
+	if (!res.ok) throw new Error(`Failed to delete trip day (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
+}
+
+// ── Trip meta API ────────────────────────────────────────────
+
+export async function fetchTripMeta(
+	tripId: string
+): Promise<{ meta: Record<string, unknown>; version: number } | null> {
+	if (!getToken()) return null;
+	const res = await fetch(`${API_URL}/api/trips/${tripId}/meta`, {
+		headers: headers()
+	});
+	if (res.status === 404) return null;
+	if (!res.ok) throw new Error(`Failed to fetch trip meta (${res.status})`);
+	const data = await res.json();
+	return { meta: data.meta, version: data.version };
+}
+
+export async function saveTripMeta(
+	tripId: string,
+	meta: Record<string, unknown>,
+	version: number | null
+): Promise<{ ok: boolean; version: number; serverMeta?: Record<string, unknown> }> {
+	const res = await fetch(`${API_URL}/api/trips/${tripId}/meta`, {
+		method: 'PUT',
+		headers: headers(),
+		body: JSON.stringify({ meta, version })
+	});
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version, serverMeta: detail.serverMeta };
+	}
+	if (!res.ok) throw new Error(`Failed to save trip meta (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
+}
+
+// ── Todo per-entry API ───────────────────────────────────────
+
+export async function fetchTodoEntries(
+	tripId: string
+): Promise<{ entries: (Todo & { _version: number; id: string })[] }> {
+	if (!getToken()) return { entries: [] };
+	const res = await fetch(`${API_URL}/api/trips/${tripId}/todos/entries`, {
+		headers: headers()
+	});
+	if (!res.ok) throw new Error(`Failed to fetch todo entries (${res.status})`);
+	const data = await res.json();
+	return { entries: data.entries ?? [] };
+}
+
+export async function saveTodoEntry(
+	tripId: string,
+	todoId: string,
+	entry: Todo,
+	sortOrder: number,
+	version: number | null
+): Promise<{ ok: boolean; version: number; serverEntry?: Todo }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/todos/entries/${todoId}`,
+		{
+			method: 'PUT',
+			headers: headers(),
+			body: JSON.stringify({ entry, sortOrder, version })
+		}
+	);
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version, serverEntry: detail.serverEntry };
+	}
+	if (!res.ok) throw new Error(`Failed to save todo entry (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
+}
+
+export async function createTodoEntry(
+	tripId: string,
+	entry: Todo,
+	sortOrder: number
+): Promise<{ ok: boolean; todoId: string; version: number }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/todos/entries`,
+		{
+			method: 'POST',
+			headers: headers(),
+			body: JSON.stringify({ entry, sortOrder })
+		}
+	);
+	if (!res.ok) throw new Error(`Failed to create todo entry (${res.status})`);
+	const data = await res.json();
+	return { ok: true, todoId: data.todoId, version: data.version };
+}
+
+export async function deleteTodoEntry(
+	tripId: string,
+	todoId: string,
+	version: number
+): Promise<{ ok: boolean; version: number }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/todos/entries/${todoId}`,
+		{
+			method: 'DELETE',
+			headers: headers(),
+			body: JSON.stringify({ version })
+		}
+	);
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version };
+	}
+	if (!res.ok) throw new Error(`Failed to delete todo entry (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
 }

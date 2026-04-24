@@ -19,6 +19,7 @@ export interface TripDay {
 	notes: string;
 	ooo: boolean;
 	mapLinks?: MapLink[];
+	version?: number;
 }
 
 export interface Booking {
@@ -29,6 +30,8 @@ export interface Booking {
 	details: string[];
 	ticketUrl?: string | string[];
 	bookingUrl?: string;
+	id?: string;
+	version?: number;
 }
 
 export interface Trip {
@@ -94,4 +97,14 @@ export interface JournalEntry {
 	weather?: string;
 	createdAt: string;
 	updatedAt: string;
+	version?: number;
+}
+
+// ── Todos ────────────────────────────────────────────────────
+
+export interface Todo {
+	text: string;
+	done: boolean;
+	id?: string;
+	version?: number;
 }
