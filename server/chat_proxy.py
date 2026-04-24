@@ -44,6 +44,11 @@ from db import (
     save_todos,
     save_trip,
     ticket_path,
+    get_journal_entries, get_journal_entry, save_journal_entry, delete_journal_entry,
+    get_trip_day_entries, get_trip_day_entry, save_trip_day_entry, delete_trip_day_entry,
+    get_trip_meta, save_trip_meta,
+    get_todo_entries, get_todo_entry, save_todo_entry, delete_todo_entry,
+    get_booking_entries, get_booking_entry, save_booking_entry, delete_booking_entry,
 )
 
 app = FastAPI(title="H&W Chat Proxy", docs_url=None, redoc_url=None)
@@ -590,6 +595,317 @@ async def get_photo(trip_id: str, name: str, exp: int, sig: str):
         media_type=media_type,
         headers={"Cache-Control": "private, max-age=3600"},
     )
+
+
+# ── Per-entry Journal endpoints ────────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/journal/entries")
+async def list_journal_entries(
+    trip_id: str,
+    include_deleted: bool = False,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    entries = get_journal_entries(trip_id, include_deleted=include_deleted)
+    return {"entries": entries, "tripId": trip_id}
+
+
+@app.get("/api/trips/{trip_id}/journal/entries/{day_index}")
+async def get_single_journal_entry(
+    trip_id: str, day_index: int, authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    entry = get_journal_entry(trip_id, day_index)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Journal entry not found")
+    version = entry.pop("_version", 1)
+    return {"entry": entry, "version": version, "tripId": trip_id}
+
+
+class SaveJournalEntryRequest(BaseModel):
+    entry: dict
+    version: int | None = None
+
+
+@app.put("/api/trips/{trip_id}/journal/entries/{day_index}")
+async def put_journal_entry(
+    trip_id: str,
+    day_index: int,
+    req: SaveJournalEntryRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version, conflict_entry = save_journal_entry(
+        trip_id, day_index, json.dumps(req.entry), req.version,
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "serverEntry": conflict_entry, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+class DeleteVersionRequest(BaseModel):
+    version: int
+
+
+@app.delete("/api/trips/{trip_id}/journal/entries/{day_index}")
+async def remove_journal_entry(
+    trip_id: str,
+    day_index: int,
+    req: DeleteVersionRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version = delete_journal_entry(trip_id, day_index, req.version)
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+# ── Per-entry Trip days endpoints ──────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/days")
+async def list_trip_days(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    days = get_trip_day_entries(trip_id)
+    return {"days": days, "tripId": trip_id}
+
+
+@app.get("/api/trips/{trip_id}/days/{day_index}")
+async def get_single_trip_day(
+    trip_id: str, day_index: int, authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    day = get_trip_day_entry(trip_id, day_index)
+    if day is None:
+        raise HTTPException(status_code=404, detail="Day not found")
+    version = day.pop("_version", 1)
+    return {"day": day, "version": version}
+
+
+class SaveTripDayRequest(BaseModel):
+    day: dict
+    version: int | None = None
+
+
+@app.put("/api/trips/{trip_id}/days/{day_index}")
+async def put_trip_day(
+    trip_id: str,
+    day_index: int,
+    req: SaveTripDayRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version, conflict_entry = save_trip_day_entry(
+        trip_id, day_index, json.dumps(req.day), req.version,
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "serverEntry": conflict_entry, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+@app.delete("/api/trips/{trip_id}/days/{day_index}")
+async def remove_trip_day(
+    trip_id: str,
+    day_index: int,
+    req: DeleteVersionRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version = delete_trip_day_entry(trip_id, day_index, req.version)
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+# ── Trip metadata endpoints ────────────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/meta")
+async def get_trip_meta_endpoint(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    result = get_trip_meta(trip_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Trip metadata not found")
+    version = result.pop("_version", 1)
+    result.pop("_deleted", None)
+    return {"meta": result, "version": version}
+
+
+class SaveTripMetaRequest(BaseModel):
+    meta: dict
+    version: int | None = None
+
+
+@app.put("/api/trips/{trip_id}/meta")
+async def put_trip_meta(
+    trip_id: str,
+    req: SaveTripMetaRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version, conflict_meta = save_trip_meta(
+        trip_id, json.dumps(req.meta), req.version,
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "serverEntry": conflict_meta, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+# ── Per-entry Todo endpoints ──────────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/todos/entries")
+async def list_todo_entries(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    entries = get_todo_entries(trip_id)
+    return {"entries": entries, "tripId": trip_id}
+
+
+class SaveTodoEntryRequest(BaseModel):
+    entry: dict
+    sortOrder: int = 0
+    version: int | None = None
+
+
+@app.put("/api/trips/{trip_id}/todos/entries/{todo_id}")
+async def put_todo_entry(
+    trip_id: str,
+    todo_id: str,
+    req: SaveTodoEntryRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version, conflict_entry = save_todo_entry(
+        trip_id, todo_id, json.dumps(req.entry), req.version,
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "serverEntry": conflict_entry, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+class CreateTodoEntryRequest(BaseModel):
+    entry: dict
+    sortOrder: int = 0
+
+
+@app.post("/api/trips/{trip_id}/todos/entries")
+async def create_todo_entry(
+    trip_id: str,
+    req: CreateTodoEntryRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    todo_id = str(uuid.uuid4())
+    ok, version, _ = save_todo_entry(
+        trip_id, todo_id, json.dumps(req.entry), None,
+    )
+    return {"ok": True, "todoId": todo_id, "version": 1}
+
+
+@app.delete("/api/trips/{trip_id}/todos/entries/{todo_id}")
+async def remove_todo_entry(
+    trip_id: str,
+    todo_id: str,
+    req: DeleteVersionRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version = delete_todo_entry(trip_id, todo_id, req.version)
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+# ── Per-entry Booking endpoints ────────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/bookings/entries")
+async def list_booking_entries(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    entries = get_booking_entries(trip_id)
+    return {"entries": entries, "tripId": trip_id}
+
+
+class SaveBookingEntryRequest(BaseModel):
+    entry: dict
+    version: int | None = None
+
+
+@app.put("/api/trips/{trip_id}/bookings/entries/{booking_id}")
+async def put_booking_entry(
+    trip_id: str,
+    booking_id: str,
+    req: SaveBookingEntryRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version, conflict_entry = save_booking_entry(
+        trip_id, booking_id, json.dumps(req.entry), req.version,
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "serverEntry": conflict_entry, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+class CreateBookingEntryRequest(BaseModel):
+    entry: dict
+
+
+@app.post("/api/trips/{trip_id}/bookings/entries")
+async def create_booking_entry(
+    trip_id: str,
+    req: CreateBookingEntryRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    booking_id = str(uuid.uuid4())
+    ok, version, _ = save_booking_entry(
+        trip_id, booking_id, json.dumps(req.entry), None,
+    )
+    return {"ok": True, "bookingId": booking_id, "version": 1}
 
 
 @app.get("/health")
