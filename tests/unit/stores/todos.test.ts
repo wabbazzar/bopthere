@@ -24,7 +24,15 @@ vi.mock('$lib/services/trips-api', () => {
 		saveTodos: vi.fn(async (tripId: string, todos: { text: string; done: boolean }[], updatedAt: string) => {
 			serverState[tripId] = { todos, updatedAt };
 			return { ok: true, updatedAt };
-		})
+		}),
+		fetchTodoEntries: vi.fn(async () => ({ entries: [] })),
+		saveTodoEntry: vi.fn(async (_tripId: string, _todoId: string, _entry: unknown, _sortOrder: number, _version: unknown) => {
+			return { ok: true, version: 1 };
+		}),
+		createTodoEntry: vi.fn(async (tripId: string, entry: { text: string; done: boolean }, sortOrder: number) => {
+			return { ok: true, todoId: 'server-' + Math.random().toString(36).slice(2, 8), version: 1 };
+		}),
+		deleteTodoEntry: vi.fn(async () => ({ ok: true, version: 1 }))
 	};
 });
 
@@ -77,16 +85,23 @@ describe('todos store — per-trip isolation', () => {
 		expect(get(store)['trip-b']).toEqual([]);
 	});
 
-	it('persists per-trip in IndexedDB', async () => {
+	it('persists per-trip in IndexedDB (per-entry keys)', async () => {
 		const store = await freshStore();
 		await store.init('trip-x');
 		await new Promise((r) => setTimeout(r, 50));
 		store.add('trip-x', 'Buy adapter');
 		// Allow async IndexedDB write to complete
 		await new Promise((r) => setTimeout(r, 100));
-		const saved = await dbGet<{ text: string; done: boolean }[]>('todos', 'trip-x');
-		expect(saved).toBeTruthy();
-		expect(saved![0].text).toBe('Buy adapter');
+		// Todos are now stored per-entry with key "{tripId}:{todoId}"
+		const todos = get(store)['trip-x'];
+		expect(todos).toHaveLength(1);
+		expect(todos[0].text).toBe('Buy adapter');
+		expect(todos[0].id).toBeTruthy();
+		// Verify it's in IndexedDB under the per-entry key
+		const { dbGetAll } = await import('$lib/stores/db');
+		const allRows = await dbGetAll('todos');
+		const tripXRows = allRows.filter((r) => r.key.startsWith('trip-x:'));
+		expect(tripXRows).toHaveLength(1);
 	});
 });
 
@@ -114,9 +129,10 @@ describe('todos store — server sync isolation', () => {
 		await new Promise((r) => setTimeout(r, 100));
 
 		store.add('trip-a', 'A-only task');
-		await flushSyncTimers();
+		// New store uses createTodoEntry for new todos (fire-and-forget)
+		await new Promise((r) => setTimeout(r, 200));
 
-		const calls = (api.saveTodos as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+		const calls = (api.createTodoEntry as unknown as { mock: { calls: unknown[][] } }).mock.calls;
 		const tripIdsSaved = calls.map((c) => c[0]);
 		expect(tripIdsSaved).toContain('trip-a');
 		expect(tripIdsSaved).not.toContain('trip-b');
