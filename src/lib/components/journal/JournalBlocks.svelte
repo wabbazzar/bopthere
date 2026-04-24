@@ -111,7 +111,15 @@
 
 		// Upload to server
 		uploadPhoto(tripId, file)
-			.then(({ filename }) => {
+			.then(async ({ filename }) => {
+				// Pre-resolve the signed URL before swapping out the blob URL
+				// so the photo never disappears during the transition
+				try {
+					const { getPhotoUrl } = await import('$lib/utils/signed-url-cache');
+					await getPhotoUrl(tripId, filename);
+				} catch {
+					// Signed URL failed — updatePhotoId will trigger a lazy resolve
+				}
 				URL.revokeObjectURL(localUrl);
 				journalStore.updatePhotoId(tripId, dayIndex, photoBlock.id, filename);
 			})

@@ -20,8 +20,7 @@
 		resolvedSrc = block.photoId;
 		imgError = false;
 	} else if (block.photoId && tripId) {
-		// Server-hosted photo — clear stale src while resolving
-		resolvedSrc = '';
+		// Server-hosted photo — keep previous src visible while resolving
 		imgError = false;
 		resolveSignedUrl(block.photoId);
 	}
