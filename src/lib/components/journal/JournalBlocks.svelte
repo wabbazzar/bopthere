@@ -13,22 +13,50 @@
 	let fileInput: HTMLInputElement;
 	let activeTextBlockId: string | null = null;
 	let textBlockRefs: Record<string, JournalTextBlock> = {};
+	let pendingSave: { tripId: string; dayIndex: number; blockId: string; content: string } | null = null;
 	let saveTimer: ReturnType<typeof setTimeout> | null = null;
 	let dragOver = false;
+
+	/** Flush any pending text save immediately. */
+	function flushPendingSave() {
+		if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+		if (pendingSave) {
+			journalStore.updateBlockContent(pendingSave.tripId, pendingSave.dayIndex, pendingSave.blockId, pendingSave.content);
+			pendingSave = null;
+		}
+	}
+
+	// Flush pending save when dayIndex changes (user switching days)
+	$: dayIndex, flushPendingSave();
 
 	// ── Text block events ─────────────────────────────────────
 
 	function onTextInput(e: CustomEvent<{ blockId: string; content: string }>) {
 		const { blockId, content } = e.detail;
+		// Capture current tripId and dayIndex by VALUE, not reference
+		const saveTripId = tripId;
+		const saveDayIndex = dayIndex;
+		pendingSave = { tripId: saveTripId, dayIndex: saveDayIndex, blockId, content };
 		if (saveTimer) clearTimeout(saveTimer);
 		saveTimer = setTimeout(() => {
-			journalStore.updateBlockContent(tripId, dayIndex, blockId, content);
+			if (pendingSave) {
+				journalStore.updateBlockContent(pendingSave.tripId, pendingSave.dayIndex, pendingSave.blockId, pendingSave.content);
+				pendingSave = null;
+			}
 			saveTimer = null;
 		}, 2000);
 	}
 
 	function onTextFocus(e: CustomEvent<{ blockId: string }>) {
 		activeTextBlockId = e.detail.blockId;
+	}
+
+	function onTextBlur(e: CustomEvent<{ blockId: string; content: string }>) {
+		// Flush immediately on blur — don't wait for debounce
+		if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+		const { blockId, content } = e.detail;
+		journalStore.updateBlockContent(tripId, dayIndex, blockId, content);
+		pendingSave = null;
 	}
 
 	function onBackspaceAtStart(e: CustomEvent<{ blockId: string }>) {
@@ -197,6 +225,7 @@
 				placeholder={i === 0 && !block.content ? 'Write about your day...' : ''}
 				on:input={onTextInput}
 				on:focus={onTextFocus}
+				on:blur={onTextBlur}
 				on:backspaceatstart={onBackspaceAtStart}
 				bind:this={textBlockRefs[block.id]}
 			/>

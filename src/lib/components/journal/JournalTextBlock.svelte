@@ -8,6 +8,7 @@
 	const dispatch = createEventDispatcher<{
 		input: { blockId: string; content: string };
 		focus: { blockId: string };
+		blur: { blockId: string; content: string };
 		backspaceatstart: { blockId: string };
 	}>();
 
@@ -24,6 +25,12 @@
 
 	function onFocus() {
 		dispatch('focus', { blockId });
+	}
+
+	function onBlur() {
+		if (draft !== content) {
+			dispatch('blur', { blockId, content: draft });
+		}
 	}
 
 	function onKeydown(e: KeyboardEvent) {
@@ -69,6 +76,7 @@
 	value={draft}
 	on:input={onInput}
 	on:focus={onFocus}
+	on:blur={onBlur}
 	on:keydown={onKeydown}
 	use:initTextarea
 	{placeholder}
