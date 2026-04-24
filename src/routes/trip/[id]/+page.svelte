@@ -107,7 +107,7 @@
 				</button>
 				<span class="jump-sep" aria-hidden="true">·</span>
 			{/if}
-			{#if bookings && bookings.length > 0}
+			{#if $isAuthenticated}
 				<button
 					type="button"
 					class="jump-link"
@@ -177,10 +177,10 @@
 		</div>
 	{/if}
 
-	{#if bookings === null}
-		<div class="mt-8 text-sm" style="color: var(--ink-faint)">Loading bookings…</div>
-	{:else if bookings.length > 0}
-		<div id="bookings-section" class="section-wrap mt-8 scroll-mt-4">
+	<div id="bookings-section" class="section-wrap mt-8 scroll-mt-4">
+		{#if bookings === null}
+			<div class="text-sm" style="color: var(--ink-faint)">Loading bookings…</div>
+		{:else if bookings.length > 0}
 			<BookingsSection {bookings} {tripId} />
 			<button
 				type="button"
@@ -200,8 +200,8 @@
 					/>
 				</svg>
 			</button>
-		</div>
-	{/if}
+		{/if}
+	</div>
 
 	<div id="todos-section" class="section-wrap mt-6 scroll-mt-4">
 		<TodosSection {tripId} />
