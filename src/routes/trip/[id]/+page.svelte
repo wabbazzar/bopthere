@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { trips } from '$lib/stores/trips';
 	import { journalStore } from '$lib/stores/journal';
+	import { isAuthenticated } from '$lib/stores/auth';
 	import { onMount } from 'svelte';
 	import type { JournalEntry } from '$lib/types/trip';
 	import TripHeader from '$lib/components/trip/TripHeader.svelte';
@@ -41,7 +42,7 @@
 		}
 	});
 
-	$: if (tripId) loadBookings(tripId);
+	$: if (tripId && $isAuthenticated) loadBookings(tripId);
 
 	async function loadBookings(id: string) {
 		bookings = null;
