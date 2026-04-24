@@ -41,17 +41,26 @@ async function injectAuth(page: Page) {
 		const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
 			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 		const jwt = `${header}.${payload}.${signature}`;
+		localStorage.removeItem('hw-idb-migration-complete');
 		localStorage.setItem('hw-auth-token', jwt);
 		localStorage.setItem('hw-auth-user', JSON.stringify(user));
 	}, TEST_USER);
 }
 
-/** Reset trip data to defaults via localStorage (must call after injectAuth) */
+/** Reset trip data to defaults via localStorage + IndexedDB (must call after injectAuth) */
 async function resetTripData(page: Page) {
-	await page.evaluate(() => {
+	await page.evaluate(async () => {
 		localStorage.removeItem('hw-trips');
 		localStorage.removeItem('hw-trip-view-china-2026');
 		localStorage.removeItem('hw-trip-todos-china-2026');
+		localStorage.removeItem('hw-idb-migration-complete');
+		// Delete the IndexedDB entirely — the app will recreate it on next load
+		await new Promise<void>((resolve) => {
+			const req = indexedDB.deleteDatabase('hw-travel');
+			req.onsuccess = () => resolve();
+			req.onerror = () => resolve();
+			req.onblocked = () => resolve();
+		});
 	});
 }
 
@@ -233,7 +242,8 @@ test.describe('Field Editing — Tap to edit', () => {
 		const editInput = page.locator('input[type="text"]').first();
 		await editInput.fill('SURVIVES RELOAD XYZ');
 		await editInput.press('Enter');
-		await page.waitForTimeout(500);
+		// Wait for the debounced server sync to fire (2s debounce + margin)
+		await page.waitForTimeout(2500);
 
 		// Full page reload
 		await page.reload({ waitUntil: 'domcontentloaded' });
@@ -549,6 +559,11 @@ test.describe('Todos Section', () => {
 	test('Toggle todo checkbox marks item done', async ({ page }) => {
 		await goToDayView(page);
 
+		// Add a todo first (server has none for a clean trip)
+		await page.getByPlaceholder('Add a task...').fill('Toggle test item');
+		await page.getByRole('button', { name: 'Add', exact: true }).click();
+		await expect(page.locator('text=Toggle test item')).toBeVisible();
+
 		const firstCheckbox = page.getByRole('checkbox').first();
 		await firstCheckbox.check();
 		expect(await firstCheckbox.isChecked()).toBe(true);
@@ -559,6 +574,13 @@ test.describe('Todos Section', () => {
 
 	test('Delete todo removes it from list', async ({ page }) => {
 		await goToDayView(page);
+
+		// Add two todos first (server has none for a clean trip)
+		await page.getByPlaceholder('Add a task...').fill('Delete test item 1');
+		await page.getByRole('button', { name: 'Add', exact: true }).click();
+		await page.getByPlaceholder('Add a task...').fill('Delete test item 2');
+		await page.getByRole('button', { name: 'Add', exact: true }).click();
+		await expect(page.locator('text=Delete test item 2')).toBeVisible();
 
 		// Count todos via checkboxes (only todos have checkboxes)
 		const checkboxes = page.getByRole('checkbox');
@@ -576,6 +598,11 @@ test.describe('Todos Section', () => {
 
 	test('Tap todo text to edit', async ({ page }) => {
 		await goToDayView(page);
+
+		// Add a todo first (server has none for a clean trip)
+		await page.getByPlaceholder('Add a task...').fill('Edit test item');
+		await page.getByRole('button', { name: 'Add', exact: true }).click();
+		await expect(page.locator('text=Edit test item')).toBeVisible();
 
 		// Todo items have title="Tap to edit"
 		const firstTodo = page.locator('ul li [title="Tap to edit"]').first();

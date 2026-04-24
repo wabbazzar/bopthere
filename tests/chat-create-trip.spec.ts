@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { idbGet } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -27,6 +28,7 @@ async function injectAuth(page: Page): Promise<string> {
 		const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
 			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 		const jwt = `${header}.${payload}.${signature}`;
+		localStorage.removeItem('hw-idb-migration-complete');
 		localStorage.setItem('hw-auth-token', jwt);
 		localStorage.setItem('hw-auth-user', JSON.stringify(user));
 		return jwt;
@@ -37,7 +39,7 @@ async function injectAuth(page: Page): Promise<string> {
 async function navigateAuthenticated(page: Page, path: string) {
 	await injectAuth(page);
 	// Scrub any previously-added test trip so we start clean
-	await page.evaluate(() => {
+	await page.evaluate(async () => {
 		const raw = localStorage.getItem('hw-trips');
 		if (raw) {
 			try {
@@ -46,6 +48,13 @@ async function navigateAuthenticated(page: Page, path: string) {
 				localStorage.setItem('hw-trips', JSON.stringify(parsed));
 			} catch {}
 		}
+		// Delete the IndexedDB entirely — the app will recreate it on next load
+		await new Promise<void>((resolve) => {
+			const req = indexedDB.deleteDatabase('hw-travel');
+			req.onsuccess = () => resolve();
+			req.onerror = () => resolve();
+			req.onblocked = () => resolve();
+		});
 	});
 	await page.goto(`${BASE_URL}${path}`, { waitUntil: 'domcontentloaded' });
 	await page.waitForTimeout(1500);
@@ -131,17 +140,24 @@ test.describe('Chat — Create Trip (via chat FAB)', () => {
 
 		await assistant.locator('[aria-label="Create this trip"]').click();
 
+		// Wait for the trip to appear in IndexedDB
 		await page.waitForFunction(() => {
-			const raw = localStorage.getItem('hw-trips');
-			if (!raw) return false;
-			const parsed = JSON.parse(raw);
-			return Boolean(parsed['portugal-spring-2027']);
+			return new Promise((resolve) => {
+				const req = indexedDB.open('hw-travel', 1);
+				req.onsuccess = () => {
+					const db = req.result;
+					try {
+						const tx = db.transaction('trips', 'readonly');
+						const get = tx.objectStore('trips').get('portugal-spring-2027');
+						get.onsuccess = () => resolve(Boolean(get.result));
+						get.onerror = () => resolve(false);
+					} catch { resolve(false); }
+				};
+				req.onerror = () => resolve(false);
+			});
 		}, { timeout: 3000 });
 
-		const stored = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trips');
-			return raw ? JSON.parse(raw)['portugal-spring-2027'] : null;
-		});
+		const stored = await idbGet(page, 'trips', 'portugal-spring-2027');
 		expect(stored).toBeTruthy();
 		expect(stored.name).toBe('Portugal Spring 2027');
 		// Seeded days Apr 10 through Apr 14 inclusive = 5 days
@@ -165,11 +181,7 @@ test.describe('Chat — Create Trip (via chat FAB)', () => {
 
 		await expect(assistant.locator('[aria-label="Create trip action"]')).not.toBeVisible({ timeout: 3000 });
 
-		const present = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trips');
-			if (!raw) return false;
-			return Boolean(JSON.parse(raw)['portugal-spring-2027']);
-		});
-		expect(present).toBe(false);
+		const stored = await idbGet(page, 'trips', 'portugal-spring-2027');
+		expect(stored).toBeFalsy();
 	});
 });

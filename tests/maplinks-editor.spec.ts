@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { idbGet } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -27,6 +28,7 @@ async function injectAuth(page: Page) {
 		const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
 			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 		const jwt = `${header}.${payload}.${signature}`;
+		localStorage.removeItem('hw-idb-migration-complete');
 		localStorage.setItem('hw-auth-token', jwt);
 		localStorage.setItem('hw-auth-user', JSON.stringify(user));
 	}, TEST_USER);
@@ -95,12 +97,9 @@ test.describe('MapLinks editor', () => {
 		await expect(page.locator('text=Hotel to Airport').first()).toBeVisible();
 		await expect(page.locator('text=Grand Hyatt Shanghai → PVG Airport').first()).toBeVisible();
 
-		// Persisted to localStorage
-		const stored = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trips');
-			if (!raw) return null;
-			return JSON.parse(raw)['china-2026']?.days?.[0]?.mapLinks ?? [];
-		});
+		// Persisted to IndexedDB
+		const trip = await idbGet(page, 'trips', 'china-2026');
+		const stored = trip?.days?.[0]?.mapLinks ?? [];
 		expect(stored).toHaveLength(1);
 		expect(stored[0]).toEqual({
 			label: 'Hotel to Airport',
@@ -128,11 +127,8 @@ test.describe('MapLinks editor', () => {
 		await page.locator('button[type="submit"]', { hasText: 'Save' }).click();
 
 		await expect(page.locator('text=A to C').first()).toBeVisible();
-		const stored = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trips');
-			return JSON.parse(raw!)['china-2026'].days[0].mapLinks;
-		});
-		expect(stored).toEqual([{ label: 'A to C', from: 'A', to: 'C' }]);
+		const trip2 = await idbGet(page, 'trips', 'china-2026');
+		expect(trip2.days[0].mapLinks).toEqual([{ label: 'A to C', from: 'A', to: 'C' }]);
 	});
 
 	test('Delete a map link', async ({ page }) => {
@@ -148,11 +144,8 @@ test.describe('MapLinks editor', () => {
 		await page.locator('button[aria-label="Delete Doomed Route"]').click();
 		await expect(page.locator('text=Doomed Route')).not.toBeVisible();
 
-		const stored = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trips');
-			return JSON.parse(raw!)['china-2026'].days[0].mapLinks;
-		});
-		expect(stored).toEqual([]);
+		const trip3 = await idbGet(page, 'trips', 'china-2026');
+		expect(trip3.days[0].mapLinks).toEqual([]);
 	});
 
 	test('New link auto-chains "from" to prior link\'s "to"', async ({ page }) => {

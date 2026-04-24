@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { idbGet } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -27,6 +28,7 @@ async function injectAuth(page: Page) {
 		const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
 			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 		const jwt = `${header}.${payload}.${signature}`;
+		localStorage.removeItem('hw-idb-migration-complete');
 		localStorage.setItem('hw-auth-token', jwt);
 		localStorage.setItem('hw-auth-user', JSON.stringify(user));
 	}, TEST_USER);
@@ -113,10 +115,8 @@ test.describe('Chat action blocks — TRIP_DAYS', () => {
 		await assistant.locator('[aria-label="Apply day changes"]').click();
 		await expect(assistant.locator('[aria-label="Day changes applied"]')).toBeVisible();
 
-		const dayCount = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trips');
-			return raw ? JSON.parse(raw)['china-2026'].days.length : null;
-		});
+		const trip = await idbGet(page, 'trips', 'china-2026');
+		const dayCount = trip?.days?.length ?? null;
 		// Started with 2, duplicate → 3, add → 4
 		expect(dayCount).toBe(4);
 	});
@@ -129,8 +129,8 @@ test.describe('Chat action blocks — TRIP_DAYS', () => {
 		await assistant.locator('[aria-label="Dismiss day changes"]').click();
 		await expect(assistant.locator('[aria-label="Day reshape actions"]')).not.toBeVisible();
 
-		const dayCount = await page.evaluate(() => JSON.parse(localStorage.getItem('hw-trips')!)['china-2026'].days.length);
-		expect(dayCount).toBe(2);
+		const trip = await idbGet(page, 'trips', 'china-2026');
+		expect(trip?.days?.length).toBe(2);
 	});
 });
 
@@ -147,7 +147,7 @@ test.describe('Chat action blocks — TRIP_META', () => {
 		await assistant.locator('[aria-label="Apply trip meta"]').click();
 		await expect(assistant.locator('[aria-label="Trip meta applied"]')).toBeVisible();
 
-		const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('hw-trips')!)['china-2026']);
+		const stored = await idbGet(page, 'trips', 'china-2026');
 		expect(stored.name).toBe('China Spring 2026');
 		// Destinations are recomputed from day locations AFTER updateDestinations runs,
 		// because trip.destinations is also derived in other store paths; here we set
@@ -172,9 +172,9 @@ test.describe('Chat action blocks — TRIP_LINKS', () => {
 		await assistant.locator('[aria-label="Apply link changes"]').click();
 		await expect(assistant.locator('[aria-label="Link changes applied"]')).toBeVisible();
 
-		const links = await page.evaluate(() => JSON.parse(localStorage.getItem('hw-trips')!)['china-2026'].links);
+		const trip2 = await idbGet(page, 'trips', 'china-2026');
 		// add first → links = [original, booking.com]; delete index 0 → [booking.com]
-		expect(links).toEqual(['https://booking.com/hotel']);
+		expect(trip2.links).toEqual(['https://booking.com/hotel']);
 	});
 });
 
@@ -192,10 +192,7 @@ test.describe('Chat action blocks — TODOS', () => {
 		await assistant.locator('[aria-label="Apply todo changes"]').click();
 		await expect(assistant.locator('[aria-label="Todos applied"]')).toBeVisible();
 
-		const todos = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trip-todos-china-2026');
-			return raw ? JSON.parse(raw) : null;
-		});
+		const todos = await idbGet(page, 'todos', 'china-2026');
 		// Operations applied in order (0-indexed against the live store state at each step):
 		// [A, B] → add C → [A, B, C]
 		// → toggle idx 0 → [A(done), B, C]

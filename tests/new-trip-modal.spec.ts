@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { idbGet, idbGetAll } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -27,6 +28,7 @@ async function injectAuth(page: Page): Promise<void> {
 		const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
 			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 		const jwt = `${header}.${payload}.${signature}`;
+		localStorage.removeItem('hw-idb-migration-complete');
 		localStorage.setItem('hw-auth-token', jwt);
 		localStorage.setItem('hw-auth-user', JSON.stringify(user));
 	}, TEST_USER);
@@ -39,16 +41,24 @@ async function mountDashboard(page: Page) {
 	});
 	await injectAuth(page);
 	// Remove any leftover test trip so each run is deterministic
-	await page.evaluate(() => {
+	await page.evaluate(async () => {
 		const raw = localStorage.getItem('hw-trips');
-		if (!raw) return;
-		try {
-			const parsed = JSON.parse(raw);
-			for (const k of Object.keys(parsed)) {
-				if (k.startsWith('japan-') || k.startsWith('europe-2027')) delete parsed[k];
-			}
-			localStorage.setItem('hw-trips', JSON.stringify(parsed));
-		} catch {}
+		if (raw) {
+			try {
+				const parsed = JSON.parse(raw);
+				for (const k of Object.keys(parsed)) {
+					if (k.startsWith('japan-') || k.startsWith('europe-2027')) delete parsed[k];
+				}
+				localStorage.setItem('hw-trips', JSON.stringify(parsed));
+			} catch {}
+		}
+		// Delete the IndexedDB entirely — the app will recreate it on next load
+		await new Promise<void>((resolve) => {
+			const req = indexedDB.deleteDatabase('hw-travel');
+			req.onsuccess = () => resolve();
+			req.onerror = () => resolve();
+			req.onblocked = () => resolve();
+		});
 	});
 	await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded' });
 	await page.waitForTimeout(1000);
@@ -95,14 +105,11 @@ test.describe('New Trip Modal', () => {
 		// URL should change to the new trip (slug derived from name)
 		await expect(page).toHaveURL(/\/trip\/japan-maple-tour/, { timeout: 5000 });
 
-		// The trip is in localStorage with the right name
-		const stored = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trips');
-			if (!raw) return null;
-			const parsed = JSON.parse(raw);
-			const key = Object.keys(parsed).find((k) => k.startsWith('japan-maple-tour'));
-			return key ? parsed[key] : null;
-		});
+		// The trip is in IndexedDB with the right name
+		// Find the trip key that starts with japan-maple-tour
+		const allTrips = await idbGetAll(page, 'trips');
+		const tripKey = Object.keys(allTrips).find((k) => k.startsWith('japan-maple-tour'));
+		const stored = tripKey ? allTrips[tripKey] : null;
 		expect(stored).toBeTruthy();
 		expect(stored.name).toBe('Japan Maple Tour');
 		expect(Array.isArray(stored.days)).toBe(true);
@@ -188,13 +195,9 @@ test.describe('New Trip Modal', () => {
 		await dialog.locator('button[type="submit"]').click();
 		await expect(page).toHaveURL(/\/trip\/europe-2027/, { timeout: 5000 });
 
-		const locations = await page.evaluate(() => {
-			const raw = localStorage.getItem('hw-trips');
-			if (!raw) return null;
-			const parsed = JSON.parse(raw);
-			const key = Object.keys(parsed).find((k) => k.startsWith('europe-2027'));
-			return key ? parsed[key].days.map((d: { location: string }) => d.location) : null;
-		});
+		const allTrips2 = await idbGetAll(page, 'trips');
+		const europeKey = Object.keys(allTrips2).find((k) => k.startsWith('europe-2027'));
+		const locations = europeKey ? allTrips2[europeKey].days.map((d: { location: string }) => d.location) : null;
 		expect(locations).toBeTruthy();
 		const unique = new Set(locations);
 		expect(unique).toEqual(new Set(['Barcelona', 'Cannes', 'Lisbon']));

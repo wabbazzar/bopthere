@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { idbGet } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -27,6 +28,7 @@ async function injectAuth(page: Page): Promise<string> {
 		const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
 			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 		const jwt = `${header}.${payload}.${signature}`;
+		localStorage.removeItem('hw-idb-migration-complete');
 		localStorage.setItem('hw-auth-token', jwt);
 		localStorage.setItem('hw-auth-user', JSON.stringify(user));
 		return jwt;
@@ -157,12 +159,8 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await expect(assistant.locator('[aria-label="Map links applied"]')).toBeVisible();
 
 		// Verify mapLinks were saved to trip data
-		const mapLinks = await page.evaluate(() => {
-			const stored = localStorage.getItem('hw-trips');
-			if (!stored) return null;
-			const trips = JSON.parse(stored);
-			return trips['china-2026']?.days?.[7]?.mapLinks;
-		});
+		const trip = await idbGet(page, 'trips', 'china-2026');
+		const mapLinks = trip?.days?.[7]?.mapLinks ?? null;
 		expect(mapLinks).toHaveLength(3);
 		expect(mapLinks[0].label).toBe('Hotel to Tianmen Mountain');
 		expect(mapLinks[2].to).toContain('Hampton by Hilton');
@@ -185,12 +183,8 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await expect(assistant).toBeVisible({ timeout: 10000 });
 
 		// Capture original mapLinks
-		const beforeLinks = await page.evaluate(() => {
-			const stored = localStorage.getItem('hw-trips');
-			if (!stored) return null;
-			const trips = JSON.parse(stored);
-			return trips['china-2026']?.days?.[7]?.mapLinks;
-		});
+		const beforeTrip = await idbGet(page, 'trips', 'china-2026');
+		const beforeLinks = beforeTrip?.days?.[7]?.mapLinks ?? null;
 
 		// Click Dismiss
 		await assistant.locator('[aria-label="Dismiss map links"]').click();
@@ -200,12 +194,8 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await expect(assistant.locator('[aria-label="Map links applied"]')).not.toBeVisible();
 
 		// Trip data unchanged
-		const afterLinks = await page.evaluate(() => {
-			const stored = localStorage.getItem('hw-trips');
-			if (!stored) return null;
-			const trips = JSON.parse(stored);
-			return trips['china-2026']?.days?.[7]?.mapLinks;
-		});
+		const afterTrip = await idbGet(page, 'trips', 'china-2026');
+		const afterLinks = afterTrip?.days?.[7]?.mapLinks ?? null;
 		expect(JSON.stringify(afterLinks)).toBe(JSON.stringify(beforeLinks));
 	});
 });
