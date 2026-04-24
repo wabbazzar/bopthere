@@ -34,6 +34,20 @@
 	}
 
 	$: hasActivities = day.morning || day.afternoon || day.evening;
+
+	function renderLinks(text: string): string {
+		let html = text
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
+		html = html.replace(
+			/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+			'<a href="$2" target="_blank" rel="noopener noreferrer" class="inline-link">$1</a>'
+		);
+		return html;
+	}
+
+	$: notesHasLinks = day.notes && /\[([^\]]+)\]\(https?:\/\/[^)]+\)/.test(day.notes);
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -111,7 +125,11 @@
 	<!-- Row 4: Notes (only if present) -->
 	{#if day.notes}
 		<p class="mt-2 text-xs truncate" style="color: var(--ink-faint)" title={day.notes}>
-			{day.notes}
+			{#if notesHasLinks}
+				{@html renderLinks(day.notes)}
+			{:else}
+				{day.notes}
+			{/if}
 		</p>
 	{/if}
 
@@ -143,5 +161,10 @@
 	}
 	.day-card--ooo {
 		opacity: 0.7;
+	}
+	.day-card :global(.inline-link) {
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 </style>

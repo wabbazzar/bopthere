@@ -21,6 +21,21 @@
 	$: isLong = value.length > 100;
 	$: displayValue = value || '\u2014';
 
+	function renderLinks(text: string): string {
+		let html = text
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
+		html = html.replace(
+			/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+			'<a href="$2" target="_blank" rel="noopener noreferrer" class="inline-link">$1</a>'
+		);
+		return html;
+	}
+
+	$: hasLinks = /\[([^\]]+)\]\(https?:\/\/[^)]+\)/.test(value);
+	$: renderedValue = hasLinks ? renderLinks(displayValue) : '';
+
 	function toggle() {
 		if (isLong) expanded = !expanded;
 	}
@@ -59,8 +74,12 @@
 			/>
 		{:else}
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="field-text" class:clamped={!expanded && isLong} on:click={startEdit} title="Tap to edit">
-				{displayValue}
+			<div class="field-text" class:clamped={!expanded && isLong} on:click={(e) => { if ((e.target as HTMLElement).tagName === 'A') return; startEdit(); }} title="Tap to edit">
+				{#if hasLinks}
+					{@html renderedValue}
+				{:else}
+					{displayValue}
+				{/if}
 				{#if suggestable && !value}
 					<button class="suggest-trigger" on:click|stopPropagation={() => dispatch('suggest', { field, element: fieldRowEl })} aria-label="Get suggestions">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -121,6 +140,15 @@
 	.field-text {
 		cursor: text;
 		word-break: break-word;
+	}
+	.field-text :global(.inline-link) {
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		cursor: pointer;
+	}
+	.field-text :global(.inline-link:hover) {
+		color: var(--accent-hover, var(--accent));
 	}
 	.clamped {
 		display: -webkit-box;

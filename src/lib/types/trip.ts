@@ -1,7 +1,10 @@
+export type MapProvider = 'google' | 'apple';
+
 export interface MapLink {
 	label: string;
 	from: string;
 	to: string;
+	provider?: MapProvider;
 }
 
 export interface TripDay {

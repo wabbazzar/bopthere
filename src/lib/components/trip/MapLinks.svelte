@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MapLink } from '$lib/types/trip';
+	import type { MapLink, MapProvider } from '$lib/types/trip';
 	import { trips } from '$lib/stores/trips';
 	import { tick } from 'svelte';
 
@@ -12,22 +12,48 @@
 	let editingIndex: number | null = null;
 	let adding = false;
 	let draft: MapLink = { label: '', from: '', to: '' };
+	let draftProvider: MapProvider | undefined = undefined;
 	let firstFieldEl: HTMLInputElement | undefined;
 
 	function googleMapsUrl(from: string, to: string): string {
 		return `https://www.google.com/maps/dir/${encodeURIComponent(from)}/${encodeURIComponent(to)}`;
 	}
 
-	function multiStopUrl(): string | null {
+	function appleMapsUrl(from: string, to: string): string {
+		return `https://maps.apple.com/?saddr=${encodeURIComponent(from)}&daddr=${encodeURIComponent(to)}&dirflg=d`;
+	}
+
+	function mapsUrl(from: string, to: string, provider: MapProvider): string {
+		return provider === 'apple' ? appleMapsUrl(from, to) : googleMapsUrl(from, to);
+	}
+
+	function providerLabel(p: MapProvider): string {
+		return p === 'apple' ? 'Apple' : 'Google';
+	}
+
+	function effectiveProvider(link: MapLink): MapProvider {
+		return link.provider ?? 'google';
+	}
+
+	function altProvider(link: MapLink): MapProvider {
+		return effectiveProvider(link) === 'google' ? 'apple' : 'google';
+	}
+
+	function multiStopUrl(provider: MapProvider): string | null {
 		if (mapLinks.length < 2) return null;
 		for (let i = 0; i < mapLinks.length - 1; i++) {
 			if (mapLinks[i].to !== mapLinks[i + 1].from) return null;
 		}
 		const stops = [mapLinks[0].from, ...mapLinks.map((l) => l.to)];
+		if (provider === 'apple') {
+			// Apple Maps doesn't support multi-stop well, just do first→last
+			return appleMapsUrl(stops[0], stops[stops.length - 1]);
+		}
 		return `https://www.google.com/maps/dir/${stops.map((s) => encodeURIComponent(s)).join('/')}`;
 	}
 
-	$: fullRouteUrl = multiStopUrl();
+	$: fullRouteUrlGoogle = multiStopUrl('google');
+	$: fullRouteUrlApple = multiStopUrl('apple');
 
 	function startAdd() {
 		adding = true;
@@ -35,11 +61,10 @@
 		const lastTo = mapLinks.length > 0 ? mapLinks[mapLinks.length - 1].to : '';
 		draft = {
 			label: '',
-			// Chain from the previous link's "to"; otherwise fall back to
-			// the day's accommodation so the common case is one click.
 			from: lastTo || defaultFrom || '',
 			to: ''
 		};
+		draftProvider = undefined;
 		tick().then(() => firstFieldEl?.focus());
 	}
 
@@ -47,6 +72,7 @@
 		editingIndex = i;
 		adding = false;
 		draft = { ...mapLinks[i] };
+		draftProvider = mapLinks[i].provider;
 		tick().then(() => firstFieldEl?.focus());
 	}
 
@@ -62,6 +88,7 @@
 			from: draft.from.trim(),
 			to: draft.to.trim()
 		};
+		if (draftProvider) trimmed.provider = draftProvider;
 		if (!trimmed.label || !trimmed.from || !trimmed.to) return;
 		const next = [...mapLinks];
 		if (adding) {
@@ -132,12 +159,7 @@
 					</form>
 				{:else}
 					<div class="map-link-row">
-						<a
-							href={googleMapsUrl(link.from, link.to)}
-							target="_blank"
-							rel="noopener"
-							class="map-link"
-						>
+						<div class="map-link-body">
 							<span class="map-link-icon">
 								<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 									<circle cx="12" cy="10" r="3" />
@@ -147,9 +169,25 @@
 							<span class="map-link-text">
 								<span class="map-link-label">{link.label}</span>
 								<span class="map-link-route">{link.from} → {link.to}</span>
+								<span class="map-link-providers">
+									<a
+										href={googleMapsUrl(link.from, link.to)}
+										target="_blank"
+										rel="noopener"
+										class="provider-link"
+										on:click|stopPropagation
+									>Google Maps ↗</a>
+									<span class="provider-sep">|</span>
+									<a
+										href={appleMapsUrl(link.from, link.to)}
+										target="_blank"
+										rel="noopener"
+										class="provider-link"
+										on:click|stopPropagation
+									>Apple Maps ↗</a>
+								</span>
 							</span>
-							<span class="map-link-arrow">↗</span>
-						</a>
+						</div>
 						<div class="row-actions">
 							<button type="button" class="icon-btn" aria-label="Edit {link.label}" on:click={() => startEdit(i)}>
 								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -168,8 +206,8 @@
 				{/if}
 			{/each}
 
-			{#if fullRouteUrl && editingIndex === null && !adding}
-				<a href={fullRouteUrl} target="_blank" rel="noopener" class="map-link map-link--composite">
+			{#if (fullRouteUrlGoogle || fullRouteUrlApple) && editingIndex === null && !adding}
+				<div class="map-link-body map-link--composite">
 					<span class="map-link-icon">
 						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 							<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -178,9 +216,19 @@
 					<span class="map-link-text">
 						<span class="map-link-label">Full day route</span>
 						<span class="map-link-route">{mapLinks.length + 1} stops</span>
+						<span class="map-link-providers">
+							{#if fullRouteUrlGoogle}
+								<a href={fullRouteUrlGoogle} target="_blank" rel="noopener" class="provider-link">Google Maps ↗</a>
+							{/if}
+							{#if fullRouteUrlGoogle && fullRouteUrlApple}
+								<span class="provider-sep">|</span>
+							{/if}
+							{#if fullRouteUrlApple}
+								<a href={fullRouteUrlApple} target="_blank" rel="noopener" class="provider-link">Apple Maps ↗</a>
+							{/if}
+						</span>
 					</span>
-					<span class="map-link-arrow">↗</span>
-				</a>
+				</div>
 			{/if}
 		</div>
 	{:else if !adding}
@@ -268,7 +316,7 @@
 		gap: 0.375rem;
 	}
 
-	.map-link {
+	.map-link-body {
 		flex: 1;
 		display: flex;
 		align-items: flex-start;
@@ -276,16 +324,8 @@
 		padding: 0.5rem 0.625rem;
 		border-radius: var(--radius);
 		border: 1px solid var(--border);
-		text-decoration: none;
 		color: var(--ink);
-		transition: border-color 200ms ease, background-color 150ms ease, box-shadow 200ms ease;
 		min-width: 0;
-	}
-
-	.map-link:hover {
-		border-color: var(--accent);
-		background-color: var(--accent-muted);
-		box-shadow: 0 1px 4px rgba(184, 110, 43, 0.08);
 	}
 
 	.map-link-icon {
@@ -316,16 +356,29 @@
 		text-overflow: ellipsis;
 	}
 
-	.map-link-arrow {
-		font-size: 0.7rem;
-		color: var(--ink-faint);
-		flex-shrink: 0;
-		margin-top: 0.125rem;
+	.map-link-providers {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		margin-top: 0.2rem;
+	}
+
+	.provider-link {
+		font-size: 0.65rem;
+		color: var(--accent);
+		text-decoration: none;
+		font-weight: 500;
 		transition: color 150ms ease;
 	}
 
-	.map-link:hover .map-link-arrow {
-		color: var(--accent);
+	.provider-link:hover {
+		color: var(--accent-hover, var(--accent));
+		text-decoration: underline;
+	}
+
+	.provider-sep {
+		font-size: 0.55rem;
+		color: var(--ink-faint);
 	}
 
 	.map-link--composite {
