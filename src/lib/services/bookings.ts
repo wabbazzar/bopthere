@@ -1,5 +1,6 @@
 import { PUBLIC_CHAT_API_URL } from '$env/static/public';
 import { getToken } from '$lib/services/auth';
+import { dbGet, dbPut } from '$lib/stores/db';
 import type { Booking } from '$lib/types/trip';
 
 const API_URL = PUBLIC_CHAT_API_URL;
@@ -20,12 +21,54 @@ function headers(): Record<string, string> {
  */
 const bookingsCache = new Map<string, Booking[]>();
 
+function idbKey(tripId: string): string {
+	return `bookings:${tripId}`;
+}
+
 export function getCachedBookings(tripId: string): Booking[] {
 	return bookingsCache.get(tripId) ?? [];
 }
 
-export async function getBookings(tripId: string): Promise<Booking[]> {
+/**
+ * Load bookings with stale-while-revalidate: return cached data from
+ * IndexedDB instantly, then fetch fresh data from the server in the
+ * background. The optional onUpdate callback fires if the server
+ * returns newer data than what was cached.
+ */
+export async function getBookings(
+	tripId: string,
+	onUpdate?: (bookings: Booking[]) => void
+): Promise<Booking[]> {
 	if (!getToken()) return [];
+
+	// 1. Try local cache first (IndexedDB)
+	const cached = await dbGet<Booking[]>('meta', idbKey(tripId));
+
+	// 2. Fetch from server in background
+	const fetchPromise = fetchBookingsFromServer(tripId).then((fresh) => {
+		if (fresh) {
+			bookingsCache.set(tripId, fresh);
+			dbPut('meta', idbKey(tripId), fresh).catch(() => {});
+			if (onUpdate) onUpdate(fresh);
+		}
+		return fresh;
+	}).catch((e) => {
+		console.error('[bookings] background refresh failed:', e);
+		return null;
+	});
+
+	// 3. If we have cached data, return it immediately
+	if (cached && cached.length > 0) {
+		bookingsCache.set(tripId, cached);
+		return cached;
+	}
+
+	// 4. No cache — wait for server response
+	const fresh = await fetchPromise;
+	return fresh ?? [];
+}
+
+async function fetchBookingsFromServer(tripId: string): Promise<Booking[] | null> {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {
@@ -36,9 +79,7 @@ export async function getBookings(tripId: string): Promise<Booking[]> {
 		clearTimeout(timeout);
 		if (!res.ok) throw new Error(`Failed to load bookings (${res.status})`);
 		const data = await res.json();
-		const bookings = (data.bookings as Booking[]) || [];
-		bookingsCache.set(tripId, bookings);
-		return bookings;
+		return (data.bookings as Booking[]) || [];
 	} catch (e) {
 		clearTimeout(timeout);
 		throw e;

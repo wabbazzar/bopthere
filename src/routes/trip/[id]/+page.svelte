@@ -45,13 +45,15 @@
 	$: if (tripId && $isAuthenticated) loadBookings(tripId);
 
 	async function loadBookings(id: string) {
-		bookings = null;
 		bookingsError = null;
 		try {
-			bookings = await getBookings(id);
+			bookings = await getBookings(id, (fresh) => {
+				// Server returned newer data — update silently
+				bookings = fresh;
+			});
 		} catch (e) {
 			bookingsError = e instanceof Error ? e.message : 'Failed to load bookings';
-			bookings = [];
+			if (!bookings) bookings = [];
 		}
 	}
 
