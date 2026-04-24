@@ -96,3 +96,6 @@ _Dev agent appends new checks here as features are built._
 - [ ] Journal photo upload: POST /api/trips/{trip_id}/photos accepts image files, returns photoId
 - [ ] Journal photo serving: signed URL serves photo without auth header
 - [ ] Journal photo quota: 500MB per-trip limit enforced (413 on exceed)
+- [ ] Bookings past/upcoming split: bookings with dates before today appear under a collapsed "Past bookings (N)" caret, not in the main list
+- [ ] Bookings past toggle: clicking the "Past bookings" caret reveals past bookings with dimmed opacity; clicking again hides them
+- [ ] Bookings: when all bookings are upcoming, no "Past bookings" caret appears

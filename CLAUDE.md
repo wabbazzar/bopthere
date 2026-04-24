@@ -89,11 +89,45 @@ Lives inside this repo and runs on `wabbazzar-ice` as a systemd service:
 - Proceed autonomously, communicate progress clearly
 - Prefer editing existing files over creating new ones
 
+### Code Quality Rules
+- **NO FALLBACK LOGIC**: Always fail loudly and explicitly — this speeds up debugging. Silent fallbacks hide bugs for weeks.
+- **NO STRAY FILES AT REPO ROOT**: The root is reserved for config files. Scratch files go in `tmp/`, test fixtures in `tests/`, docs in `docs/`.
+- **AVOID UNICODE CHARACTERS**: Never use unicode box-drawing characters in markdown files — they corrupt to binary. Use ASCII alternatives (`+--| / \ [ ]`).
+- **CRITICAL: NEVER OVERWRITE EXISTING FILES**: Always use Read tool to check existing content before editing or creating files.
+
 ### Skinnable Design Philosophy
 - Keep structure and logic separate from presentation
 - Use minimal Tailwind for layout, avoid hardcoded visual themes
 - Design components so a CSS theme/skin can be layered on later
 - Multiple skins should be possible without changing component logic
+
+### UI Component Guidelines (Mobile-First)
+- **Mobile button/element overflow**: Buttons and interactive elements MUST NOT hang off screen edges on mobile. Use `whitespace-nowrap`, reduce padding on mobile, use tighter gaps.
+- **Modals must be vertically centered**: Always use `items-center` for modal containers, never bottom-sheet patterns unless explicitly requested.
+- **Touch targets**: All interactive elements must be at least 44px in the tap dimension.
+- **Test at 390px width**: iPhone SE is the baseline. If it breaks there, it's a bug.
+
+### GUI Verification for UI Features
+
+**This is a HARD REQUIREMENT. No exceptions.**
+
+Before declaring ANY UI feature "complete", you MUST:
+
+1. **Ensure the dev server is running** (see section 0)
+2. **Open the app** using `dev-browser` and navigate to the affected page(s)
+3. **Verify every user-facing interaction path** works end-to-end:
+   - Can the user actually FIND the feature? (Is the button/link visible?)
+   - Can the user actually TRIGGER the feature? (Does clicking it do something?)
+   - Does the component actually RENDER correctly?
+   - Does the happy path complete successfully?
+4. **Take screenshots** as proof of working state
+5. **Include screenshots in your response** to the user
+
+**Features that only exist in code but are unreachable in the UI are NOT features.** A modal that never opens, a button hidden behind a condition that is never true, an event handler with no trigger — these are BUGS, not features.
+
+**If you cannot verify a UI feature with dev-browser** (e.g., requires server auth, specific device), you MUST explicitly tell the user what you could NOT verify and why, rather than claiming it works.
+
+**NEVER ask the user to manually test UI changes** — use the `dev-browser` skill to visually verify yourself.
 
 ## 3. SvelteKit Conventions
 
