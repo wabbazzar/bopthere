@@ -25,8 +25,12 @@
 		return bookingDate >= today;
 	}
 
-	$: upcomingBookings = bookings.filter(isUpcoming);
-	$: pastBookings = bookings.filter(b => !isUpcoming(b));
+	function byDate(a: Booking, b: Booking): number {
+		return a.date.localeCompare(b.date);
+	}
+
+	$: upcomingBookings = bookings.filter(isUpcoming).sort(byDate);
+	$: pastBookings = bookings.filter(b => !isUpcoming(b)).sort(byDate);
 
 	/**
 	 * Open a ticket PDF via a short-lived signed URL.
