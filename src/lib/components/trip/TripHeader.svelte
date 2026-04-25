@@ -124,19 +124,11 @@
 			<span class="day-count">{dayCount} days</span>
 		{/if}
 	</div>
-
-	{#if trip.destinations.length}
-		<div class="dest-chips" aria-label="Destinations">
-			{#each trip.destinations as d}
-				<span class="chip">{d}</span>
-			{/each}
-		</div>
-	{/if}
 </div>
 
 <style>
 	.trip-header {
-		margin-bottom: 1.25rem;
+		margin-bottom: 0.75rem;
 	}
 
 	.title-row {
@@ -247,26 +239,9 @@
 		font-size: 0.8125rem;
 		color: var(--ink-muted);
 		font-variant-numeric: tabular-nums;
-		margin-bottom: 0.625rem;
+		margin-bottom: 0;
 	}
 	.meta-sep { color: var(--ink-faint); }
 	.day-count { color: var(--ink-faint); }
 
-	.dest-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.375rem;
-	}
-	.chip {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.3125rem 0.75rem;
-		font-family: var(--font-display);
-		font-size: 0.7rem;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--ink-muted);
-		background: var(--accent-muted);
-		border-radius: 999px;
-	}
 </style>
