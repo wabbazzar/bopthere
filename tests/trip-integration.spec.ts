@@ -185,6 +185,7 @@ test.describe('Field Editing — Tap to edit', () => {
 
 		// Tap the Travel field (has "Land at 5PM" on day 1)
 		const travelField = page.locator('[title="Tap to edit"]').first();
+		const originalTravel = (await travelField.textContent())!.trim();
 		await travelField.click();
 
 		const editInput = page.locator('input[type="text"]').first();
@@ -193,6 +194,12 @@ test.describe('Field Editing — Tap to edit', () => {
 
 		// Verify the value persisted in the DOM
 		await expect(page.locator('text=NEW TRAVEL VALUE 12345')).toBeVisible();
+
+		// Restore original value so test data doesn't leak to the server
+		await page.locator('text=NEW TRAVEL VALUE 12345').click();
+		const restoreInput = page.locator('input[type="text"]').first();
+		await restoreInput.fill(originalTravel);
+		await restoreInput.press('Enter');
 	});
 
 	test('Editing a field and pressing Escape cancels without saving', async ({ page }) => {
@@ -216,6 +223,7 @@ test.describe('Field Editing — Tap to edit', () => {
 
 		// Edit the Notes field on Day 1 (last editable field)
 		const notesField = page.locator('[title="Tap to edit"]').last();
+		const originalNotes = (await notesField.textContent())!.trim();
 		await notesField.click();
 		const editInput = page.locator('input[type="text"]').first();
 		await editInput.fill('PERSISTENT NOTE ABCDE');
@@ -231,13 +239,22 @@ test.describe('Field Editing — Tap to edit', () => {
 
 		// Value should still be there
 		await expect(page.locator('text=PERSISTENT NOTE ABCDE')).toBeVisible();
+
+		// Restore original value so test data doesn't leak to the server
+		await page.locator('text=PERSISTENT NOTE ABCDE').click();
+		const restoreInput = page.locator('input[type="text"]').first();
+		await restoreInput.fill(originalNotes || '—');
+		await restoreInput.press('Enter');
 	});
 
 	test('Edited field value persists after full page reload', async ({ page }) => {
 		await goToDayView(page);
 
-		// Edit notes field
+		// Capture original notes value before editing
 		const notesField = page.locator('[title="Tap to edit"]').last();
+		const originalNotes = (await notesField.textContent())!.trim();
+
+		// Edit notes field
 		await notesField.click();
 		const editInput = page.locator('input[type="text"]').first();
 		await editInput.fill('SURVIVES RELOAD XYZ');
@@ -254,6 +271,14 @@ test.describe('Field Editing — Tap to edit', () => {
 
 		// Notes field should still have our value
 		await expect(page.locator('text=SURVIVES RELOAD XYZ')).toBeVisible();
+
+		// Restore original value so test data doesn't pollute the real trip
+		await page.locator('text=SURVIVES RELOAD XYZ').click();
+		const restoreInput = page.locator('input[type="text"]').first();
+		await restoreInput.fill(originalNotes || '—');
+		await restoreInput.press('Enter');
+		// Wait for server sync before test teardown
+		await page.waitForTimeout(2500);
 	});
 });
 
