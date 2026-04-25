@@ -13,25 +13,36 @@ function isUpcoming(bookingDate: string): boolean {
 	return d >= today;
 }
 
+/** Format a local date as YYYY-MM-DD (avoids UTC drift from toISOString). */
+function localDateStr(date: Date): string {
+	const y = date.getFullYear();
+	const m = String(date.getMonth() + 1).padStart(2, '0');
+	const d = String(date.getDate()).padStart(2, '0');
+	return `${y}-${m}-${d}`;
+}
+
+function daysFromNow(offset: number): string {
+	const d = new Date();
+	d.setDate(d.getDate() + offset);
+	return localDateStr(d);
+}
+
 describe('BookingsSection date splitting', () => {
 	it('treats today as upcoming', () => {
-		const today = new Date().toISOString().split('T')[0];
-		expect(isUpcoming(today)).toBe(true);
+		expect(isUpcoming(daysFromNow(0))).toBe(true);
 	});
 
 	it('treats yesterday as past', () => {
-		const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-		expect(isUpcoming(yesterday)).toBe(false);
+		expect(isUpcoming(daysFromNow(-1))).toBe(false);
 	});
 
 	it('treats tomorrow as upcoming', () => {
-		const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-		expect(isUpcoming(tomorrow)).toBe(true);
+		expect(isUpcoming(daysFromNow(1))).toBe(true);
 	});
 
 	it('splits a mixed list correctly', () => {
-		const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-		const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+		const yesterday = daysFromNow(-1);
+		const tomorrow = daysFromNow(1);
 		const dates = [yesterday, tomorrow, yesterday, tomorrow, tomorrow];
 
 		const upcoming = dates.filter(isUpcoming);

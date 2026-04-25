@@ -3,7 +3,7 @@
 	import { trips } from '$lib/stores/trips';
 	import { journalStore } from '$lib/stores/journal';
 	import { isAuthenticated } from '$lib/stores/auth';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import type { JournalEntry } from '$lib/types/trip';
 	import TripHeader from '$lib/components/trip/TripHeader.svelte';
 	import ViewToggle from '$lib/components/trip/ViewToggle.svelte';
@@ -30,15 +30,28 @@
 	let bookings: Booking[] | null = null;
 	let bookingsError: string | null = null;
 
+	function onVisibilityChange() {
+		if (document.visibilityState === 'visible' && tripId) {
+			journalStore.refresh(tripId);
+		}
+	}
+
 	onMount(async () => {
 		trips.init();
 		journalStore.init(tripId);
 		initPhotoQueue();
+		document.addEventListener('visibilitychange', onVisibilityChange);
 		const saved = await dbGet<string>('prefs', `hw-trip-day-${tripId}`);
 		if (saved !== undefined) {
 			const idx = parseInt(saved, 10);
 			const maxIdx = (trip?.days?.length ?? 1) - 1;
 			if (!isNaN(idx) && idx >= 0) currentDayIndex = Math.min(idx, maxIdx);
+		}
+	});
+
+	onDestroy(() => {
+		if (typeof document !== 'undefined') {
+			document.removeEventListener('visibilitychange', onVisibilityChange);
 		}
 	});
 

@@ -381,6 +381,11 @@ function createJournalStore() {
 			}));
 		},
 
+		/** Pull latest from server. Call on visibility change or manual refresh. */
+		async refresh(tripId: string) {
+			await pullFromServer(tripId);
+		},
+
 		async deleteEntry(tripId: string, dayIndex: number) {
 			const entry = getEntries(tripId).find((e) => e.dayIndex === dayIndex);
 			const version = entry?.version;
