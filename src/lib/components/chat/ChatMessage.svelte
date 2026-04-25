@@ -343,6 +343,9 @@
 		border-radius: var(--radius);
 		font-size: 0.875rem;
 		line-height: 1.55;
+		overflow-wrap: break-word;
+		word-break: break-word;
+		min-width: 0;
 	}
 
 	.msg--user .msg-bubble {

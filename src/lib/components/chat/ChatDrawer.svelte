@@ -309,6 +309,7 @@
 	.drawer-messages {
 		flex: 1;
 		overflow-y: auto;
+		overflow-x: hidden;
 		padding: 0.75rem;
 		display: flex;
 		flex-direction: column;
