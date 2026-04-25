@@ -82,7 +82,18 @@
 		copied = true;
 		clearTimeout(copyTimeout);
 		copyTimeout = setTimeout(() => { copied = false; }, 2000);
-		window.open('https://app.speechify.com', '_blank');
+
+		// Try native app deep link first, fall back to web
+		const appUrl = 'speechify://';
+		const webUrl = 'https://app.speechify.com';
+		const start = Date.now();
+		window.location.href = appUrl;
+		// If the app didn't open (no navigation away), fall back to web after a beat
+		setTimeout(() => {
+			if (Date.now() - start < 2000) {
+				window.open(webUrl, '_blank');
+			}
+		}, 1500);
 	}
 
 	async function deleteScript() {
@@ -232,7 +243,9 @@
 		flex-wrap: wrap;
 		gap: 0.5rem;
 		padding: 1rem 0;
+		padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 		margin-top: 2rem;
+		margin-bottom: 4rem;
 		border-top: 1px solid var(--border);
 		background: var(--surface);
 	}
