@@ -5,7 +5,8 @@ import type {
 	TripDayOp,
 	TripMetaAction,
 	TripLinkOp,
-	TodoOp
+	TodoOp,
+	TourScriptAction
 } from '$lib/types/chat';
 import type { MapLink, Trip, TripDay } from '$lib/types/trip';
 
@@ -39,6 +40,10 @@ function getTripLinksRegex(): RegExp {
 
 function getTodosRegex(): RegExp {
 	return /```TODOS\s*[\r\n]+([\s\S]*?)```/g;
+}
+
+function getTourScriptRegex(): RegExp {
+	return /```TOUR_SCRIPT\s*[\r\n]+([\s\S]*?)```/g;
 }
 
 const ID_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
@@ -427,6 +432,41 @@ export function stripTodosBlocks(content: string): string {
 	return content.replace(getTodosRegex(), '').trim();
 }
 
+export function parseTourScripts(content: string): TourScriptAction[] {
+	const scripts: TourScriptAction[] = [];
+	const re = getTourScriptRegex();
+	let match: RegExpExecArray | null;
+	while ((match = re.exec(content)) !== null) {
+		try {
+			const parsed = JSON.parse(match[1]);
+			const items = Array.isArray(parsed) ? parsed : [parsed];
+			for (const item of items) {
+				if (
+					typeof item.dayIndex === 'number' &&
+					item.dayIndex >= 0 &&
+					typeof item.title === 'string' &&
+					item.title.length > 0 &&
+					typeof item.content === 'string' &&
+					item.content.length > 0
+				) {
+					scripts.push({
+						dayIndex: item.dayIndex,
+						title: item.title,
+						content: item.content
+					});
+				}
+			}
+		} catch {
+			// malformed JSON — skip
+		}
+	}
+	return scripts;
+}
+
+export function stripTourScriptBlocks(content: string): string {
+	return content.replace(getTourScriptRegex(), '').trim();
+}
+
 export function stripAllActionBlocks(content: string): string {
 	let out = content;
 	out = stripTripUpdateBlocks(out);
@@ -436,5 +476,6 @@ export function stripAllActionBlocks(content: string): string {
 	out = stripTripMetaBlocks(out);
 	out = stripTripLinksBlocks(out);
 	out = stripTodosBlocks(out);
+	out = stripTourScriptBlocks(out);
 	return out;
 }

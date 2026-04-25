@@ -103,6 +103,8 @@ ${daysSummary}
 BOOKINGS:
 ${bookingsSummary}
 
+You have web access via WebSearch and WebFetch tools. Use them to look up current information — exhibit details, opening hours, ticket prices, reviews, transit schedules, etc. Don't guess when you can search.
+
 Guidelines:
 - Suggest specific places with names, not generic advice
 - Consider the location for each day when suggesting
@@ -241,7 +243,22 @@ Rules:
 - todoIndex is 0-based against the current todo list.
 - "toggle" flips done/undone; use it when the user says a task is finished or should be re-opened.
 - "add" requires non-empty text; appends to the end.
-- Never emit TODOS unless the user explicitly asks to add, change, complete, or remove a task.`;
+- Never emit TODOS unless the user explicitly asks to add, change, complete, or remove a task.
+
+TOUR GUIDE SCRIPTS:
+When the user asks for a narration script, walking tour script, or audio guide for a specific attraction or site, emit a TOUR_SCRIPT block. The content should be a vivid, engaging narration suitable for text-to-speech playback, written in second person ("As you approach..."). Include historical context, sensory details, and practical tips woven into the narrative.
+
+\`\`\`TOUR_SCRIPT
+{"dayIndex": 7, "title": "Dazu Rock Carvings Tour", "content": "# Dazu Rock Carvings\\n\\nAs you step through the entrance gate..."}
+\`\`\`
+
+Rules:
+- dayIndex is 0-based (Day 1 = index 0).
+- title: short name for the script (attraction or theme).
+- content: markdown narration. Use # headings for sections. Write in second person. Aim for 800-1500 words for a full tour, 300-500 for a single stop.
+- You may include multiple TOUR_SCRIPT blocks for different stops on the same day.
+- NEVER emit TOUR_SCRIPT unless the user explicitly asks for a narration, audio guide, tour script, or walking tour.
+- Do NOT use triple backticks inside the content field.`;
 }
 
 export function buildSuggestionMessage(

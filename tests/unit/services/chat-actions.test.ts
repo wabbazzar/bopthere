@@ -13,7 +13,9 @@ import {
 	parseTripDayOps,
 	parseTripMeta,
 	parseTripLinkOps,
-	parseTodoOps
+	parseTodoOps,
+	parseTourScripts,
+	stripTourScriptBlocks
 } from '$lib/services/chat-actions';
 
 describe('chat-actions', () => {
@@ -406,6 +408,65 @@ describe('chat-actions', () => {
 
 		it('rejects whitespace-only add text', () => {
 			expect(parseTodoOps('```TODOS\n[{"op":"add","text":"   "}]\n```')).toEqual([]);
+		});
+	});
+
+	describe('parseTourScripts', () => {
+		it('parses a single tour script', () => {
+			const content = 'Here\'s your tour guide script.\n\n```TOUR_SCRIPT\n{"dayIndex": 7, "title": "Dazu Rock Carvings", "content": "# Welcome\\n\\nAs you approach..."}\n```';
+			const scripts = parseTourScripts(content);
+			expect(scripts).toHaveLength(1);
+			expect(scripts[0]).toEqual({
+				dayIndex: 7,
+				title: 'Dazu Rock Carvings',
+				content: '# Welcome\n\nAs you approach...'
+			});
+		});
+
+		it('parses multiple tour scripts in one message', () => {
+			const content = '```TOUR_SCRIPT\n{"dayIndex": 7, "title": "Dazu Tour", "content": "Script 1"}\n```\nAnd another:\n```TOUR_SCRIPT\n{"dayIndex": 7, "title": "Leshan Buddha", "content": "Script 2"}\n```';
+			const scripts = parseTourScripts(content);
+			expect(scripts).toHaveLength(2);
+			expect(scripts[0].title).toBe('Dazu Tour');
+			expect(scripts[1].title).toBe('Leshan Buddha');
+		});
+
+		it('rejects script with missing title', () => {
+			const content = '```TOUR_SCRIPT\n{"dayIndex": 0, "content": "some text"}\n```';
+			expect(parseTourScripts(content)).toEqual([]);
+		});
+
+		it('rejects script with empty content', () => {
+			const content = '```TOUR_SCRIPT\n{"dayIndex": 0, "title": "Test", "content": ""}\n```';
+			expect(parseTourScripts(content)).toEqual([]);
+		});
+
+		it('rejects script with negative dayIndex', () => {
+			const content = '```TOUR_SCRIPT\n{"dayIndex": -1, "title": "Test", "content": "text"}\n```';
+			expect(parseTourScripts(content)).toEqual([]);
+		});
+
+		it('handles malformed JSON gracefully', () => {
+			const content = '```TOUR_SCRIPT\n{invalid json}\n```';
+			expect(parseTourScripts(content)).toEqual([]);
+		});
+	});
+
+	describe('stripTourScriptBlocks', () => {
+		it('strips TOUR_SCRIPT blocks from content', () => {
+			const content = 'Here is your script.\n\n```TOUR_SCRIPT\n{"dayIndex": 0, "title": "Test", "content": "text"}\n```\n\nEnjoy!';
+			const stripped = stripTourScriptBlocks(content);
+			expect(stripped).toContain('Here is your script.');
+			expect(stripped).toContain('Enjoy!');
+			expect(stripped).not.toContain('TOUR_SCRIPT');
+		});
+	});
+
+	describe('stripAllActionBlocks includes TOUR_SCRIPT', () => {
+		it('strips TOUR_SCRIPT along with other blocks', () => {
+			const content = '```TRIP_UPDATE\n[{"dayIndex":0,"field":"morning","value":"test"}]\n```\n```TOUR_SCRIPT\n{"dayIndex":0,"title":"T","content":"c"}\n```\nDone.';
+			const stripped = stripAllActionBlocks(content);
+			expect(stripped).toBe('Done.');
 		});
 	});
 });

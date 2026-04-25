@@ -43,7 +43,8 @@ describe('db.ts — IndexedDB wrapper', () => {
 			expect(stores).toContain('todos');
 			expect(stores).toContain('meta');
 			expect(stores).toContain('prefs');
-			expect(stores).toHaveLength(6);
+			expect(stores).toContain('scripts');
+			expect(stores).toHaveLength(7);
 		});
 
 		it('returns a new instance after closeDatabase()', async () => {

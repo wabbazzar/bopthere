@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { trips } from '$lib/stores/trips';
 	import { journalStore } from '$lib/stores/journal';
+	import { scriptsStore } from '$lib/stores/scripts';
 	import { isAuthenticated } from '$lib/stores/auth';
 	import { onMount, onDestroy } from 'svelte';
 	import type { JournalEntry } from '$lib/types/trip';
@@ -39,6 +40,7 @@
 	onMount(async () => {
 		trips.init();
 		journalStore.init(tripId);
+		scriptsStore.init(tripId);
 		initPhotoQueue();
 		document.addEventListener('visibilitychange', onVisibilityChange);
 		const saved = await dbGet<string>('prefs', `hw-trip-day-${tripId}`);

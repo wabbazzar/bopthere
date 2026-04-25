@@ -7,7 +7,7 @@
  */
 
 const DB_NAME = 'hw-travel';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const isBrowser = typeof window !== 'undefined' && typeof indexedDB !== 'undefined';
 
@@ -51,7 +51,7 @@ export async function openDatabase(): Promise<IDBDatabase | null> {
 
 		request.onupgradeneeded = (event) => {
 			const database = (event.target as IDBOpenDBRequest).result;
-			const stores = ['auth', 'trips', 'journal', 'todos', 'meta', 'prefs'] as const;
+			const stores = ['auth', 'trips', 'journal', 'todos', 'meta', 'prefs', 'scripts'] as const;
 			for (const name of stores) {
 				if (!database.objectStoreNames.contains(name)) {
 					database.createObjectStore(name, { keyPath: 'key' });

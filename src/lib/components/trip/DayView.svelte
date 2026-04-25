@@ -6,6 +6,7 @@
 	import SuggestPopover from './SuggestPopover.svelte';
 	import MapLinks from './MapLinks.svelte';
 	import MiniCalendar from './MiniCalendar.svelte';
+	import ScriptPills from './ScriptPills.svelte';
 
 	import { tick } from 'svelte';
 
@@ -171,6 +172,7 @@
 				<ExpandableField label="Afternoon" value={day.afternoon} field="afternoon" dayIndex={currentDayIndex} {tripId} suggestable on:suggest={handleSuggest} />
 				<ExpandableField label="Evening" value={day.evening} field="evening" dayIndex={currentDayIndex} {tripId} suggestable on:suggest={handleSuggest} />
 				<ExpandableField label="Notes" value={day.notes} field="notes" dayIndex={currentDayIndex} {tripId} />
+				<ScriptPills {tripId} dayIndex={currentDayIndex} />
 			</div>
 			<MapLinks
 				{tripId}

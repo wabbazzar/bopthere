@@ -7,7 +7,8 @@
 		TripDayOp,
 		TripMetaAction,
 		TripLinkOp,
-		TodoOp
+		TodoOp,
+		TourScriptAction
 	} from '$lib/types/chat';
 	import { chat } from '$lib/stores/chat';
 	import { stripAllActionBlocks } from '$lib/services/chat-actions';
@@ -27,6 +28,8 @@
 	export let linkOpsApplied = false;
 	export let pendingTodoOps: TodoOp[] | undefined = undefined;
 	export let todoOpsApplied = false;
+	export let pendingTourScripts: TourScriptAction[] | undefined = undefined;
+	export let tourScriptsApplied = false;
 
 	function dayOpSummary(op: TripDayOp): string {
 		if (op.op === 'add') return op.afterIndex === undefined ? 'Append a new day' : `Insert a day after Day ${op.afterIndex + 1}`;
@@ -287,6 +290,32 @@
 		{#if todoOpsApplied}
 			<div class="action-applied" aria-label="Todos applied">Todos updated</div>
 		{/if}
+
+		{#if pendingTourScripts && pendingTourScripts.length > 0}
+			<div class="action-block" aria-label="Tour script actions">
+				<div class="action-summary">
+					{#each pendingTourScripts as script}
+						<div class="action-item">
+							<span class="tour-script-label">Tour Script: {script.title}</span>
+							<span class="tour-script-day">Day {script.dayIndex + 1}</span>
+							<div class="tour-script-preview">{script.content.slice(0, 150).replace(/^#\s+.*\n*/m, '')}...</div>
+						</div>
+					{/each}
+				</div>
+				<div class="action-buttons">
+					<button class="action-btn action-apply" on:click={() => chat.applyTourScripts(message.id)} aria-label="Save tour scripts">
+						Save scripts
+					</button>
+					<button class="action-btn action-dismiss" on:click={() => chat.dismissTourScripts(message.id)} aria-label="Dismiss tour scripts">
+						Dismiss
+					</button>
+				</div>
+			</div>
+		{/if}
+
+		{#if tourScriptsApplied}
+			<div class="action-applied" aria-label="Tour scripts saved">Tour scripts saved</div>
+		{/if}
 	</div>
 	<span class="msg-time">{formatTime(message.timestamp)}</span>
 </div>
@@ -468,5 +497,23 @@
 		font-size: 0.75rem;
 		color: var(--ink-muted);
 		padding: 0.1rem 0;
+	}
+
+	.tour-script-label {
+		font-weight: 600;
+		font-size: 0.85rem;
+	}
+
+	.tour-script-day {
+		font-size: 0.7rem;
+		color: var(--ink-faint);
+		margin-left: 0.5rem;
+	}
+
+	.tour-script-preview {
+		font-size: 0.72rem;
+		color: var(--ink-faint);
+		margin-top: 0.2rem;
+		line-height: 1.4;
 	}
 </style>

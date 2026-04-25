@@ -123,6 +123,8 @@
 					linkOpsApplied={$chat.appliedLinkOps.has(message.id)}
 					pendingTodoOps={$chat.pendingTodoOps[message.id]}
 					todoOpsApplied={$chat.appliedTodoOps.has(message.id)}
+					pendingTourScripts={$chat.pendingTourScripts[message.id]}
+					tourScriptsApplied={$chat.appliedTourScripts.has(message.id)}
 				/>
 			{/each}
 

@@ -7,7 +7,8 @@ import type {
 	TripDayOp,
 	TripMetaAction,
 	TripLinkOp,
-	TodoOp
+	TodoOp,
+	TourScriptAction
 } from '$lib/types/chat';
 import type { Trip } from '$lib/types/trip';
 import * as chatService from '$lib/services/chat';
@@ -19,10 +20,12 @@ import {
 	parseTripMeta,
 	parseTripLinkOps,
 	parseTodoOps,
+	parseTourScripts,
 	tripFromCreate
 } from '$lib/services/chat-actions';
 import { trips } from '$lib/stores/trips';
 import { todosStore } from '$lib/stores/todos';
+import { scriptsStore } from '$lib/stores/scripts';
 
 interface ChatState {
 	messages: ChatMessage[];
@@ -46,6 +49,8 @@ interface ChatState {
 	appliedLinkOps: Set<string>;
 	pendingTodoOps: Record<string, TodoOp[]>;
 	appliedTodoOps: Set<string>;
+	pendingTourScripts: Record<string, TourScriptAction[]>;
+	appliedTourScripts: Set<string>;
 }
 
 const THINKING_MESSAGES = [
@@ -79,6 +84,7 @@ function parseIntoDicts(
 		meta: Record<string, TripMetaAction[]>;
 		linkOps: Record<string, TripLinkOp[]>;
 		todoOps: Record<string, TodoOp[]>;
+		tourScripts: Record<string, TourScriptAction[]>;
 	}
 ) {
 	const a = parseTripUpdates(content);
@@ -95,6 +101,8 @@ function parseIntoDicts(
 	if (l.length) dicts.linkOps[messageId] = l;
 	const t = parseTodoOps(content);
 	if (t.length) dicts.todoOps[messageId] = t;
+	const ts = parseTourScripts(content);
+	if (ts.length) dicts.tourScripts[messageId] = ts;
 	return dicts;
 }
 
@@ -106,7 +114,8 @@ function emptyDicts() {
 		dayOps: {} as Record<string, TripDayOp[]>,
 		meta: {} as Record<string, TripMetaAction[]>,
 		linkOps: {} as Record<string, TripLinkOp[]>,
-		todoOps: {} as Record<string, TodoOp[]>
+		todoOps: {} as Record<string, TodoOp[]>,
+		tourScripts: {} as Record<string, TourScriptAction[]>
 	};
 }
 
@@ -132,7 +141,9 @@ function createChatStore() {
 		pendingLinkOps: {},
 		appliedLinkOps: new Set<string>(),
 		pendingTodoOps: {},
-		appliedTodoOps: new Set<string>()
+		appliedTodoOps: new Set<string>(),
+		pendingTourScripts: {},
+		appliedTourScripts: new Set<string>()
 	});
 
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -212,6 +223,7 @@ function createChatStore() {
 							pendingMeta: d.meta,
 							pendingLinkOps: d.linkOps,
 							pendingTodoOps: d.todoOps,
+							pendingTourScripts: d.tourScripts,
 							isLoading: false
 						}));
 					} else {
@@ -269,7 +281,8 @@ function createChatStore() {
 						dayOps: { ...s.pendingDayOps },
 						meta: { ...s.pendingMeta },
 						linkOps: { ...s.pendingLinkOps },
-						todoOps: { ...s.pendingTodoOps }
+						todoOps: { ...s.pendingTodoOps },
+						tourScripts: { ...s.pendingTourScripts }
 					};
 					parseIntoDicts(assistantMsg.content, assistantMsg.id, d);
 					return {
@@ -282,7 +295,8 @@ function createChatStore() {
 						pendingDayOps: d.dayOps,
 						pendingMeta: d.meta,
 						pendingLinkOps: d.linkOps,
-						pendingTodoOps: d.todoOps
+						pendingTodoOps: d.todoOps,
+						pendingTourScripts: d.tourScripts
 					};
 				});
 			} catch (e) {
@@ -305,7 +319,8 @@ function createChatStore() {
 								dayOps: { ...s.pendingDayOps },
 								meta: { ...s.pendingMeta },
 								linkOps: { ...s.pendingLinkOps },
-								todoOps: { ...s.pendingTodoOps }
+								todoOps: { ...s.pendingTodoOps },
+								tourScripts: { ...s.pendingTourScripts }
 							};
 							parseIntoDicts(last.content, last.id, d);
 							return {
@@ -318,7 +333,8 @@ function createChatStore() {
 								pendingDayOps: d.dayOps,
 								pendingMeta: d.meta,
 								pendingLinkOps: d.linkOps,
-								pendingTodoOps: d.todoOps
+								pendingTodoOps: d.todoOps,
+								pendingTourScripts: d.tourScripts
 							};
 						});
 						recovered = true;
@@ -574,6 +590,42 @@ function createChatStore() {
 				const pendingTodoOps = { ...s.pendingTodoOps };
 				delete pendingTodoOps[messageId];
 				return { ...s, pendingTodoOps };
+			});
+		},
+
+		applyTourScripts(messageId: string) {
+			const state = get({ subscribe });
+			const scripts = state.pendingTourScripts[messageId];
+			if (!scripts || !state.activeTripId) return;
+			const tripId = state.activeTripId;
+
+			for (const action of scripts) {
+				const now = new Date().toISOString();
+				scriptsStore.addScript(tripId, {
+					id: crypto.randomUUID(),
+					tripId,
+					dayIndex: action.dayIndex,
+					title: action.title,
+					content: action.content,
+					createdAt: now,
+					updatedAt: now
+				});
+			}
+
+			update((s) => {
+				const pendingTourScripts = { ...s.pendingTourScripts };
+				delete pendingTourScripts[messageId];
+				const appliedTourScripts = new Set(s.appliedTourScripts);
+				appliedTourScripts.add(messageId);
+				return { ...s, pendingTourScripts, appliedTourScripts };
+			});
+		},
+
+		dismissTourScripts(messageId: string) {
+			update((s) => {
+				const pendingTourScripts = { ...s.pendingTourScripts };
+				delete pendingTourScripts[messageId];
+				return { ...s, pendingTourScripts };
 			});
 		},
 

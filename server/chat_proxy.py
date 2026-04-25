@@ -49,6 +49,7 @@ from db import (
     get_trip_meta, save_trip_meta,
     get_todo_entries, get_todo_entry, save_todo_entry, delete_todo_entry,
     get_booking_entries, get_booking_entry, save_booking_entry, delete_booking_entry,
+    get_script_entries, get_script_entry, save_script_entry, delete_script_entry,
 )
 
 app = FastAPI(title="H&W Chat Proxy", docs_url=None, redoc_url=None)
@@ -158,6 +159,7 @@ async def ask_claude(system_prompt: str, conversation_text: str) -> str:
         "--output-format", "text",
         "--no-session-persistence",
         "--model", "sonnet",
+        "--allowedTools", "WebSearch", "WebFetch",
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
@@ -906,6 +908,60 @@ async def create_booking_entry(
         trip_id, booking_id, json.dumps(req.entry), None,
     )
     return {"ok": True, "bookingId": booking_id, "version": 1}
+
+
+# ── Per-entry Script endpoints ─────────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/scripts/entries")
+async def list_script_entries(trip_id: str, authorization: str | None = Header(None)):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    entries = get_script_entries(trip_id)
+    return {"entries": entries, "tripId": trip_id}
+
+
+class SaveScriptEntryRequest(BaseModel):
+    entry: dict
+    version: int | None = None
+
+
+@app.put("/api/trips/{trip_id}/scripts/entries/{script_id}")
+async def put_script_entry(
+    trip_id: str,
+    script_id: str,
+    req: SaveScriptEntryRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version, conflict_entry = save_script_entry(
+        trip_id, script_id, json.dumps(req.entry), req.version,
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "serverEntry": conflict_entry, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
+
+
+@app.delete("/api/trips/{trip_id}/scripts/entries/{script_id}")
+async def remove_script_entry(
+    trip_id: str,
+    script_id: str,
+    req: DeleteVersionRequest,
+    authorization: str | None = Header(None),
+):
+    verify_token(authorization)
+    _validate_trip_id(trip_id)
+    ok, version = delete_script_entry(trip_id, script_id, req.version)
+    if not ok:
+        raise HTTPException(
+            status_code=409,
+            detail={"ok": False, "version": version, "message": "Version conflict"},
+        )
+    return {"ok": True, "version": version}
 
 
 @app.get("/health")

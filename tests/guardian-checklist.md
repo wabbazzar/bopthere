@@ -99,3 +99,12 @@ _Dev agent appends new checks here as features are built._
 - [ ] Bookings past/upcoming split: bookings with dates before today appear under a collapsed "Past bookings (N)" caret, not in the main list
 - [ ] Bookings past toggle: clicking the "Past bookings" caret reveals past bookings with dimmed opacity; clicking again hides them
 - [ ] Bookings: when all bookings are upcoming, no "Past bookings" caret appears
+- [ ] Tour scripts: TOUR_SCRIPT chat block parses and shows Apply/Dismiss buttons with script title and content preview
+- [ ] Tour scripts: Apply saves script to IndexedDB and shows "Tour scripts saved" badge
+- [ ] Tour scripts: script pills render in DayView Notes area for days with saved scripts
+- [ ] Tour scripts: clicking a script pill navigates to /trip/{id}/script/{scriptId} full-page viewer
+- [ ] Tour scripts: script viewer renders markdown content with headings, bold, italic, lists
+- [ ] Tour scripts: Copy button copies plain text (markdown stripped) to clipboard
+- [ ] Tour scripts: "Copy & Open Speechify" copies text and opens speechify.com
+- [ ] Tour scripts: Delete button with confirm dialog removes script, navigates back to trip
+- [ ] Tour scripts: scripts persist across page reload (IndexedDB)

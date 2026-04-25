@@ -1,6 +1,7 @@
 import { PUBLIC_CHAT_API_URL } from '$env/static/public';
 import { getToken } from '$lib/services/auth';
 import type { Trip, JournalEntry, TripDay, Todo } from '$lib/types/trip';
+import type { TourScript } from '$lib/types/script';
 
 const API_URL = PUBLIC_CHAT_API_URL;
 
@@ -435,6 +436,67 @@ export async function deleteTodoEntry(
 		return { ok: false, version: detail.version };
 	}
 	if (!res.ok) throw new Error(`Failed to delete todo entry (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
+}
+
+// ── Script entry API ─────────────────────────────────────────
+
+export async function fetchScriptEntries(
+	tripId: string
+): Promise<{ entries: (TourScript & { _version: number })[] }> {
+	if (!getToken()) return { entries: [] };
+	const res = await fetch(`${API_URL}/api/trips/${tripId}/scripts/entries`, {
+		headers: headers()
+	});
+	if (!res.ok) throw new Error(`Failed to fetch script entries (${res.status})`);
+	const data = await res.json();
+	return { entries: data.entries ?? [] };
+}
+
+export async function saveScriptEntry(
+	tripId: string,
+	scriptId: string,
+	entry: TourScript,
+	version: number | null
+): Promise<{ ok: boolean; version: number; serverEntry?: TourScript }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/scripts/entries/${scriptId}`,
+		{
+			method: 'PUT',
+			headers: headers(),
+			body: JSON.stringify({ entry, version })
+		}
+	);
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version, serverEntry: detail.serverEntry };
+	}
+	if (!res.ok) throw new Error(`Failed to save script entry (${res.status})`);
+	const data = await res.json();
+	return { ok: true, version: data.version };
+}
+
+export async function deleteScriptEntry(
+	tripId: string,
+	scriptId: string,
+	version: number
+): Promise<{ ok: boolean; version: number }> {
+	const res = await fetch(
+		`${API_URL}/api/trips/${tripId}/scripts/entries/${scriptId}`,
+		{
+			method: 'DELETE',
+			headers: headers(),
+			body: JSON.stringify({ version })
+		}
+	);
+	if (res.status === 409) {
+		const data = await res.json();
+		const detail = data.detail ?? data;
+		return { ok: false, version: detail.version };
+	}
+	if (!res.ok) throw new Error(`Failed to delete script entry (${res.status})`);
 	const data = await res.json();
 	return { ok: true, version: data.version };
 }

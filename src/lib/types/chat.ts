@@ -59,6 +59,12 @@ export interface TripCreate {
 	}>;
 }
 
+export interface TourScriptAction {
+	dayIndex: number;
+	title: string;
+	content: string;
+}
+
 export type SuggestionType = 'activity' | 'restaurant';
 export type Vibe = string;
 

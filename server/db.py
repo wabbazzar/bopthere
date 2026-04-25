@@ -454,6 +454,38 @@ def ensure_per_entry_tables(conn: sqlite3.Connection) -> None:
         "ON booking_history(trip_id, booking_id)"
     )
 
+    # ── Scripts: per-entry ────────────────────────────────────
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS script_entries (
+            trip_id    TEXT NOT NULL,
+            script_id  TEXT NOT NULL,
+            entry_json TEXT NOT NULL,
+            version    INTEGER NOT NULL DEFAULT 1,
+            deleted    INTEGER NOT NULL DEFAULT 0,
+            deleted_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (trip_id, script_id)
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS script_history (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            trip_id     TEXT NOT NULL,
+            script_id   TEXT NOT NULL,
+            old_json    TEXT,
+            new_json    TEXT,
+            old_version INTEGER,
+            new_version INTEGER NOT NULL,
+            change_type TEXT NOT NULL,
+            changed_at  TEXT NOT NULL
+        )
+    """)
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_script_history_trip "
+        "ON script_history(trip_id, script_id)"
+    )
+
 
 # ══════════════════════════════════════════════════════════════════
 # Generic per-entry CRUD helpers
@@ -1022,6 +1054,45 @@ def _migrate_bookings_to_entries(conn: sqlite3.Connection) -> None:
 
     _record_migration(conn, migration_name)
     conn.commit()
+
+
+# ── Script CRUD ───────────────────────────────────────────────
+
+
+def get_script_entries(trip_id: str, include_deleted: bool = False) -> list[dict]:
+    conn = get_db()
+    return _get_entries(conn, "script_entries", trip_id, include_deleted)
+
+
+def get_script_entry(trip_id: str, script_id: str) -> dict | None:
+    conn = get_db()
+    return _get_entry(conn, "script_entries", ("trip_id", "script_id"), (trip_id, script_id))
+
+
+def save_script_entry(
+    trip_id: str, script_id: str, entry_json: str, client_version: int | None
+) -> tuple[bool, int, str | None]:
+    conn = get_db()
+    result = _save_entry(
+        conn, "script_entries", "script_history",
+        ("trip_id", "script_id"), (trip_id, script_id),
+        entry_json, client_version,
+    )
+    conn.commit()
+    return result
+
+
+def delete_script_entry(
+    trip_id: str, script_id: str, client_version: int
+) -> tuple[bool, int]:
+    conn = get_db()
+    result = _delete_entry(
+        conn, "script_entries", "script_history",
+        ("trip_id", "script_id"), (trip_id, script_id),
+        client_version,
+    )
+    conn.commit()
+    return result
 
 
 def run_migrations() -> None:
