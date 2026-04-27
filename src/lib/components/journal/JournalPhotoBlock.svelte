@@ -50,11 +50,23 @@
 
 	$: imgSrc = resolvedSrc;
 
+	function onCaptionInput(e: Event) {
+		const el = e.target as HTMLTextAreaElement;
+		// Auto-resize: reset to 1 row then expand to content
+		el.style.height = 'auto';
+		el.style.height = el.scrollHeight + 'px';
+	}
+
 	function onCaptionBlur(e: FocusEvent) {
-		const value = (e.target as HTMLInputElement).value;
+		const value = (e.target as HTMLTextAreaElement).value;
 		if (value !== block.caption) {
 			dispatch('captionedit', { blockId: block.id, caption: value });
 		}
+	}
+
+	function autosizeCaption(el: HTMLTextAreaElement) {
+		el.style.height = 'auto';
+		el.style.height = el.scrollHeight + 'px';
 	}
 
 	function onDelete() {
@@ -89,13 +101,15 @@
 			</svg>
 		</button>
 	</div>
-	<input
-		type="text"
+	<textarea
 		class="caption-input"
 		value={block.caption}
 		on:blur={onCaptionBlur}
+		on:input={onCaptionInput}
+		use:autosizeCaption
 		placeholder="Add caption..."
-	/>
+		rows="1"
+	></textarea>
 	{#if block.uploadedBy}
 		<span class="uploaded-by">by {block.uploadedBy}</span>
 	{/if}
@@ -187,6 +201,10 @@
 		border: none;
 		border-top: 1px solid var(--border);
 		padding: 0.4rem 0.6rem;
+		resize: none;
+		overflow: hidden;
+		line-height: 1.4;
+		box-sizing: border-box;
 	}
 
 	.caption-input:focus {

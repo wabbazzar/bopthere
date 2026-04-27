@@ -30,6 +30,13 @@
 	$: day = trip.days[currentDayIndex];
 	$: totalDays = trip.days.length;
 
+	$: isToday = (() => {
+		if (!day?.date) return false;
+		const now = new Date();
+		const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+		return day.date === today;
+	})();
+
 	// Inline location edit (in the day-nav header)
 	let editingLocation = false;
 	let locationDraft = '';
@@ -62,32 +69,6 @@
 		else if (e.key === 'Escape') { e.preventDefault(); cancelLocation(); }
 	}
 
-	// Swipe detection
-	let touchStartX = 0;
-	let touchStartY = 0;
-	let swiping = false;
-
-	function onTouchStart(e: TouchEvent) {
-		touchStartX = e.touches[0].clientX;
-		touchStartY = e.touches[0].clientY;
-		swiping = true;
-	}
-
-	function onTouchEnd(e: TouchEvent) {
-		if (!swiping) return;
-		swiping = false;
-		const dx = e.changedTouches[0].clientX - touchStartX;
-		const dy = e.changedTouches[0].clientY - touchStartY;
-		// Only trigger if horizontal swipe is dominant and > 50px
-		if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-			if (dx < 0 && currentDayIndex < totalDays - 1) {
-				currentDayIndex++;
-			} else if (dx > 0 && currentDayIndex > 0) {
-				currentDayIndex--;
-			}
-		}
-	}
-
 	function prev() { if (currentDayIndex > 0) currentDayIndex--; }
 	function next() { if (currentDayIndex < totalDays - 1) currentDayIndex++; }
 
@@ -106,12 +87,7 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-	class="day-view"
-	on:touchstart={onTouchStart}
-	on:touchend={onTouchEnd}
->
+<div class="day-view">
 	{#if day}
 		<MiniCalendar {trip} bind:currentDayIndex />
 
@@ -152,6 +128,7 @@
 				</span>
 				<span class="day-nav-subtitle">
 					Day {currentDayIndex + 1} of {totalDays}
+					{#if isToday}<span class="today-badge">Today</span>{/if}
 				</span>
 			</div>
 
@@ -263,6 +240,20 @@
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		margin-top: 0.125rem;
+	}
+
+	.today-badge {
+		display: inline-block;
+		font-size: 0.55rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--surface);
+		background: var(--accent);
+		padding: 1px 5px;
+		border-radius: 4px;
+		margin-left: 0.35rem;
+		vertical-align: middle;
 	}
 	.location-edit-btn {
 		background: none;

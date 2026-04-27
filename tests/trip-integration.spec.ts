@@ -65,7 +65,7 @@ async function resetTripData(page: Page) {
 }
 
 /** Navigate to trip page in day view */
-async function goToDayView(page: Page) {
+async function goToDayView(page: Page, targetDay?: number) {
 	// Arm the listener before navigation so we don't miss the initSync GET
 	const serverPullDone = page.waitForResponse(
 		(r) =>
@@ -81,6 +81,11 @@ async function goToDayView(page: Page) {
 	// Click the "Day" tab
 	await page.getByRole('tab', { name: 'Day' }).click();
 	await page.waitForSelector('button[aria-label="Next day"]', { timeout: 5000 });
+	// Navigate to a specific day if requested (click the mini-calendar button)
+	if (targetDay !== undefined) {
+		await page.locator(`button[aria-label="Go to day ${targetDay}"]`).click();
+		await page.waitForTimeout(300);
+	}
 }
 
 /** Navigate to trip page in week view */
@@ -119,7 +124,7 @@ test.describe('Day View — Navigation', () => {
 	});
 
 	test('Previous/Next arrows navigate between days', async ({ page }) => {
-		await goToDayView(page);
+		await goToDayView(page, 1);
 
 		const { current: initial } = await getDayInfo(page);
 		expect(initial).toBe(1);
@@ -134,7 +139,7 @@ test.describe('Day View — Navigation', () => {
 	});
 
 	test('Previous button is disabled on first day', async ({ page }) => {
-		await goToDayView(page);
+		await goToDayView(page, 1);
 		await expect(page.locator('button[aria-label="Previous day"]')).toBeDisabled();
 	});
 

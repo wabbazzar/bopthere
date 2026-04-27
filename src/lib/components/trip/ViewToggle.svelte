@@ -1,19 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { dbGet, dbPut } from '$lib/stores/db';
+	import { dbPut } from '$lib/stores/db';
 
 	export let activeView: 'week' | 'day' = 'week';
 	export let tripId: string;
 
 	const dispatch = createEventDispatcher();
-
-	onMount(async () => {
-		const saved = await dbGet<string>('prefs', `hw-trip-view-${tripId}`);
-		if (saved === 'week' || saved === 'day') {
-			activeView = saved;
-		}
-	});
 
 	function setView(view: 'week' | 'day') {
 		activeView = view;

@@ -5,6 +5,7 @@
 	import { scriptsStore } from '$lib/stores/scripts';
 	import { isAuthenticated } from '$lib/stores/auth';
 	import { onMount, onDestroy } from 'svelte';
+	import { get } from 'svelte/store';
 	import type { JournalEntry } from '$lib/types/trip';
 	import TripHeader from '$lib/components/trip/TripHeader.svelte';
 	import ViewToggle from '$lib/components/trip/ViewToggle.svelte';
@@ -17,7 +18,7 @@
 	import JournalBlocks from '$lib/components/journal/JournalBlocks.svelte';
 	import { getBookings } from '$lib/services/bookings';
 	import { initPhotoQueue } from '$lib/services/photo-queue';
-	import { dbGet, dbPut } from '$lib/stores/db';
+	import { dbGet } from '$lib/stores/db';
 	import type { Booking } from '$lib/types/trip';
 
 	$: tripId = $page.params.id as string;
@@ -25,6 +26,16 @@
 
 	let activeView: 'week' | 'day' = 'week';
 	let currentDayIndex = 0;
+
+	/** Compute the day index for today within the trip date range, clamped to valid bounds. */
+	function todayDayIndex(t: typeof trip): number {
+		if (!t?.startDate || !t?.days?.length) return 0;
+		const start = new Date(t.startDate + 'T00:00:00');
+		const now = new Date();
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const diff = Math.floor((today.getTime() - start.getTime()) / 86_400_000);
+		return Math.max(0, Math.min(diff, t.days.length - 1));
+	}
 
 	// Bookings are now served from the FastAPI backend (wabbazzar-ice),
 	// not bundled into the repo. `null` = still loading, `[]` = no bookings.
@@ -38,16 +49,18 @@
 	}
 
 	onMount(async () => {
-		trips.init();
+		await trips.init();
 		journalStore.init(tripId);
 		scriptsStore.init(tripId);
 		initPhotoQueue();
 		document.addEventListener('visibilitychange', onVisibilityChange);
-		const saved = await dbGet<string>('prefs', `hw-trip-day-${tripId}`);
-		if (saved !== undefined) {
-			const idx = parseInt(saved, 10);
-			const maxIdx = (trip?.days?.length ?? 1) - 1;
-			if (!isNaN(idx) && idx >= 0) currentDayIndex = Math.min(idx, maxIdx);
+		// Always open on today's date within the trip
+		const currentTrip = get(trips)[tripId];
+		currentDayIndex = todayDayIndex(currentTrip);
+		// Restore saved view preference before first render to avoid week->day flash
+		const savedView = await dbGet<string>('prefs', `hw-trip-view-${tripId}`);
+		if (savedView === 'week' || savedView === 'day') {
+			activeView = savedView;
 		}
 	});
 
@@ -72,9 +85,6 @@
 		}
 	}
 
-	$: if (tripId) {
-		dbPut('prefs', `hw-trip-day-${tripId}`, String(currentDayIndex));
-	}
 
 	// Journal entry for the current day
 	$: currentDay = trip?.days?.[currentDayIndex];

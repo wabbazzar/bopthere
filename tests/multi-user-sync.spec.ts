@@ -90,7 +90,11 @@ async function editFieldByLabel(page: Page, label: string, newText: string) {
 
 test.describe('Multi-user trip sync', () => {
 	let tripSnapshot: unknown;
+	let daySnapshots: { dayIndex: number; day: unknown; version: number }[] = [];
 	let snapshotToken: string;
+
+	/** Day indices that tests edit (04-28 = day 6, 04-29 = day 7, 04-30 = day 8) */
+	const EDITED_DAY_INDICES = [6, 7, 8];
 
 	/** Generate a JWT for API calls outside the browser context */
 	async function getApiToken(browser: any): Promise<string> {
@@ -120,29 +124,55 @@ test.describe('Multi-user trip sync', () => {
 
 	test.beforeAll(async ({ browser }) => {
 		snapshotToken = await getApiToken(browser);
-		// Snapshot the current trip so we can restore after tests
-		const res = await fetch(`${API}/api/trips/china-2026`, {
-			headers: { Authorization: `Bearer ${snapshotToken}` }
-		});
+		const headers = { Authorization: `Bearer ${snapshotToken}` };
+
+		// Snapshot the bulk trip so we can restore after tests
+		const res = await fetch(`${API}/api/trips/china-2026`, { headers });
 		if (res.ok) {
 			const data = await res.json();
 			tripSnapshot = data.trip;
 		}
+
+		// Snapshot per-entry day data for every day the tests will edit
+		for (const idx of EDITED_DAY_INDICES) {
+			const dayRes = await fetch(`${API}/api/trips/china-2026/days/${idx}`, { headers });
+			if (dayRes.ok) {
+				const data = await dayRes.json();
+				daySnapshots.push({ dayIndex: idx, day: data.day, version: data.version });
+			}
+		}
 	});
 
 	test.afterAll(async () => {
-		// Restore the original trip data that tests contaminated
-		if (tripSnapshot && snapshotToken) {
+		if (!snapshotToken) return;
+		const headers = {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${snapshotToken}`
+		};
+
+		// Restore the bulk trip data
+		if (tripSnapshot) {
 			await fetch(`${API}/api/trips/china-2026`, {
 				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${snapshotToken}`
-				},
+				headers,
 				body: JSON.stringify({
 					trip: tripSnapshot,
 					updatedAt: new Date().toISOString()
 				})
+			});
+		}
+
+		// Restore per-entry day data (these are written by the UI independently)
+		for (const snap of daySnapshots) {
+			// Fetch current version so the PUT doesn't get rejected by version conflict
+			const cur = await fetch(`${API}/api/trips/china-2026/days/${snap.dayIndex}`, {
+				headers: { Authorization: `Bearer ${snapshotToken}` }
+			});
+			const curVersion = cur.ok ? (await cur.json()).version : snap.version;
+			await fetch(`${API}/api/trips/china-2026/days/${snap.dayIndex}`, {
+				method: 'PUT',
+				headers,
+				body: JSON.stringify({ day: snap.day, version: curVersion })
 			});
 		}
 	});

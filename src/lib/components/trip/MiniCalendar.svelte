@@ -47,6 +47,16 @@
 		}
 		return locationColors[location];
 	}
+
+	/** Day index that corresponds to today's date, or -1 if today is outside the trip. */
+	$: todayIndex = (() => {
+		if (!trip.startDate || trip.days.length === 0) return -1;
+		const start = new Date(trip.startDate + 'T00:00:00');
+		const now = new Date();
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const diff = Math.floor((today.getTime() - start.getTime()) / 86_400_000);
+		return diff >= 0 && diff < trip.days.length ? diff : -1;
+	})();
 </script>
 
 <div class="mini-cal" aria-label="Trip day navigator" data-testid="mini-cal">
@@ -65,6 +75,7 @@
 					<button
 						class="mini-cal-day"
 						class:active={dayIdx === currentDayIndex}
+						class:today={dayIdx === todayIndex}
 						class:ooo={day.ooo}
 						on:click={() => (currentDayIndex = dayIdx)}
 						aria-label="Go to day {dayIdx + 1}"
@@ -164,6 +175,15 @@
 	.mini-cal-day.active .mini-cal-dot--journal {
 		background: var(--surface) !important;
 		opacity: 0.8;
+	}
+
+	.mini-cal-day.today:not(.active) {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 1px var(--accent);
+	}
+
+	.mini-cal-day.today.active {
+		box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent);
 	}
 
 	.mini-cal-day.ooo:not(.active) {
