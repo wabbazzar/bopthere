@@ -167,20 +167,7 @@
 			<div class="card journal-card">
 				<div class="journal-card-header">
 					<h2 class="journal-card-title">Journal</h2>
-					<div class="journal-card-header-right">
-						<span class="journal-card-day">Day {currentDayIndex + 1}</span>
-						<button
-							type="button"
-							class="back-to-top-inline"
-							on:click={scrollToTop}
-							aria-label="Back to top"
-							title="Back to top"
-						>
-							<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-								<path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
-							</svg>
-						</button>
-					</div>
+					<span class="journal-card-day">Day {currentDayIndex + 1}</span>
 				</div>
 				<div class="journal-card-body">
 					<JournalHeader
@@ -209,48 +196,24 @@
 			<div class="text-sm" style="color: var(--ink-faint)">Loading bookings…</div>
 		{:else if bookings.length > 0}
 			<BookingsSection {bookings} {tripId} />
-			<button
-				type="button"
-				class="back-to-top"
-				on:click={scrollToTop}
-				aria-label="Back to top"
-				title="Back to top"
-			>
-				<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-					<path
-						d="M6 15l6-6 6 6"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2.25"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-				</svg>
-			</button>
 		{/if}
 	</div>
 
 	<div id="todos-section" class="section-wrap mt-6 scroll-mt-4">
 		<TodosSection {tripId} />
-		<button
-			type="button"
-			class="back-to-top"
-			on:click={scrollToTop}
-			aria-label="Back to top"
-			title="Back to top"
-		>
-			<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-				<path
-					d="M6 15l6-6 6 6"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2.25"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				/>
-			</svg>
-		</button>
 	</div>
+
+	<button
+		type="button"
+		class="scroll-top-fab"
+		on:click={scrollToTop}
+		aria-label="Back to top"
+		title="Back to top"
+	>
+		<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+			<path d="M6 15l6-6 6 6"/>
+		</svg>
+	</button>
 {:else}
 	<p>Trip not found.</p>
 {/if}
@@ -316,36 +279,11 @@
 		color: var(--ink);
 		margin: 0;
 	}
-	.journal-card-header-right {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
 	.journal-card-day {
 		font-size: 0.7rem;
 		color: var(--ink-faint);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-	}
-	.back-to-top-inline {
-		width: 28px;
-		height: 28px;
-		border-radius: 999px;
-		border: 1px solid var(--border);
-		background: var(--surface);
-		color: var(--ink-faint);
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
-		padding: 0;
-		flex-shrink: 0;
-	}
-	.back-to-top-inline:hover {
-		color: var(--ink);
-		background: var(--accent-muted);
-		border-color: var(--accent);
 	}
 	.journal-card-body {
 		padding: 1rem;
@@ -357,40 +295,30 @@
 	.section-wrap {
 		position: relative;
 	}
-	.back-to-top {
-		position: absolute;
-		/* sit inside the card's p-5 padding so the button lives within
-		   the box frame and the bob animation can't clip the border */
-		top: 0.875rem;
-		right: 0.875rem;
-		width: 30px;
-		height: 30px;
-		border-radius: 999px;
-		border: 1px solid var(--border);
-		background: var(--surface);
-		color: var(--ink-faint);
-		display: inline-flex;
+
+	.scroll-top-fab {
+		position: fixed;
+		bottom: 1.5rem;
+		right: 1.5rem;
+		width: 52px;
+		height: 52px;
+		border-radius: 50%;
+		background: var(--accent);
+		color: var(--surface);
+		border: none;
+		cursor: pointer;
+		display: flex;
 		align-items: center;
 		justify-content: center;
-		cursor: pointer;
-		z-index: 2;
-		transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
-		animation: bob 2.6s ease-in-out infinite;
+		box-shadow: 0 4px 16px rgba(184, 110, 43, 0.35);
+		z-index: 45;
+		transition: background-color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
 	}
-	.back-to-top:hover {
-		color: var(--ink);
-		background: var(--accent-muted);
-		border-color: var(--accent);
-		animation-play-state: paused;
+	.scroll-top-fab:hover {
+		background: var(--accent-hover);
+		box-shadow: 0 6px 20px rgba(184, 110, 43, 0.45);
 	}
-	.back-to-top:active {
-		transform: translateY(0) scale(0.94);
-	}
-	@keyframes bob {
-		0%, 100% { transform: translateY(0); }
-		50%      { transform: translateY(-3px); }
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.back-to-top { animation: none; }
+	.scroll-top-fab:active {
+		transform: scale(0.94);
 	}
 </style>
