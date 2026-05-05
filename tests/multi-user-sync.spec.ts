@@ -9,7 +9,7 @@
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:5174';
-const API = 'https://api.heatherandwesley.com';
+const API = 'https://api.bopthere.com';
 
 const WESLEY = {
 	username: 'wesley',
@@ -63,11 +63,17 @@ async function goToTrip(page: Page) {
 async function goToDay(page: Page, dateSuffix: string) {
 	await page.locator('button[role="tab"]:has-text("Day")').click();
 	await page.waitForTimeout(300);
-	for (let i = 0; i < 11; i++) {
-		const text = await page.locator('main').textContent();
-		if (text && text.includes(dateSuffix)) return;
-		await page.locator('button[aria-label="Next day"]').click();
-		await page.waitForTimeout(200);
+	for (let pass = 0; pass < 2; pass++) {
+		for (let i = 0; i < 12; i++) {
+			const text = await page.locator('main').textContent();
+			if (text && text.includes(dateSuffix)) return;
+			const btn = page.locator(
+				pass === 0 ? 'button[aria-label="Previous day"]' : 'button[aria-label="Next day"]'
+			);
+			if (!await btn.isEnabled()) break;
+			await btn.click();
+			await page.waitForTimeout(200);
+		}
 	}
 }
 

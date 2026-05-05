@@ -694,7 +694,9 @@ test.describe('No JavaScript Errors', () => {
 		await goToDayView(page);
 
 		// Click through actions
-		// Navigate between days
+		// Navigate between days — start at day 1 so "Next day" is always enabled
+		await page.locator('button[aria-label="Go to day 1"]').click();
+		await page.waitForTimeout(200);
 		await page.click('button[aria-label="Next day"]');
 		await page.click('button[aria-label="Next day"]');
 		await page.click('button[aria-label="Previous day"]');

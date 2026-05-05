@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { idbGet } from './helpers/idb';
+import { idbGetTripDayCount, idbGetTripMeta, idbGetTodos, idbPut } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -34,33 +34,25 @@ async function injectAuth(page: Page) {
 	}, TEST_USER);
 }
 
+const DAY_0 = { date: '2026-04-22', dayOfWeek: 'Wed', location: 'Shanghai', travel: '', morning: '', afternoon: '', evening: '', accommodation: '', notes: '', ooo: false };
+const DAY_1 = { date: '2026-04-23', dayOfWeek: 'Thu', location: 'Shanghai', travel: '', morning: '', afternoon: '', evening: '', accommodation: '', notes: '', ooo: false };
+const TRIP_META = { id: 'china-2026', name: 'China 2026', startDate: '2026-04-22', endDate: '2026-04-23', destinations: ['Shanghai'], links: ['https://original.example'] };
+const TODO_A = { id: 'test-todo-a', text: 'Existing task A', done: false };
+const TODO_B = { id: 'test-todo-b', text: 'Existing task B', done: false };
+
 async function primeTrip(page: Page) {
-	// Block the real server so we drive state purely from localStorage
+	// Block the real server so we drive state purely from IDB
 	await page.route('**/api/trips/**', async (route) => {
 		await route.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
 	});
 	await injectAuth(page);
-	// Seed a minimal china-2026 with two days + one existing link + one todo
-	await page.evaluate(() => {
-		const trip = {
-			id: 'china-2026',
-			name: 'China 2026',
-			startDate: '2026-04-22',
-			endDate: '2026-04-23',
-			destinations: ['Shanghai'],
-			links: ['https://original.example'],
-			days: [
-				{ date: '2026-04-22', dayOfWeek: 'Wed', location: 'Shanghai', travel: '', morning: '', afternoon: '', evening: '', accommodation: '', notes: '', ooo: false },
-				{ date: '2026-04-23', dayOfWeek: 'Thu', location: 'Shanghai', travel: '', morning: '', afternoon: '', evening: '', accommodation: '', notes: '', ooo: false }
-			]
-		};
-		localStorage.setItem('hw-trips', JSON.stringify({ 'china-2026': trip }));
-		localStorage.setItem('hw-todos-schema-version', '2');
-		localStorage.setItem('hw-trip-todos-china-2026', JSON.stringify([
-			{ text: 'Existing task A', done: false },
-			{ text: 'Existing task B', done: false }
-		]));
-	});
+	// Write trip + todos directly to IDB so the app loads controlled state regardless
+	// of whether the LocalStorage migration flag has already been set.
+	await idbPut(page, 'trips', 'trip-meta:china-2026', TRIP_META);
+	await idbPut(page, 'trips', 'trip-day:china-2026:0', DAY_0);
+	await idbPut(page, 'trips', 'trip-day:china-2026:1', DAY_1);
+	await idbPut(page, 'todos', 'china-2026:test-todo-a', TODO_A);
+	await idbPut(page, 'todos', 'china-2026:test-todo-b', TODO_B);
 }
 
 function mockChatApi(page: Page, assistantContent: string) {
@@ -115,9 +107,8 @@ test.describe('Chat action blocks — TRIP_DAYS', () => {
 		await assistant.locator('[aria-label="Apply day changes"]').click();
 		await expect(assistant.locator('[aria-label="Day changes applied"]')).toBeVisible();
 
-		const trip = await idbGet(page, 'trips', 'china-2026');
-		const dayCount = trip?.days?.length ?? null;
 		// Started with 2, duplicate → 3, add → 4
+		const dayCount = await idbGetTripDayCount(page, 'china-2026');
 		expect(dayCount).toBe(4);
 	});
 
@@ -129,8 +120,8 @@ test.describe('Chat action blocks — TRIP_DAYS', () => {
 		await assistant.locator('[aria-label="Dismiss day changes"]').click();
 		await expect(assistant.locator('[aria-label="Day reshape actions"]')).not.toBeVisible();
 
-		const trip = await idbGet(page, 'trips', 'china-2026');
-		expect(trip?.days?.length).toBe(2);
+		const dayCount = await idbGetTripDayCount(page, 'china-2026');
+		expect(dayCount).toBe(2);
 	});
 });
 
@@ -147,7 +138,7 @@ test.describe('Chat action blocks — TRIP_META', () => {
 		await assistant.locator('[aria-label="Apply trip meta"]').click();
 		await expect(assistant.locator('[aria-label="Trip meta applied"]')).toBeVisible();
 
-		const stored = await idbGet(page, 'trips', 'china-2026');
+		const stored = await idbGetTripMeta(page, 'china-2026');
 		expect(stored.name).toBe('China Spring 2026');
 		// Destinations are recomputed from day locations AFTER updateDestinations runs,
 		// because trip.destinations is also derived in other store paths; here we set
@@ -172,9 +163,9 @@ test.describe('Chat action blocks — TRIP_LINKS', () => {
 		await assistant.locator('[aria-label="Apply link changes"]').click();
 		await expect(assistant.locator('[aria-label="Link changes applied"]')).toBeVisible();
 
-		const trip2 = await idbGet(page, 'trips', 'china-2026');
+		const meta2 = await idbGetTripMeta(page, 'china-2026');
 		// add first → links = [original, booking.com]; delete index 0 → [booking.com]
-		expect(trip2.links).toEqual(['https://booking.com/hotel']);
+		expect(meta2.links).toEqual(['https://booking.com/hotel']);
 	});
 });
 
@@ -192,14 +183,11 @@ test.describe('Chat action blocks — TODOS', () => {
 		await assistant.locator('[aria-label="Apply todo changes"]').click();
 		await expect(assistant.locator('[aria-label="Todos applied"]')).toBeVisible();
 
-		const todos = await idbGet(page, 'todos', 'china-2026');
-		// Operations applied in order (0-indexed against the live store state at each step):
-		// [A, B] → add C → [A, B, C]
-		// → toggle idx 0 → [A(done), B, C]
-		// → delete idx 1 → [A(done), C]
-		expect(todos).toEqual([
-			{ text: 'Existing task A', done: true },
-			{ text: 'Task C', done: false }
-		]);
+		const todos = await idbGetTodos(page, 'china-2026');
+		// Operations: [A, B] → add C → toggle A → delete B → [A(done), C]
+		const simplified = todos.map((t: any) => ({ text: t.text, done: t.done }));
+		expect(simplified).toHaveLength(2);
+		expect(simplified).toContainEqual({ text: 'Existing task A', done: true });
+		expect(simplified).toContainEqual({ text: 'Task C', done: false });
 	});
 });

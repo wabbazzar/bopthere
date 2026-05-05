@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:5174';
-const CHAT_API = 'https://api.heatherandwesley.com';
+const CHAT_API = 'https://api.bopthere.com';
 
 const TEST_USER = {
 	username: 'wesley',

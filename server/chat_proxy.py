@@ -9,7 +9,7 @@ import os
 import sys
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import jwt
@@ -26,6 +26,8 @@ try:
 except Exception:  # pragma: no cover
     def log_event(*_a, **_k):  # type: ignore[no-redef]
         pass
+
+from auth_db import init_auth_db, verify_password as auth_verify_password, get_user
 
 from db import (
     delete_conversation,
@@ -52,12 +54,17 @@ from db import (
     get_script_entries, get_script_entry, save_script_entry, delete_script_entry,
 )
 
-app = FastAPI(title="H&W Chat Proxy", docs_url=None, redoc_url=None)
+app = FastAPI(title="BopThere API", docs_url=None, redoc_url=None)
+
+# Initialize auth database on startup
+init_auth_db()
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "your-secret-key-change-in-production")
 CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "/home/wabbazzar/.local/bin/claude")
 
 ALLOWED_ORIGINS = [
+    "https://bopthere.com",
+    "https://www.bopthere.com",
     "https://heatherandwesley.com",
     "https://www.heatherandwesley.com",
     "https://wabbazzar.github.io",
@@ -149,6 +156,65 @@ def verify_token(authorization: str | None) -> dict:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+
+JWT_EXPIRY_DAYS = 30
+
+
+def _generate_token(username: str, role: str) -> str:
+    """Generate JWT token for authenticated user."""
+    payload = {
+        "username": username,
+        "role": role,
+        "exp": datetime.utcnow() + timedelta(days=JWT_EXPIRY_DAYS),
+        "iat": datetime.utcnow(),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/auth/login")
+async def auth_login(req: LoginRequest):
+    user = auth_verify_password(req.username, req.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    token = _generate_token(user["username"], user["role"])
+    expires_at = (datetime.utcnow() + timedelta(days=JWT_EXPIRY_DAYS)).isoformat() + "Z"
+    return {
+        "message": "Login successful",
+        "token": token,
+        "user": user,
+        "expires_at": expires_at,
+    }
+
+
+@app.post("/auth/verify")
+async def auth_verify(authorization: str | None = Header(None)):
+    payload = verify_token(authorization)
+    user = get_user(payload["username"])
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return {"message": "Token is valid", "user": user}
+
+
+@app.post("/auth/refresh")
+async def auth_refresh(authorization: str | None = Header(None)):
+    payload = verify_token(authorization)
+    user = get_user(payload["username"])
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    new_token = _generate_token(user["username"], user["role"])
+    expires_at = (datetime.utcnow() + timedelta(days=JWT_EXPIRY_DAYS)).isoformat() + "Z"
+    return {
+        "message": "Token refreshed successfully",
+        "token": new_token,
+        "user": user,
+        "expires_at": expires_at,
+    }
 
 
 async def ask_claude(system_prompt: str, conversation_text: str) -> str:

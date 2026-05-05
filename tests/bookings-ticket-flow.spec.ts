@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:5174';
-const API = 'https://api.heatherandwesley.com';
+const API = 'https://api.bopthere.com';
 
 const TEST_USER = {
 	username: 'wesley',
@@ -41,6 +41,12 @@ test.describe('Bookings — backend-served with signed tickets', () => {
 
 		// #bookings-section only mounts once the async fetch resolves
 		await expect(page.locator('#bookings-section')).toBeVisible({ timeout: 8000 });
+		// Past bookings are collapsed by default; expand them first so all entries are visible.
+		const pastToggle = page.locator('[aria-label="Toggle past bookings"]');
+		if (await pastToggle.isVisible({ timeout: 2000 }).catch(() => false)) {
+			await pastToggle.click();
+			await page.waitForTimeout(300);
+		}
 		// Entries for Austin → Shanghai should be present. We deliberately do
 		// NOT assert on any confirmation codes or eTicket numbers here — those
 		// are exactly the sensitive fields we moved out of the repo, and
@@ -60,6 +66,13 @@ test.describe('Bookings — backend-served with signed tickets', () => {
 		const token = await injectAuth(page);
 		await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
 		await expect(page.locator('#bookings-section')).toBeVisible({ timeout: 8000 });
+
+		// Expand past bookings so all entries are visible
+		const pastToggle = page.locator('[aria-label="Toggle past bookings"]');
+		if (await pastToggle.isVisible({ timeout: 2000 }).catch(() => false)) {
+			await pastToggle.click();
+			await page.waitForTimeout(300);
+		}
 
 		// Expand the first booking (Austin → Shanghai) so the ticket link shows
 		await page.locator('#bookings-section .booking').first().click();

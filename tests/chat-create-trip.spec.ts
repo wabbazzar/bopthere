@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { idbGet } from './helpers/idb';
+import { idbGetTripMeta, idbGetTripDay, idbGetTripDayCount } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -140,15 +140,15 @@ test.describe('Chat — Create Trip (via chat FAB)', () => {
 
 		await assistant.locator('[aria-label="Create this trip"]').click();
 
-		// Wait for the trip to appear in IndexedDB
+		// Wait for the trip metadata to appear in IndexedDB (per-entry format)
 		await page.waitForFunction(() => {
 			return new Promise((resolve) => {
-				const req = indexedDB.open('hw-travel', 1);
+				const req = indexedDB.open('hw-travel', 2);
 				req.onsuccess = () => {
 					const db = req.result;
 					try {
 						const tx = db.transaction('trips', 'readonly');
-						const get = tx.objectStore('trips').get('portugal-spring-2027');
+						const get = tx.objectStore('trips').get('trip-meta:portugal-spring-2027');
 						get.onsuccess = () => resolve(Boolean(get.result));
 						get.onerror = () => resolve(false);
 					} catch { resolve(false); }
@@ -157,13 +157,16 @@ test.describe('Chat — Create Trip (via chat FAB)', () => {
 			});
 		}, { timeout: 3000 });
 
-		const stored = await idbGet(page, 'trips', 'portugal-spring-2027');
-		expect(stored).toBeTruthy();
-		expect(stored.name).toBe('Portugal Spring 2027');
+		const meta = await idbGetTripMeta(page, 'portugal-spring-2027');
+		expect(meta).toBeTruthy();
+		expect(meta.name).toBe('Portugal Spring 2027');
 		// Seeded days Apr 10 through Apr 14 inclusive = 5 days
-		expect(stored.days).toHaveLength(5);
-		expect(stored.days[0].date).toBe('2027-04-10');
-		expect(stored.days[4].date).toBe('2027-04-14');
+		const dayCount = await idbGetTripDayCount(page, 'portugal-spring-2027');
+		expect(dayCount).toBe(5);
+		const day0 = await idbGetTripDay(page, 'portugal-spring-2027', 0);
+		const day4 = await idbGetTripDay(page, 'portugal-spring-2027', 4);
+		expect(day0?.date).toBe('2027-04-10');
+		expect(day4?.date).toBe('2027-04-14');
 
 		await expect(page).toHaveURL(/\/trip\/portugal-spring-2027/, { timeout: 5000 });
 	});
@@ -181,7 +184,7 @@ test.describe('Chat — Create Trip (via chat FAB)', () => {
 
 		await expect(assistant.locator('[aria-label="Create trip action"]')).not.toBeVisible({ timeout: 3000 });
 
-		const stored = await idbGet(page, 'trips', 'portugal-spring-2027');
-		expect(stored).toBeFalsy();
+		const meta = await idbGetTripMeta(page, 'portugal-spring-2027');
+		expect(meta).toBeFalsy();
 	});
 });

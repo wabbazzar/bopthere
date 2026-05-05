@@ -1,7 +1,7 @@
 # Ticket 025: Migrate ALL Client-Side Storage from localStorage to IndexedDB
 
 ## Metadata
-- **Status**: Complete (all 4 phases implemented, tests passing)
+- **Status**: Complete (IndexedDB migration done + per-entry storage overhaul with versioning/tombstoning)
 - **Priority**: High
 - **Effort**: 18 points (4 phases)
 - **Created**: 2026-04-23

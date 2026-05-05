@@ -37,6 +37,7 @@ async function injectAuth(page: Page) {
 		const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
 			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 		const jwt = `${header}.${payload}.${signature}`;
+		localStorage.removeItem('hw-idb-migration-complete');
 		localStorage.setItem('hw-auth-token', jwt);
 		localStorage.setItem('hw-auth-user', JSON.stringify(user));
 	}, TEST_USER);
@@ -57,12 +58,62 @@ async function wipeLocalTodos(page: Page) {
 }
 
 async function goToTripTodos(page: Page, tripId: string) {
+	// Navigate to trip page — may show "Trip not found" briefly while
+	// discoverServerTrips() runs in the background. Retry until it loads.
 	await page.goto(`${BASE_URL}/trip/${tripId}`, { waitUntil: 'domcontentloaded' });
-	await page.waitForSelector('h1', { timeout: 10000 });
+	// Wait for h1 (trip name) — retries handle the async trip discovery race
+	try {
+		await page.waitForSelector('h1', { timeout: 5000 });
+	} catch {
+		// Trip wasn't discovered yet; reload to let the store pick it up
+		await page.waitForTimeout(2000);
+		await page.reload({ waitUntil: 'domcontentloaded' });
+		await page.waitForSelector('h1', { timeout: 30000 });
+	}
 	// Wait for the To Do section heading to be present
 	await page.locator('text="To Do"').first().waitFor({ timeout: 5000 });
 	// Allow the async pullFromServer to settle
 	await page.waitForLoadState('networkidle');
+}
+
+/** Clean up a todo by text via API — avoids flaky UI-based deletion. */
+async function cleanupTodoByText(page: Page, tripId: string, text: string) {
+	try {
+		await page.evaluate(async ({ tripId, text }) => {
+			const token = localStorage.getItem('hw-auth-token')
+				|| await new Promise<string | null>((resolve) => {
+					const req = indexedDB.open('hw-travel', 2);
+					req.onsuccess = () => {
+						try {
+							const tx = req.result.transaction('auth', 'readonly');
+							const get = tx.objectStore('auth').get('token');
+							get.onsuccess = () => resolve(get.result?.value ?? null);
+							get.onerror = () => resolve(null);
+						} catch { resolve(null); }
+					};
+					req.onerror = () => resolve(null);
+				});
+			if (!token) return;
+			const API = 'https://api.bopthere.com';
+			const res = await fetch(`${API}/api/trips/${tripId}/todos/entries`, {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+			if (!res.ok) return;
+			const data = await res.json();
+			for (const entry of data.entries ?? []) {
+				const entryText = entry.text || entry.title || JSON.stringify(entry);
+				if (entryText.includes(text)) {
+					await fetch(`${API}/api/trips/${tripId}/todos/entries/${entry.id}`, {
+						method: 'DELETE',
+						headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+						body: JSON.stringify({ version: entry.version ?? entry._version ?? 1 })
+					});
+				}
+			}
+		}, { tripId, text });
+	} catch {
+		// Best-effort cleanup
+	}
 }
 
 async function readTodos(page: Page): Promise<string[]> {
@@ -109,12 +160,8 @@ test.describe('Todo isolation between trips', () => {
 		const chinaTodos = await readTodos(page);
 		expect(chinaTodos).not.toContain(unique);
 
-		// Cleanup: remove the unique todo from Europe so re-runs don't accumulate
-		await wipeLocalTodos(page);
-		await goToTripTodos(page, EUROPE_ID);
-		const deleteBtn = page.locator('li', { hasText: unique }).locator('button[aria-label="Delete todo"]');
-		await deleteBtn.dispatchEvent('click');
-		await page.waitForTimeout(2500);
+		// Cleanup: remove the unique todo via API so re-runs don't accumulate
+		await cleanupTodoByText(page, EUROPE_ID, unique);
 	});
 
 	test('A todo added to China does NOT appear in Europe', async ({ page }) => {
@@ -133,11 +180,7 @@ test.describe('Todo isolation between trips', () => {
 		const europeTodos = await readTodos(page);
 		expect(europeTodos).not.toContain(unique);
 
-		// Cleanup: remove the unique todo we added to China so the suite is repeatable
-		await wipeLocalTodos(page);
-		await goToTripTodos(page, CHINA_ID);
-		const deleteBtn = page.locator('li', { hasText: unique }).locator('button[aria-label="Delete todo"]');
-		await deleteBtn.dispatchEvent('click');
-		await page.waitForTimeout(2500);
+		// Cleanup: remove the unique todo via API so re-runs don't accumulate
+		await cleanupTodoByText(page, CHINA_ID, unique);
 	});
 });

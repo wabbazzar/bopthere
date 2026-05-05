@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { idbGet } from './helpers/idb';
+import { idbGetTripDay } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -153,8 +153,8 @@ test.describe('Chat Trip Update Actions', () => {
 		await expect(assistant.locator('[aria-label="Trip updates applied"]')).toBeVisible();
 
 		// Verify the trip data was actually updated by checking IndexedDB
-		const trip = await idbGet(page, 'trips', 'china-2026');
-		expect(trip?.days?.[0]?.evening).toContain('Din Tai Fung');
+		const trip = await idbGetTripDay(page, 'china-2026', 0);
+		expect(trip?.evening).toContain('Din Tai Fung');
 	});
 
 	test('Dismiss button removes action block without updating trip', async ({ page }) => {
@@ -162,8 +162,8 @@ test.describe('Chat Trip Update Actions', () => {
 		await navigateAuthenticated(page, '/trip/china-2026');
 
 		// Capture original evening value
-		const originalTrip = await idbGet(page, 'trips', 'china-2026');
-		const originalEvening = originalTrip?.days?.[0]?.evening ?? null;
+		const originalTrip = await idbGetTripDay(page, 'china-2026', 0);
+		const originalEvening = originalTrip?.evening ?? null;
 
 		await page.locator('button[aria-label="Trip assistant"]').click();
 		await expect(page.locator('.drawer')).toBeVisible({ timeout: 5000 });
@@ -186,8 +186,8 @@ test.describe('Chat Trip Update Actions', () => {
 		await expect(assistant.locator('[aria-label="Trip updates applied"]')).not.toBeVisible();
 
 		// Trip data should NOT have changed
-		const currentTrip = await idbGet(page, 'trips', 'china-2026');
-		const currentEvening = currentTrip?.days?.[0]?.evening ?? null;
+		const currentTrip = await idbGetTripDay(page, 'china-2026', 0);
+		const currentEvening = currentTrip?.evening ?? null;
 		expect(currentEvening).toBe(originalEvening);
 	});
 });

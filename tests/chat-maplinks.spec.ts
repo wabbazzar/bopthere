@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { idbGet } from './helpers/idb';
+import { idbGetTripDay } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -159,8 +159,8 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await expect(assistant.locator('[aria-label="Map links applied"]')).toBeVisible();
 
 		// Verify mapLinks were saved to trip data
-		const trip = await idbGet(page, 'trips', 'china-2026');
-		const mapLinks = trip?.days?.[7]?.mapLinks ?? null;
+		const day7 = await idbGetTripDay(page, 'china-2026', 7);
+		const mapLinks = day7?.mapLinks ?? null;
 		expect(mapLinks).toHaveLength(3);
 		expect(mapLinks[0].label).toBe('Hotel to Tianmen Mountain');
 		expect(mapLinks[2].to).toContain('Hampton by Hilton');
@@ -183,8 +183,8 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await expect(assistant).toBeVisible({ timeout: 10000 });
 
 		// Capture original mapLinks
-		const beforeTrip = await idbGet(page, 'trips', 'china-2026');
-		const beforeLinks = beforeTrip?.days?.[7]?.mapLinks ?? null;
+		const beforeDay = await idbGetTripDay(page, 'china-2026', 7);
+		const beforeLinks = beforeDay?.mapLinks ?? null;
 
 		// Click Dismiss
 		await assistant.locator('[aria-label="Dismiss map links"]').click();
@@ -194,8 +194,8 @@ test.describe('Chat MAP_LINKS Actions', () => {
 		await expect(assistant.locator('[aria-label="Map links applied"]')).not.toBeVisible();
 
 		// Trip data unchanged
-		const afterTrip = await idbGet(page, 'trips', 'china-2026');
-		const afterLinks = afterTrip?.days?.[7]?.mapLinks ?? null;
+		const afterDay = await idbGetTripDay(page, 'china-2026', 7);
+		const afterLinks = afterDay?.mapLinks ?? null;
 		expect(JSON.stringify(afterLinks)).toBe(JSON.stringify(beforeLinks));
 	});
 });

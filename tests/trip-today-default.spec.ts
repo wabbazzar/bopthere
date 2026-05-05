@@ -53,11 +53,14 @@ function expectedTodayIndex(): number {
 	return Math.max(0, Math.min(diff, 11));
 }
 
-/** Format today as MM-DD for matching in the day header. */
+/** Format the expected trip date as MM-DD for matching in the day header.
+ * When today is past the trip end, the app shows the last trip day, not today. */
 function todayMMDD(): string {
-	const now = new Date();
-	const mm = String(now.getMonth() + 1).padStart(2, '0');
-	const dd = String(now.getDate()).padStart(2, '0');
+	const start = new Date(TRIP_START + 'T00:00:00');
+	const idx = expectedTodayIndex();
+	const tripDate = new Date(start.getTime() + idx * 86_400_000);
+	const mm = String(tripDate.getMonth() + 1).padStart(2, '0');
+	const dd = String(tripDate.getDate()).padStart(2, '0');
 	return `${mm}-${dd}`;
 }
 

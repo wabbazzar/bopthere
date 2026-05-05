@@ -8,9 +8,9 @@ Edit this file to add new checks. Dev agent adds entries when new features are b
 - [ ] `npm run check` — svelte-check + TypeScript must pass (0 errors)
 - [ ] `npm run build` — Vite build must succeed
 - [ ] `npx vitest run` — all unit tests must pass (0 failures)
-- [ ] FastAPI health: `curl -sf https://api.heatherandwesley.com/health` returns 200
+- [ ] FastAPI health: `curl -sf https://api.bopthere.com/health` returns 200
 - [ ] Auth endpoint: `POST https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod/auth/login` with empty body returns 400
-- [ ] Chat API: `GET https://api.heatherandwesley.com/api/chat/conversations/test` with invalid auth returns 401
+- [ ] Chat API: `GET https://api.bopthere.com/api/chat/conversations/test` with invalid auth returns 401
 
 ## Playwright E2E (daily only)
 

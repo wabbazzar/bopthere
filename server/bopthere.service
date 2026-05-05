@@ -1,0 +1,21 @@
+[Unit]
+Description=BopThere API (FastAPI + Claude Code CLI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/wabbazzar/code/heatherandwesley/server
+ExecStart=/home/wabbazzar/code/heatherandwesley/server/.venv/bin/uvicorn chat_proxy:app --host 127.0.0.1 --port 8089
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+Environment=JWT_SECRET=your-secret-key-change-in-production
+Environment=CLAUDE_BIN=/home/wabbazzar/.local/bin/claude
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bopthere
+
+[Install]
+WantedBy=default.target

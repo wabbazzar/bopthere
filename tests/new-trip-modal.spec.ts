@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { idbGet, idbGetAll } from './helpers/idb';
+import { idbGetAllTrips } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -106,8 +106,7 @@ test.describe('New Trip Modal', () => {
 		await expect(page).toHaveURL(/\/trip\/japan-maple-tour/, { timeout: 5000 });
 
 		// The trip is in IndexedDB with the right name
-		// Find the trip key that starts with japan-maple-tour
-		const allTrips = await idbGetAll(page, 'trips');
+		const allTrips = await idbGetAllTrips(page);
 		const tripKey = Object.keys(allTrips).find((k) => k.startsWith('japan-maple-tour'));
 		const stored = tripKey ? allTrips[tripKey] : null;
 		expect(stored).toBeTruthy();
@@ -195,7 +194,7 @@ test.describe('New Trip Modal', () => {
 		await dialog.locator('button[type="submit"]').click();
 		await expect(page).toHaveURL(/\/trip\/europe-2027/, { timeout: 5000 });
 
-		const allTrips2 = await idbGetAll(page, 'trips');
+		const allTrips2 = await idbGetAllTrips(page);
 		const europeKey = Object.keys(allTrips2).find((k) => k.startsWith('europe-2027'));
 		const locations = europeKey ? allTrips2[europeKey].days.map((d: { location: string }) => d.location) : null;
 		expect(locations).toBeTruthy();

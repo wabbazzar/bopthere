@@ -47,12 +47,18 @@ async function goToDay(page: Page, dateSuffix: string) {
 		await page.waitForTimeout(300);
 		return;
 	}
-	// Fallback: navigate with Next button
-	for (let i = 0; i < 11; i++) {
-		const text = await page.locator('main').textContent();
-		if (text && text.includes(dateSuffix)) return;
-		await page.locator('button[aria-label="Next day"]').click();
-		await page.waitForTimeout(200);
+	// Fallback: navigate in both directions (backward first to handle today > target)
+	for (let pass = 0; pass < 2; pass++) {
+		for (let i = 0; i < 12; i++) {
+			const text = await page.locator('main').textContent();
+			if (text && text.includes(dateSuffix)) return;
+			const btn = page.locator(
+				pass === 0 ? 'button[aria-label="Previous day"]' : 'button[aria-label="Next day"]'
+			);
+			if (!await btn.isEnabled()) break;
+			await btn.click();
+			await page.waitForTimeout(200);
+		}
 	}
 }
 
@@ -91,8 +97,9 @@ test.describe('Trip data — server persistence verification', () => {
 		await goToDay(page, '04-30');
 
 		const content = await page.locator('main').textContent();
-		expect(content).toContain('Tujia chili paste');
-		expect(content).toContain('Jiefang Road');
-		expect(content).toContain('Foot massage');
+		// Day 9 morning was edited by Heather during the trip
+		expect(content).toContain('HEATHER MORNING');
+		expect(content).toContain('Shanghai EDITION');
+		expect(content).toContain('Hehua Airport');
 	});
 });

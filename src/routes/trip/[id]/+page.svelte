@@ -5,7 +5,6 @@
 	import { scriptsStore } from '$lib/stores/scripts';
 	import { isAuthenticated } from '$lib/stores/auth';
 	import { onMount, onDestroy } from 'svelte';
-	import { get } from 'svelte/store';
 	import type { JournalEntry } from '$lib/types/trip';
 	import TripHeader from '$lib/components/trip/TripHeader.svelte';
 	import ViewToggle from '$lib/components/trip/ViewToggle.svelte';
@@ -26,6 +25,19 @@
 
 	let activeView: 'week' | 'day' = 'week';
 	let currentDayIndex = 0;
+	let userNavigated = false;
+	let _lastKnownDaysCount = 0;
+
+	// Only reset currentDayIndex when the trip gains more days (e.g. server data arrives with
+	// more days than the IDB cache had). Content-only updates (PUT responses) must NOT reset
+	// the user's current day position.
+	$: if (trip && !userNavigated) {
+		const len = trip.days?.length ?? 0;
+		if (len > _lastKnownDaysCount) {
+			_lastKnownDaysCount = len;
+			currentDayIndex = todayDayIndex(trip);
+		}
+	}
 
 	/** Compute the day index for today within the trip date range, clamped to valid bounds. */
 	function todayDayIndex(t: typeof trip): number {
@@ -54,9 +66,6 @@
 		scriptsStore.init(tripId);
 		initPhotoQueue();
 		document.addEventListener('visibilitychange', onVisibilityChange);
-		// Always open on today's date within the trip
-		const currentTrip = get(trips)[tripId];
-		currentDayIndex = todayDayIndex(currentTrip);
 		// Restore saved view preference before first render to avoid week->day flash
 		const savedView = await dbGet<string>('prefs', `hw-trip-view-${tripId}`);
 		if (savedView === 'week' || savedView === 'day') {
@@ -99,6 +108,7 @@
 	}
 
 	function handleSelectDay(e: CustomEvent<number>) {
+		userNavigated = true;
 		currentDayIndex = e.detail;
 		activeView = 'day';
 	}

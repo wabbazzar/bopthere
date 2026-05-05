@@ -22,7 +22,7 @@ class CORSTestConfig:
         "http://localhost:8080",  # Current dev server
         "http://localhost:5173",  # Vite default
         "http://localhost:5174",  # Vite alternative
-        "https://heatherandwesley.com",  # Production
+        "https://bopthere.com",  # Production
     ]
 
     # Expected CORS headers

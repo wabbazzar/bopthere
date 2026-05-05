@@ -350,6 +350,19 @@ function createTripsStore() {
 			const local = get({ subscribe });
 			for (const entry of catalog) {
 				if (!local[entry.tripId]) {
+					// Create a shell so pullFromServer can populate it
+					update((trips) => {
+						trips[entry.tripId] = {
+							id: entry.tripId,
+							name: '',
+							startDate: '',
+							endDate: '',
+							destinations: [],
+							days: [],
+							links: []
+						} as Trip;
+						return { ...trips };
+					});
 					await pullFromServer(entry.tripId);
 				}
 			}

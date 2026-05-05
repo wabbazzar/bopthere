@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { idbGet } from './helpers/idb';
+import { idbGet, idbGetTripDay } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -98,8 +98,8 @@ test.describe('MapLinks editor', () => {
 		await expect(page.locator('text=Grand Hyatt Shanghai → PVG Airport').first()).toBeVisible();
 
 		// Persisted to IndexedDB
-		const trip = await idbGet(page, 'trips', 'china-2026');
-		const stored = trip?.days?.[0]?.mapLinks ?? [];
+		const day = await idbGetTripDay(page, 'china-2026', 0);
+		const stored = day?.mapLinks ?? [];
 		expect(stored).toHaveLength(1);
 		expect(stored[0]).toEqual({
 			label: 'Hotel to Airport',
@@ -127,8 +127,8 @@ test.describe('MapLinks editor', () => {
 		await page.locator('button[type="submit"]', { hasText: 'Save' }).click();
 
 		await expect(page.locator('text=A to C').first()).toBeVisible();
-		const trip2 = await idbGet(page, 'trips', 'china-2026');
-		expect(trip2.days[0].mapLinks).toEqual([{ label: 'A to C', from: 'A', to: 'C' }]);
+		const day2 = await idbGetTripDay(page, 'china-2026', 0);
+		expect(day2?.mapLinks).toEqual([{ label: 'A to C', from: 'A', to: 'C' }]);
 	});
 
 	test('Delete a map link', async ({ page }) => {

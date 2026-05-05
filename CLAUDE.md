@@ -1,8 +1,8 @@
-# H&W Travel Portal - Development Guidelines
+# BopThere - Development Guidelines
 
-Personal travel planning app for Wesley & Heather. Built with SvelteKit, deployed to GitHub Pages.
+Personal travel planning app for Wesley & Heather. Built with SvelteKit, deployed to GitHub Pages at bopthere.com.
 
-The old wedding website (React) is archived and served at `/archive/`.
+The old wedding website (React) is archived at heatherandwesley.com/archive/.
 
 ## 0. Dev Server
 
@@ -61,26 +61,23 @@ public/app-uploads/    # Image assets
 
 Lives inside this repo and runs on `wabbazzar-ice` as a systemd service:
 - **Service unit**: `server/hw-chat.service` (user unit, `systemctl --user status hw-chat`)
-- **Bind**: `127.0.0.1:8089` — reverse-proxied by nginx to `https://api.heatherandwesley.com`
-- **Auth**: same HS256 JWT as the frontend (Bearer token in `Authorization` header)
+- **Bind**: `127.0.0.1:8089` — reverse-proxied by Caddy to `https://api.bopthere.com`
+- **Auth**: local auth via `server/auth_db.py` (separate SQLite at `server/data/auth.db`), HS256 JWT (Bearer token in `Authorization` header)
 - **Persistence**: single SQLite file at `server/data/chat.db` (WAL mode)
 - **LLM**: shells out to the local Claude Code CLI (`CLAUDE_BIN`, uses Max plan OAuth) — NOT the Anthropic API, NOT AWS Bedrock
 - **Sensitive storage**: `server/data/` is gitignored and holds both the SQLite DB and any booking PDFs. Nothing in there should be committed.
 
 **Endpoints (current)**:
 - `GET /health` — liveness
+- `POST /auth/login` — authenticate, returns JWT
+- `POST /auth/verify` — validate JWT, returns user
+- `POST /auth/refresh` — refresh JWT
 - `GET /api/chat/conversations/{trip_id}` — fetch chat history
 - `POST /api/chat/messages` — send a message, get a Claude reply
 - `DELETE /api/chat/conversations/{trip_id}` — clear history
+- Full CRUD for trips, journal, todos, bookings, scripts, photos
 
-**AWS migration direction**: new backend work goes into `server/`, NOT into Lambda. The only thing still on AWS is the legacy auth flow. Do not add new AWS resources — put new features on wabbazzar-ice.
-
-### API Gateway
-- **Correct API ID**: `emwkjk2c9d`
-- **Base URL**: `https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod`
-- **Auth endpoints**: `/auth/login`, `/auth/verify`, `/auth/refresh`, `/auth/register`
-- **Other endpoints**: `/rsvp`, `/photos`, `/leaderboard`, `/bingo`
-- **NOTE**: There is also `4q7jj56io8` which only has `/leaderboard` routes. Do NOT use it for auth.
+**Architecture note**: Auth and all data endpoints are on the same FastAPI server. No AWS Lambda dependencies. The old AWS API Gateway (`emwkjk2c9d`) is legacy and only used by heatherandwesley.com.
 
 ## 2. Development Approach
 
@@ -140,7 +137,7 @@ Before declaring ANY UI feature "complete", you MUST:
 
 ### Environment Variables
 - Use `PUBLIC_` prefix for client-side env vars (SvelteKit convention)
-- Current: `PUBLIC_API_GATEWAY_URL` in `.env`
+- Current: `PUBLIC_CHAT_API_URL` in `.env` (used for both auth and data APIs)
 - Access via `$env/static/public`
 
 ### Routing
@@ -151,17 +148,18 @@ Before declaring ANY UI feature "complete", you MUST:
 ## 4. Auth System
 
 ### How It Works
-- JWT tokens (30-day expiry, HS256) from AWS Lambda
-- Token stored in localStorage (`hw-auth-token`, `hw-auth-user`)
+- JWT tokens (30-day expiry, HS256) from FastAPI on wabbazzar-ice (`server/auth_db.py`)
+- Token stored in IndexedDB (via `$lib/stores/db`)
 - Root layout checks auth state, redirects unauthenticated users to `/`
 - Login hits `POST /auth/login` with `{username, password}`
 - Token verify hits `POST /auth/verify` with `Authorization: Bearer <token>`
+- Auth and data endpoints share the same server (`api.bopthere.com`)
 
 ### Users
-- Real users exist in DynamoDB table `heatherandwesley-auth-users` (38 users)
+- Users stored in SQLite at `server/data/auth.db`
 - Wesley's account: username `wesley`, role `admin`
 - Heather's account: username `heather`, role `admin`
-- Lambda handler: `aws/lambda/auth-handler.py`
+- Auth module: `server/auth_db.py`
 
 ## 5. AWS Configuration
 

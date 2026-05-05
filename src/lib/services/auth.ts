@@ -1,8 +1,8 @@
-import { PUBLIC_API_GATEWAY_URL } from '$env/static/public';
+import { PUBLIC_CHAT_API_URL } from '$env/static/public';
 import type { LoginResponse, User } from '$lib/types/auth';
 import { dbGet, dbPut, dbDelete } from '$lib/stores/db';
 
-const API_URL = PUBLIC_API_GATEWAY_URL;
+const API_URL = PUBLIC_CHAT_API_URL;
 
 // In-memory cache for synchronous access after hydration
 let cachedToken: string | null = null;
