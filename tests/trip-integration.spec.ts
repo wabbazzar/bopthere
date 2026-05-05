@@ -208,17 +208,21 @@ test.describe('Day View — Navigation', () => {
 
 test.describe('Field Editing — Tap to edit', () => {
 	let _apiToken: string;
-	let _day0Snapshot: unknown;
+	const _daySnapshots: Map<number, unknown> = new Map();
 
 	test.beforeAll(async () => {
 		_apiToken = await forgeApiToken();
-		const snap = await snapshotDay(_apiToken, 'china-2026', 0);
-		if (snap) _day0Snapshot = snap.day;
+		// Snapshot ALL days since goToDayView() defaults to today-index (last day for ended trips)
+		for (let i = 0; i < 12; i++) {
+			const snap = await snapshotDay(_apiToken, 'china-2026', i);
+			if (snap) _daySnapshots.set(i, snap.day);
+		}
 	});
 
 	test.afterAll(async () => {
-		if (_apiToken && _day0Snapshot) {
-			await restoreDay(_apiToken, 'china-2026', 0, _day0Snapshot);
+		if (!_apiToken) return;
+		for (const [idx, dayData] of _daySnapshots) {
+			await restoreDay(_apiToken, 'china-2026', idx, dayData);
 		}
 	});
 
@@ -347,17 +351,20 @@ test.describe('Field Editing — Tap to edit', () => {
 
 test.describe('Day-nav location — tap to edit', () => {
 	let _apiToken: string;
-	let _day0Snapshot: unknown;
+	const _daySnapshots: Map<number, unknown> = new Map();
 
 	test.beforeAll(async () => {
 		_apiToken = await forgeApiToken();
-		const snap = await snapshotDay(_apiToken, 'china-2026', 0);
-		if (snap) _day0Snapshot = snap.day;
+		for (let i = 0; i < 12; i++) {
+			const snap = await snapshotDay(_apiToken, 'china-2026', i);
+			if (snap) _daySnapshots.set(i, snap.day);
+		}
 	});
 
 	test.afterAll(async () => {
-		if (_apiToken && _day0Snapshot) {
-			await restoreDay(_apiToken, 'china-2026', 0, _day0Snapshot);
+		if (!_apiToken) return;
+		for (const [idx, dayData] of _daySnapshots) {
+			await restoreDay(_apiToken, 'china-2026', idx, dayData);
 		}
 	});
 
