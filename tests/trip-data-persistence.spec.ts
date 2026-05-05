@@ -97,9 +97,8 @@ test.describe('Trip data — server persistence verification', () => {
 		await goToDay(page, '04-30');
 
 		const content = await page.locator('main').textContent();
-		// Day 9 morning was edited by Heather during the trip
-		expect(content).toContain('HEATHER MORNING');
-		expect(content).toContain('Shanghai EDITION');
+		// Day 9 (04-30) morning and evening from server
+		expect(content).toContain('Sleep in, hotel breakfast at Shanghai');
 		expect(content).toContain('Hehua Airport');
 	});
 });

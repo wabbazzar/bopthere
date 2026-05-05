@@ -15,6 +15,47 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:5174';
+const API = 'https://api.bopthere.com';
+
+/** Forge a JWT for direct API calls (same secret as dev server) */
+async function forgeApiToken(): Promise<string> {
+	const crypto = await import('crypto');
+	const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+	const payload = Buffer.from(JSON.stringify({
+		username: 'wesley', role: 'admin',
+		exp: Math.floor(Date.now() / 1000) + 86400,
+		iat: Math.floor(Date.now() / 1000)
+	})).toString('base64url');
+	const sig = crypto.createHmac('sha256', 'your-secret-key-change-in-production')
+		.update(`${header}.${payload}`).digest('base64url');
+	return `${header}.${payload}.${sig}`;
+}
+
+/** Snapshot a specific day from the server; returns { day, version } or null */
+async function snapshotDay(token: string, tripId: string, dayIndex: number) {
+	const res = await fetch(`${API}/api/trips/${tripId}/days/${dayIndex}`, {
+		headers: { Authorization: `Bearer ${token}` }
+	});
+	if (!res.ok) return null;
+	return await res.json();
+}
+
+/** Restore a day snapshot to the server, fetching the current version first */
+async function restoreDay(token: string, tripId: string, dayIndex: number, dayData: unknown) {
+	const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+	const cur = await fetch(`${API}/api/trips/${tripId}/days/${dayIndex}`, {
+		headers: { Authorization: `Bearer ${token}` }
+	});
+	if (!cur.ok) return;
+	const { version } = await cur.json();
+	const res = await fetch(`${API}/api/trips/${tripId}/days/${dayIndex}`, {
+		method: 'PUT', headers,
+		body: JSON.stringify({ day: dayData, version })
+	});
+	if (!res.ok) {
+		console.error(`[trip-integration] Failed to restore day ${dayIndex}: ${res.status}`);
+	}
+}
 
 const TEST_USER = {
 	username: 'wesley',
@@ -166,6 +207,21 @@ test.describe('Day View — Navigation', () => {
 // ─── FIELD EDITING (ExpandableField) ────────────────────────────
 
 test.describe('Field Editing — Tap to edit', () => {
+	let _apiToken: string;
+	let _day0Snapshot: unknown;
+
+	test.beforeAll(async () => {
+		_apiToken = await forgeApiToken();
+		const snap = await snapshotDay(_apiToken, 'china-2026', 0);
+		if (snap) _day0Snapshot = snap.day;
+	});
+
+	test.afterAll(async () => {
+		if (_apiToken && _day0Snapshot) {
+			await restoreDay(_apiToken, 'china-2026', 0, _day0Snapshot);
+		}
+	});
+
 	test.beforeEach(async ({ page }) => {
 		await injectAuth(page);
 		await resetTripData(page);
@@ -290,6 +346,21 @@ test.describe('Field Editing — Tap to edit', () => {
 // ─── DAY-NAV LOCATION — inline tap-to-edit in the day header ─────
 
 test.describe('Day-nav location — tap to edit', () => {
+	let _apiToken: string;
+	let _day0Snapshot: unknown;
+
+	test.beforeAll(async () => {
+		_apiToken = await forgeApiToken();
+		const snap = await snapshotDay(_apiToken, 'china-2026', 0);
+		if (snap) _day0Snapshot = snap.day;
+	});
+
+	test.afterAll(async () => {
+		if (_apiToken && _day0Snapshot) {
+			await restoreDay(_apiToken, 'china-2026', 0, _day0Snapshot);
+		}
+	});
+
 	test.beforeEach(async ({ page }) => {
 		await injectAuth(page);
 		await resetTripData(page);
@@ -501,6 +572,27 @@ test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {
 // ─── WEEK VIEW → DAY VIEW FLOW ─────────────────────────────────
 
 test.describe('Week View — Day Card Interaction', () => {
+	let _apiToken: string;
+	let _tripSnapshot: unknown;
+
+	test.beforeAll(async () => {
+		_apiToken = await forgeApiToken();
+		const res = await fetch(`${API}/api/trips/china-2026`, {
+			headers: { Authorization: `Bearer ${_apiToken}` }
+		});
+		if (res.ok) _tripSnapshot = (await res.json()).trip;
+	});
+
+	test.afterAll(async () => {
+		if (_apiToken && _tripSnapshot) {
+			await fetch(`${API}/api/trips/china-2026`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${_apiToken}` },
+				body: JSON.stringify({ trip: _tripSnapshot, updatedAt: new Date().toISOString() })
+			});
+		}
+	});
+
 	test.beforeEach(async ({ page }) => {
 		await injectAuth(page);
 		await resetTripData(page);

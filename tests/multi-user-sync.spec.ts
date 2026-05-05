@@ -156,7 +156,28 @@ test.describe('Multi-user trip sync', () => {
 			Authorization: `Bearer ${snapshotToken}`
 		};
 
-		// Restore the bulk trip data
+		// Restore per-entry day data — fetch current version first to avoid 409
+		for (const snap of daySnapshots) {
+			try {
+				const cur = await fetch(`${API}/api/trips/china-2026/days/${snap.dayIndex}`, {
+					headers: { Authorization: `Bearer ${snapshotToken}` }
+				});
+				if (!cur.ok) continue;
+				const curData = await cur.json();
+				const res = await fetch(`${API}/api/trips/china-2026/days/${snap.dayIndex}`, {
+					method: 'PUT',
+					headers,
+					body: JSON.stringify({ day: snap.day, version: curData.version })
+				});
+				if (!res.ok) {
+					console.error(`[multi-user-sync] Failed to restore day ${snap.dayIndex}: ${res.status} ${await res.text()}`);
+				}
+			} catch (e) {
+				console.error(`[multi-user-sync] Error restoring day ${snap.dayIndex}:`, e);
+			}
+		}
+
+		// Also restore the bulk trip (so the blob table matches too)
 		if (tripSnapshot) {
 			await fetch(`${API}/api/trips/china-2026`, {
 				method: 'PUT',
@@ -165,20 +186,6 @@ test.describe('Multi-user trip sync', () => {
 					trip: tripSnapshot,
 					updatedAt: new Date().toISOString()
 				})
-			});
-		}
-
-		// Restore per-entry day data (these are written by the UI independently)
-		for (const snap of daySnapshots) {
-			// Fetch current version so the PUT doesn't get rejected by version conflict
-			const cur = await fetch(`${API}/api/trips/china-2026/days/${snap.dayIndex}`, {
-				headers: { Authorization: `Bearer ${snapshotToken}` }
-			});
-			const curVersion = cur.ok ? (await cur.json()).version : snap.version;
-			await fetch(`${API}/api/trips/china-2026/days/${snap.dayIndex}`, {
-				method: 'PUT',
-				headers,
-				body: JSON.stringify({ day: snap.day, version: curVersion })
 			});
 		}
 	});
