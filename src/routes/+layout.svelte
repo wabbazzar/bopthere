@@ -27,7 +27,7 @@
 		dbPut('prefs', 'hw-last-path', $page.url.pathname);
 	}
 
-	$: if (!$isLoading && !$isAuthenticated && $page.url.pathname !== '/') {
+	$: if (!$isLoading && !$isAuthenticated && $page.url.pathname !== '/' && $page.url.pathname !== '/about') {
 		goto('/');
 	}
 </script>
