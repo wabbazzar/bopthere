@@ -1,5 +1,5 @@
 #!/bin/bash
-# guardian-claude.sh — Headless test+fix agent for H&W travel app.
+# guardian-claude.sh — Headless test+fix agent for BopThere travel app.
 # Usage: guardian-claude.sh [hook|daily]
 #
 # hook  = fast: vitest + script checks only (Sonnet)
@@ -11,6 +11,7 @@ export WABBAZZAR_SOURCE="${WABBAZZAR_SOURCE:-system}"
 
 MODE="${1:-hook}"
 HW_DIR="/home/wabbazzar/code/heatherandwesley"
+# Legacy path alias — repo dir hasn't moved, just the domain
 NOTIFY="/home/wabbazzar/code/wabbazzar-ice/scripts/notify.sh"
 LOG_EVENT="/home/wabbazzar/code/wabbazzar-ice/scripts/log_event.sh"
 PROMPT_FILE="$HW_DIR/scripts/guardian-claude-prompt.md"
@@ -21,7 +22,7 @@ cd "$HW_DIR"
 mkdir -p tmp
 
 JOB_START=$(date +%s)
-[ -x "$LOG_EVENT" ] && "$LOG_EVENT" hw-guardian job.start mode="$MODE" || true
+[ -x "$LOG_EVENT" ] && "$LOG_EVENT" bopthere-guardian job.start mode="$MODE" || true
 
 # For daily mode: ensure dev server is running (needed for Playwright)
 if [ "$MODE" = "daily" ]; then
@@ -75,9 +76,9 @@ if [ -z "$SUMMARY" ]; then
 fi
 
 if [ "$PASS" = "True" ]; then
-  "$NOTIFY" "H&W Guardian ($MODE)" "$SUMMARY"
+  "$NOTIFY" "BopThere Guardian ($MODE)" "$SUMMARY"
 else
-  "$NOTIFY" "H&W Guardian FAILED ($MODE)" "$SUMMARY"
+  "$NOTIFY" "BopThere Guardian FAILED ($MODE)" "$SUMMARY"
 fi
 
 echo "[guardian-claude] Done. Pass=$PASS" >> "$LOG_FILE"
@@ -109,6 +110,6 @@ if isinstance(sc, dict) and any(v is False for v in sc.values()):
 print(",".join(cats) or ("ok" if d.get("pass") else "unknown"))
 PY
 )
-[ -x "$LOG_EVENT" ] && "$LOG_EVENT" hw-guardian job.end \
+[ -x "$LOG_EVENT" ] && "$LOG_EVENT" bopthere-guardian job.end \
   mode="$MODE" status="$JOB_STATUS" exit_code="$EXIT" duration_s="$JOB_DUR" \
   category="$CATEGORY" || true

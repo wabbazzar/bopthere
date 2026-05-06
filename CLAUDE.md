@@ -48,7 +48,7 @@ server/                # FastAPI backend — runs on wabbazzar-ice
   chat_proxy.py        # FastAPI app (chat + bookings endpoints)
   db.py                # SQLite helpers (chat.db)
   data/                # SQLite DB + ticket PDFs (GITIGNORED — contains secrets)
-  hw-chat.service      # systemd unit
+  bopthere.service      # systemd unit
   requirements.txt
 aws/lambda/            # Lambda function source (legacy auth only)
 infrastructure/        # Terraform configs (legacy, prefer Makefile)
@@ -60,7 +60,7 @@ public/app-uploads/    # Image assets
 ### FastAPI Backend (`server/`)
 
 Lives inside this repo and runs on `wabbazzar-ice` as a systemd service:
-- **Service unit**: `server/hw-chat.service` (user unit, `systemctl --user status hw-chat`)
+- **Service unit**: `server/bopthere.service` (user unit, `systemctl --user status bopthere`)
 - **Bind**: `127.0.0.1:8089` — reverse-proxied by Caddy to `https://api.bopthere.com`
 - **Auth**: local auth via `server/auth_db.py` (separate SQLite at `server/data/auth.db`), HS256 JWT (Bearer token in `Authorization` header)
 - **Persistence**: single SQLite file at `server/data/chat.db` (WAL mode)

@@ -1,5 +1,5 @@
 [Unit]
-Description=Guardian Claude daily run for H&W travel app
+Description=Guardian Claude daily run for BopThere travel app
 
 [Service]
 Type=oneshot
