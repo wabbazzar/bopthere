@@ -72,14 +72,14 @@ async function fetchBookingsFromServer(tripId: string): Promise<Booking[] | null
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {
-		const res = await fetch(`${API_URL}/api/trips/${tripId}/bookings`, {
+		const res = await fetch(`${API_URL}/api/trips/${tripId}/bookings/entries`, {
 			headers: headers(),
 			signal: controller.signal
 		});
 		clearTimeout(timeout);
 		if (!res.ok) throw new Error(`Failed to load bookings (${res.status})`);
 		const data = await res.json();
-		return (data.bookings as Booking[]) || [];
+		return (data.entries as Booking[]) || [];
 	} catch (e) {
 		clearTimeout(timeout);
 		throw e;

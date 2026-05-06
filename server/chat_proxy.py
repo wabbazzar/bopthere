@@ -32,18 +32,13 @@ from auth_db import init_auth_db, verify_password as auth_verify_password, get_u
 from db import (
     delete_conversation,
     delete_trip,
-    get_bookings,
     get_conversation,
-    get_journal,
-    get_todos,
     get_trip,
     get_trip_photo_usage,
     list_trips,
     photo_path,
     save_conversation,
-    save_journal,
     save_photo_meta,
-    save_todos,
     save_trip,
     ticket_path,
     get_journal_entries, get_journal_entry, save_journal_entry, delete_journal_entry,
@@ -52,6 +47,8 @@ from db import (
     get_todo_entries, get_todo_entry, save_todo_entry, delete_todo_entry,
     get_booking_entries, get_booking_entry, save_booking_entry, delete_booking_entry,
     get_script_entries, get_script_entry, save_script_entry, delete_script_entry,
+    get_trip_members, get_trip_member_role, add_trip_member,
+    remove_trip_member, update_trip_member_role,
 )
 
 app = FastAPI(title="BopThere API", docs_url=None, redoc_url=None)
@@ -158,6 +155,25 @@ def verify_token(authorization: str | None) -> dict:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
+_ROLE_RANK = {"viewer": 0, "editor": 1, "owner": 2}
+
+
+def require_trip_access(
+    user: dict, trip_id: str, min_role: str = "viewer"
+) -> str:
+    """Check user has at least min_role access to trip_id.
+
+    Admin users bypass all checks. Returns the user's effective role.
+    Raises HTTPException(403) if denied.
+    """
+    if user.get("role") == "admin":
+        return "admin"
+    member_role = get_trip_member_role(trip_id, user["username"])
+    if not member_role or _ROLE_RANK.get(member_role, 0) < _ROLE_RANK.get(min_role, 0):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return member_role
+
+
 JWT_EXPIRY_DAYS = 30
 
 
@@ -257,7 +273,8 @@ class SendMessageRequest(BaseModel):
 
 @app.get("/api/chat/conversations/{trip_id}")
 async def get_conv(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
+    require_trip_access(user, trip_id)
     messages = get_conversation(trip_id)
     return {"tripId": trip_id, "messages": messages}
 
@@ -265,6 +282,7 @@ async def get_conv(trip_id: str, authorization: str | None = Header(None)):
 @app.post("/api/chat/messages")
 async def send_message(req: SendMessageRequest, authorization: str | None = Header(None)):
     user = verify_token(authorization)
+    require_trip_access(user, req.tripId, "editor")
 
     messages = get_conversation(req.tripId)
 
@@ -307,7 +325,8 @@ async def send_message(req: SendMessageRequest, authorization: str | None = Head
 
 @app.delete("/api/chat/conversations/{trip_id}")
 async def clear_conv(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
+    require_trip_access(user, trip_id, "editor")
     delete_conversation(trip_id)
     return {"ok": True}
 
@@ -316,9 +335,9 @@ async def clear_conv(trip_id: str, authorization: str | None = Header(None)):
 
 
 @app.get("/api/trips/{trip_id}/bookings")
-async def list_bookings(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
-    return {"tripId": trip_id, "bookings": get_bookings(trip_id)}
+async def list_bookings_legacy(trip_id: str):
+    """Removed — use /api/trips/{trip_id}/bookings/entries instead."""
+    raise HTTPException(status_code=410, detail="Use /bookings/entries")
 
 
 class SignAttachmentRequest(BaseModel):
@@ -342,7 +361,8 @@ async def sign_attachment(
     without an Authorization header (browsers can't attach headers to
     <a>-style navigations or window.open calls).
     """
-    verify_token(authorization)
+    user = verify_token(authorization)
+    require_trip_access(user, trip_id)
     try:
         path = ticket_path(trip_id, req.name)
     except ValueError:
@@ -419,14 +439,16 @@ async def list_all_trips(authorization: str | None = Header(None)):
     """Catalog of every server-persisted trip so clients can discover
     trips created on other devices. Returns ids + updatedAt only — full
     data is fetched per-trip via GET /api/trips/{trip_id}."""
-    verify_token(authorization)
-    return {"trips": list_trips()}
+    user = verify_token(authorization)
+    is_admin = user.get("role") == "admin"
+    return {"trips": list_trips(username=user.get("username"), is_admin=is_admin)}
 
 
 @app.get("/api/trips/{trip_id}")
 async def get_trip_data(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     result = get_trip(trip_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Trip not found")
@@ -441,13 +463,15 @@ class SaveTripRequest(BaseModel):
 
 @app.put("/api/trips/{trip_id}")
 async def put_trip(trip_id: str, req: SaveTripRequest, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
     _validate_trip_payload(req.trip, trip_id)
+    # Check if this is a new trip (no existing row)
+    is_new = get_trip(trip_id) is None
+    if not is_new:
+        require_trip_access(user, trip_id, "editor")
     ok, server_ts = save_trip(trip_id, json.dumps(req.trip), req.updatedAt)
     if not ok:
-        # LWW rejected — return the server's current state so the client
-        # can reconcile without a second round-trip.
         server_result = get_trip(trip_id)
         server_trip, server_updated = server_result if server_result else ({}, "")
         raise HTTPException(
@@ -458,86 +482,105 @@ async def put_trip(trip_id: str, req: SaveTripRequest, authorization: str | None
                 "updatedAt": server_updated,
             },
         )
+    # Auto-assign creator as owner for new trips
+    if is_new:
+        username = user.get("username", "unknown")
+        add_trip_member(trip_id, username, "owner", username)
     return {"ok": True, "updatedAt": server_ts}
 
 
 @app.delete("/api/trips/{trip_id}")
 async def remove_trip(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id, "owner")
     deleted = delete_trip(trip_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Trip not found")
     return {"ok": True}
 
 
+# ── Trip Members ─────────────────────────────────────────────────
+
+
+@app.get("/api/trips/{trip_id}/members")
+async def list_members(trip_id: str, authorization: str | None = Header(None)):
+    user = verify_token(authorization)
+    require_trip_access(user, trip_id)
+    return {"members": get_trip_members(trip_id)}
+
+
+class AddMemberRequest(BaseModel):
+    username: str
+    role: str = "editor"
+
+
+@app.post("/api/trips/{trip_id}/members")
+async def add_member(trip_id: str, req: AddMemberRequest, authorization: str | None = Header(None)):
+    user = verify_token(authorization)
+    require_trip_access(user, trip_id, "owner")
+    if req.role not in ("owner", "editor", "viewer"):
+        raise HTTPException(status_code=400, detail="Role must be owner, editor, or viewer")
+    add_trip_member(trip_id, req.username, req.role, user.get("username"))
+    return {"ok": True}
+
+
+class UpdateMemberRequest(BaseModel):
+    role: str
+
+
+@app.put("/api/trips/{trip_id}/members/{username}")
+async def update_member(
+    trip_id: str, username: str, req: UpdateMemberRequest,
+    authorization: str | None = Header(None),
+):
+    user = verify_token(authorization)
+    require_trip_access(user, trip_id, "owner")
+    if req.role not in ("owner", "editor", "viewer"):
+        raise HTTPException(status_code=400, detail="Role must be owner, editor, or viewer")
+    if not update_trip_member_role(trip_id, username, req.role):
+        raise HTTPException(status_code=404, detail="Member not found")
+    return {"ok": True}
+
+
+@app.delete("/api/trips/{trip_id}/members/{username}")
+async def delete_member(
+    trip_id: str, username: str, authorization: str | None = Header(None),
+):
+    user = verify_token(authorization)
+    require_trip_access(user, trip_id, "owner")
+    # Prevent removing the last owner
+    members = get_trip_members(trip_id)
+    owners = [m for m in members if m["role"] == "owner"]
+    if len(owners) <= 1 and any(m["username"] == username and m["role"] == "owner" for m in members):
+        raise HTTPException(status_code=400, detail="Cannot remove the last owner")
+    if not remove_trip_member(trip_id, username):
+        raise HTTPException(status_code=404, detail="Member not found")
+    return {"ok": True}
+
+
 @app.get("/api/trips/{trip_id}/todos")
-async def get_trip_todos(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
-    result = get_todos(trip_id)
-    if result is None:
-        return {"tripId": trip_id, "todos": [], "updatedAt": None}
-    todos_data, updated_at = result
-    return {"tripId": trip_id, "todos": todos_data, "updatedAt": updated_at}
-
-
-class SaveTodosRequest(BaseModel):
-    todos: list
-    updatedAt: str
+async def get_trip_todos_legacy(trip_id: str):
+    """Removed — use /api/trips/{trip_id}/todos/entries instead."""
+    raise HTTPException(status_code=410, detail="Use /todos/entries")
 
 
 @app.put("/api/trips/{trip_id}/todos")
-async def put_trip_todos(trip_id: str, req: SaveTodosRequest, authorization: str | None = Header(None)):
-    verify_token(authorization)
-    ok, server_ts = save_todos(trip_id, json.dumps(req.todos), req.updatedAt)
-    if not ok:
-        server_result = get_todos(trip_id)
-        server_todos, server_updated = server_result if server_result else ([], "")
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "message": "Server has newer data",
-                "todos": server_todos,
-                "updatedAt": server_updated,
-            },
-        )
-    return {"ok": True, "updatedAt": server_ts}
-
-
-# ── Journal ─────────────────────────────────────────────────────
+async def put_trip_todos_legacy(trip_id: str):
+    """Removed — use /api/trips/{trip_id}/todos/entries instead."""
+    raise HTTPException(status_code=410, detail="Use /todos/entries")
 
 
 @app.get("/api/trips/{trip_id}/journal")
-async def get_trip_journal(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
-    result = get_journal(trip_id)
-    if result is None:
-        return {"tripId": trip_id, "journal": [], "updatedAt": None}
-    journal_data, updated_at = result
-    return {"tripId": trip_id, "journal": journal_data, "updatedAt": updated_at}
-
-
-class SaveJournalRequest(BaseModel):
-    journal: list
-    updatedAt: str
+async def get_trip_journal_legacy(trip_id: str):
+    """Removed — use /api/trips/{trip_id}/journal/entries instead."""
+    raise HTTPException(status_code=410, detail="Use /journal/entries")
 
 
 @app.put("/api/trips/{trip_id}/journal")
-async def put_trip_journal(trip_id: str, req: SaveJournalRequest, authorization: str | None = Header(None)):
-    verify_token(authorization)
-    ok, server_ts = save_journal(trip_id, json.dumps(req.journal), req.updatedAt)
-    if not ok:
-        server_result = get_journal(trip_id)
-        server_journal, server_updated = server_result if server_result else ([], "")
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "message": "Server has newer data",
-                "journal": server_journal,
-                "updatedAt": server_updated,
-            },
-        )
-    return {"ok": True, "updatedAt": server_ts}
+async def put_trip_journal_legacy(trip_id: str):
+    """Removed — use /api/trips/{trip_id}/journal/entries instead."""
+    raise HTTPException(status_code=410, detail="Use /journal/entries")
 
 
 # ── Photos ──────────────────────────────────────────────────────
@@ -630,7 +673,8 @@ class SignPhotoRequest(BaseModel):
 
 @app.post("/api/trips/{trip_id}/photos/sign")
 async def sign_photo(trip_id: str, req: SignPhotoRequest, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
+    require_trip_access(user, trip_id)
     try:
         path = photo_path(trip_id, req.name)
     except ValueError:
@@ -674,8 +718,9 @@ async def list_journal_entries(
     include_deleted: bool = False,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     entries = get_journal_entries(trip_id, include_deleted=include_deleted)
     return {"entries": entries, "tripId": trip_id}
 
@@ -684,8 +729,9 @@ async def list_journal_entries(
 async def get_single_journal_entry(
     trip_id: str, day_index: int, authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     entry = get_journal_entry(trip_id, day_index)
     if entry is None:
         raise HTTPException(status_code=404, detail="Journal entry not found")
@@ -705,8 +751,9 @@ async def put_journal_entry(
     req: SaveJournalEntryRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version, conflict_entry = save_journal_entry(
         trip_id, day_index, json.dumps(req.entry), req.version,
     )
@@ -729,8 +776,9 @@ async def remove_journal_entry(
     req: DeleteVersionRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version = delete_journal_entry(trip_id, day_index, req.version)
     if not ok:
         raise HTTPException(
@@ -745,8 +793,9 @@ async def remove_journal_entry(
 
 @app.get("/api/trips/{trip_id}/days")
 async def list_trip_days(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     days = get_trip_day_entries(trip_id)
     return {"days": days, "tripId": trip_id}
 
@@ -755,8 +804,9 @@ async def list_trip_days(trip_id: str, authorization: str | None = Header(None))
 async def get_single_trip_day(
     trip_id: str, day_index: int, authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     day = get_trip_day_entry(trip_id, day_index)
     if day is None:
         raise HTTPException(status_code=404, detail="Day not found")
@@ -776,8 +826,9 @@ async def put_trip_day(
     req: SaveTripDayRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version, conflict_entry = save_trip_day_entry(
         trip_id, day_index, json.dumps(req.day), req.version,
     )
@@ -796,8 +847,9 @@ async def remove_trip_day(
     req: DeleteVersionRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version = delete_trip_day_entry(trip_id, day_index, req.version)
     if not ok:
         raise HTTPException(
@@ -812,8 +864,9 @@ async def remove_trip_day(
 
 @app.get("/api/trips/{trip_id}/meta")
 async def get_trip_meta_endpoint(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     result = get_trip_meta(trip_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Trip metadata not found")
@@ -833,8 +886,9 @@ async def put_trip_meta(
     req: SaveTripMetaRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version, conflict_meta = save_trip_meta(
         trip_id, json.dumps(req.meta), req.version,
     )
@@ -851,8 +905,9 @@ async def put_trip_meta(
 
 @app.get("/api/trips/{trip_id}/todos/entries")
 async def list_todo_entries(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     entries = get_todo_entries(trip_id)
     return {"entries": entries, "tripId": trip_id}
 
@@ -870,8 +925,9 @@ async def put_todo_entry(
     req: SaveTodoEntryRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version, conflict_entry = save_todo_entry(
         trip_id, todo_id, json.dumps(req.entry), req.version,
     )
@@ -894,8 +950,9 @@ async def create_todo_entry(
     req: CreateTodoEntryRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     todo_id = str(uuid.uuid4())
     ok, version, _ = save_todo_entry(
         trip_id, todo_id, json.dumps(req.entry), None,
@@ -910,8 +967,9 @@ async def remove_todo_entry(
     req: DeleteVersionRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version = delete_todo_entry(trip_id, todo_id, req.version)
     if not ok:
         raise HTTPException(
@@ -926,8 +984,9 @@ async def remove_todo_entry(
 
 @app.get("/api/trips/{trip_id}/bookings/entries")
 async def list_booking_entries(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     entries = get_booking_entries(trip_id)
     return {"entries": entries, "tripId": trip_id}
 
@@ -944,8 +1003,9 @@ async def put_booking_entry(
     req: SaveBookingEntryRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version, conflict_entry = save_booking_entry(
         trip_id, booking_id, json.dumps(req.entry), req.version,
     )
@@ -967,8 +1027,9 @@ async def create_booking_entry(
     req: CreateBookingEntryRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     booking_id = str(uuid.uuid4())
     ok, version, _ = save_booking_entry(
         trip_id, booking_id, json.dumps(req.entry), None,
@@ -981,8 +1042,9 @@ async def create_booking_entry(
 
 @app.get("/api/trips/{trip_id}/scripts/entries")
 async def list_script_entries(trip_id: str, authorization: str | None = Header(None)):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     entries = get_script_entries(trip_id)
     return {"entries": entries, "tripId": trip_id}
 
@@ -999,8 +1061,9 @@ async def put_script_entry(
     req: SaveScriptEntryRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version, conflict_entry = save_script_entry(
         trip_id, script_id, json.dumps(req.entry), req.version,
     )
@@ -1019,8 +1082,9 @@ async def remove_script_entry(
     req: DeleteVersionRequest,
     authorization: str | None = Header(None),
 ):
-    verify_token(authorization)
+    user = verify_token(authorization)
     _validate_trip_id(trip_id)
+    require_trip_access(user, trip_id)
     ok, version = delete_script_entry(trip_id, script_id, req.version)
     if not ok:
         raise HTTPException(

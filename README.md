@@ -31,7 +31,7 @@ Active development goes into `server/` on wabbazzar-ice.
 
 ## Server data model
 
-Everything persists to `server/data/chat.db` (gitignored). WAL mode;
+Everything persists to `server/data/bopthere.db` (gitignored). WAL mode;
 tiny today (~64 KB). All four tables are keyed by `trip_id` — there is
 **no per-user partitioning**, Wesley and Heather share one row per trip.
 
@@ -151,8 +151,8 @@ src/                    SvelteKit app
     data/               default trip seeds (china-2026.ts)
 server/                 FastAPI backend
   chat_proxy.py         endpoints + auth routes
-  db.py                 SQLite helpers (chat.db)
+  db.py                 SQLite helpers (bopthere.db)
   auth_db.py            SQLite auth (auth.db)
-  data/                 chat.db + auth.db + tickets/ (GITIGNORED)
+  data/                 bopthere.db + auth.db + tickets/ (GITIGNORED)
 tests/                  Playwright specs + unit/ (vitest) + guardian-checklist.md
 ```

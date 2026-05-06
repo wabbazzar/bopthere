@@ -71,7 +71,7 @@ def _delete_via_db(trip_id: str):
     """Backdoor cleanup — these tests own their trip_ids end-to-end."""
     import sqlite3
     from pathlib import Path
-    db = Path(__file__).resolve().parents[3] / "server" / "data" / "chat.db"
+    db = Path(__file__).resolve().parents[3] / "server" / "data" / "bopthere.db"
     if not db.exists():
         return
     conn = sqlite3.connect(str(db))

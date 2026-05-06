@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Database integrity audit for Guardian Claude.
 
-Reads server/data/chat.db (read-only) and checks for data invariants.
+Reads server/data/bopthere.db (read-only) and checks for data invariants.
 Exits 0 if clean, 1 if issues found. Prints JSON array of issues.
 
 Usage:
@@ -14,7 +14,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "server" / "data" / "chat.db"
+DB_PATH = Path(__file__).parent.parent / "server" / "data" / "bopthere.db"
 
 issues: list[str] = []
 
@@ -30,7 +30,7 @@ def check(label: str, ok: bool, detail: str = ""):
 
 def main():
     if not DB_PATH.exists():
-        print(json.dumps(["FAIL: database file not found at server/data/chat.db"]))
+        print(json.dumps(["FAIL: database file not found at server/data/bopthere.db"]))
         sys.exit(1)
 
     conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)

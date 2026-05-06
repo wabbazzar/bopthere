@@ -1,6 +1,6 @@
 """SQLite persistence for deals, feedback, preferences, and alert settings.
 
-Uses the same chat.db as the main bopthere app.
+Uses the same bopthere.db as the main app.
 """
 
 import json
@@ -8,7 +8,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "data" / "chat.db"
+DB_PATH = Path(__file__).parent.parent / "data" / "bopthere.db"
 
 
 def get_db() -> sqlite3.Connection:

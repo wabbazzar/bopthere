@@ -18,7 +18,7 @@ Check which machine you're running on:
 ```bash
 hostname
 ```
-- **`wabbazzar-ice`**: You are on the server. You have direct access to `server/data/chat.db` (SQLite), ticket PDFs in `server/data/tickets/`, and the systemd service. No SSH or API auth needed — read/write the DB directly via `python3 -c "from db import ..."` from the `server/` directory.
+- **`wabbazzar-ice`**: You are on the server. You have direct access to `server/data/bopthere.db` (SQLite), ticket PDFs in `server/data/tickets/`, and the systemd service. No SSH or API auth needed — read/write the DB directly via `python3 -c "from db import ..."` from the `server/` directory.
 - **Any other host**: You are on a dev machine. Access server data through the API (`https://api.heatherandwesley.com`) with a JWT token, or SSH into `wabbazzar-ice`.
 
 ## 1. Project Architecture
@@ -46,7 +46,7 @@ src/
     data/              # Trip data (static for now)
 server/                # FastAPI backend — runs on wabbazzar-ice
   chat_proxy.py        # FastAPI app (chat + bookings endpoints)
-  db.py                # SQLite helpers (chat.db)
+  db.py                # SQLite helpers (bopthere.db)
   data/                # SQLite DB + ticket PDFs (GITIGNORED — contains secrets)
   bopthere.service      # systemd unit
   requirements.txt
@@ -63,7 +63,7 @@ Lives inside this repo and runs on `wabbazzar-ice` as a systemd service:
 - **Service unit**: `server/bopthere.service` (user unit, `systemctl --user status bopthere`)
 - **Bind**: `127.0.0.1:8089` — reverse-proxied by Caddy to `https://api.bopthere.com`
 - **Auth**: local auth via `server/auth_db.py` (separate SQLite at `server/data/auth.db`), HS256 JWT (Bearer token in `Authorization` header)
-- **Persistence**: single SQLite file at `server/data/chat.db` (WAL mode)
+- **Persistence**: single SQLite file at `server/data/bopthere.db` (WAL mode)
 - **LLM**: shells out to the local Claude Code CLI (`CLAUDE_BIN`, uses Max plan OAuth) — NOT the Anthropic API, NOT AWS Bedrock
 - **Sensitive storage**: `server/data/` is gitignored and holds both the SQLite DB and any booking PDFs. Nothing in there should be committed.
 

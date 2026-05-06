@@ -1,4 +1,4 @@
-"""SQLite persistence for chat conversations and trip bookings."""
+"""SQLite persistence for BopThere app data."""
 
 import json
 import sqlite3
@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent / "data"
-DB_PATH = DATA_DIR / "chat.db"
+DB_PATH = DATA_DIR / "bopthere.db"
 TICKETS_DIR = DATA_DIR / "tickets"
 PHOTOS_DIR = DATA_DIR / "photos"
 
@@ -127,15 +127,6 @@ def ticket_path(trip_id: str, name: str) -> Path:
 # ── Trip data persistence ────────────────────────────────────────
 
 
-def list_trips() -> list[dict]:
-    """Return [{tripId, updatedAt}] for every live (non-deleted) trip, newest first."""
-    conn = get_db()
-    rows = conn.execute(
-        "SELECT trip_id, updated_at FROM trips WHERE deleted_at IS NULL ORDER BY updated_at DESC"
-    ).fetchall()
-    return [{"tripId": r["trip_id"], "updatedAt": r["updated_at"]} for r in rows]
-
-
 def get_trip(trip_id: str) -> tuple[dict, str] | None:
     """Return (trip_dict, updated_at) or None if no row or tombstoned."""
     conn = get_db()
@@ -182,6 +173,97 @@ def delete_trip(trip_id: str) -> bool:
     )
     conn.commit()
     return cursor.rowcount > 0
+
+
+# ── Trip members (access control) ────────────────────────────────
+
+
+def get_trip_members(trip_id: str) -> list[dict]:
+    """Return all members of a trip with their roles."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT username, role, added_at, added_by FROM trip_members WHERE trip_id = ?",
+        (trip_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_user_trip_ids(username: str) -> list[str]:
+    """Return all trip_ids a user has access to."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT trip_id FROM trip_members WHERE username = ?", (username,)
+    ).fetchall()
+    return [r["trip_id"] for r in rows]
+
+
+def get_trip_member_role(trip_id: str, username: str) -> str | None:
+    """Return the user's role for a trip, or None if not a member."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT role FROM trip_members WHERE trip_id = ? AND username = ?",
+        (trip_id, username),
+    ).fetchone()
+    return row["role"] if row else None
+
+
+def add_trip_member(
+    trip_id: str, username: str, role: str = "editor", added_by: str | None = None
+) -> bool:
+    """Add or update a trip member. Returns True on success."""
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO trip_members (trip_id, username, role, added_at, added_by) "
+        "VALUES (?, ?, ?, datetime('now'), ?)",
+        (trip_id, username, role, added_by),
+    )
+    conn.commit()
+    return True
+
+
+def remove_trip_member(trip_id: str, username: str) -> bool:
+    """Remove a member from a trip. Returns True if a row was deleted."""
+    conn = get_db()
+    cursor = conn.execute(
+        "DELETE FROM trip_members WHERE trip_id = ? AND username = ?",
+        (trip_id, username),
+    )
+    conn.commit()
+    return cursor.rowcount > 0
+
+
+def update_trip_member_role(trip_id: str, username: str, role: str) -> bool:
+    """Update a member's role. Returns True if the row existed."""
+    conn = get_db()
+    cursor = conn.execute(
+        "UPDATE trip_members SET role = ? WHERE trip_id = ? AND username = ?",
+        (role, trip_id, username),
+    )
+    conn.commit()
+    return cursor.rowcount > 0
+
+
+def list_trips(username: str | None = None, is_admin: bool = False) -> list[dict]:
+    """Return [{tripId, updatedAt}] for trips visible to the user.
+
+    Admin users see all trips. Regular users see only trips where they
+    have a trip_members row.
+    """
+    conn = get_db()
+    if is_admin or username is None:
+        rows = conn.execute(
+            "SELECT trip_id, updated_at FROM trips "
+            "WHERE deleted_at IS NULL ORDER BY updated_at DESC"
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT t.trip_id, t.updated_at FROM trips t "
+            "JOIN trip_members m ON m.trip_id = t.trip_id "
+            "WHERE t.deleted_at IS NULL AND m.username = ? "
+            "ORDER BY t.updated_at DESC",
+            (username,),
+        ).fetchall()
+    return [{"tripId": r["trip_id"], "updatedAt": r["updated_at"]} for r in rows]
 
 
 def get_todos(trip_id: str) -> tuple[list, str] | None:
@@ -484,6 +566,22 @@ def ensure_per_entry_tables(conn: sqlite3.Connection) -> None:
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_script_history_trip "
         "ON script_history(trip_id, script_id)"
+    )
+
+    # ── Trip members: access control ─────────────────────────────
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS trip_members (
+            trip_id   TEXT NOT NULL,
+            username  TEXT NOT NULL,
+            role      TEXT NOT NULL DEFAULT 'editor',
+            added_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            added_by  TEXT,
+            PRIMARY KEY (trip_id, username)
+        )
+    """)
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_trip_members_user "
+        "ON trip_members(username)"
     )
 
 

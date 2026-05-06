@@ -18,16 +18,6 @@ export interface TripResponse {
 	updatedAt: string;
 }
 
-export interface TodosResponse {
-	todos: { text: string; done: boolean }[];
-	updatedAt: string | null;
-}
-
-export interface JournalResponse {
-	journal: JournalEntry[];
-	updatedAt: string | null;
-}
-
 export interface TripListEntry {
 	tripId: string;
 	updatedAt: string;
@@ -115,92 +105,6 @@ export async function deleteTrip(tripId: string): Promise<void> {
 		headers: headers()
 	});
 	if (!res.ok) throw new Error(`Failed to delete trip (${res.status})`);
-}
-
-export async function fetchTodos(tripId: string): Promise<TodosResponse> {
-	if (!getToken()) return { todos: [], updatedAt: null };
-	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 8000);
-	try {
-		const res = await fetch(`${API_URL}/api/trips/${tripId}/todos`, {
-			headers: headers(),
-			signal: controller.signal
-		});
-		clearTimeout(timeout);
-		if (!res.ok) throw new Error(`Failed to fetch todos (${res.status})`);
-		const data = await res.json();
-		return { todos: data.todos ?? [], updatedAt: data.updatedAt };
-	} catch (e) {
-		clearTimeout(timeout);
-		throw e;
-	}
-}
-
-export async function saveTodos(
-	tripId: string,
-	todos: { text: string; done: boolean }[],
-	updatedAt: string
-): Promise<{ ok: boolean; updatedAt: string; serverTodos?: { text: string; done: boolean }[] }> {
-	const res = await fetch(`${API_URL}/api/trips/${tripId}/todos`, {
-		method: 'PUT',
-		headers: headers(),
-		body: JSON.stringify({ todos, updatedAt })
-	});
-	if (res.status === 409) {
-		const data = await res.json();
-		const detail = data.detail ?? data;
-		return {
-			ok: false,
-			updatedAt: detail.updatedAt ?? updatedAt,
-			serverTodos: detail.todos
-		};
-	}
-	if (!res.ok) throw new Error(`Failed to save todos (${res.status})`);
-	const data = await res.json();
-	return { ok: true, updatedAt: data.updatedAt };
-}
-
-export async function fetchJournal(tripId: string): Promise<JournalResponse> {
-	if (!getToken()) return { journal: [], updatedAt: null };
-	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 8000);
-	try {
-		const res = await fetch(`${API_URL}/api/trips/${tripId}/journal`, {
-			headers: headers(),
-			signal: controller.signal
-		});
-		clearTimeout(timeout);
-		if (!res.ok) throw new Error(`Failed to fetch journal (${res.status})`);
-		const data = await res.json();
-		return { journal: data.journal ?? [], updatedAt: data.updatedAt };
-	} catch (e) {
-		clearTimeout(timeout);
-		throw e;
-	}
-}
-
-export async function saveJournal(
-	tripId: string,
-	journal: JournalEntry[],
-	updatedAt: string
-): Promise<{ ok: boolean; updatedAt: string; serverJournal?: JournalEntry[] }> {
-	const res = await fetch(`${API_URL}/api/trips/${tripId}/journal`, {
-		method: 'PUT',
-		headers: headers(),
-		body: JSON.stringify({ journal, updatedAt })
-	});
-	if (res.status === 409) {
-		const data = await res.json();
-		const detail = data.detail ?? data;
-		return {
-			ok: false,
-			updatedAt: detail.updatedAt ?? updatedAt,
-			serverJournal: detail.journal
-		};
-	}
-	if (!res.ok) throw new Error(`Failed to save journal (${res.status})`);
-	const data = await res.json();
-	return { ok: true, updatedAt: data.updatedAt };
 }
 
 // ── Journal per-entry API ────────────────────────────────────

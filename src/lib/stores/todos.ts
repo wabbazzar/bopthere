@@ -133,17 +133,7 @@ function createTodosStore() {
 				return { ...state, [tripId]: merged };
 			});
 		} catch {
-			// Offline — fall back to old blob endpoint
-			try {
-				const { fetchTodos } = await import('$lib/services/trips-api');
-				const result = await fetchTodos(tripId);
-				if (result.updatedAt !== null) {
-					const todos = result.todos.map(ensureId);
-					update((state) => ({ ...state, [tripId]: todos }));
-				}
-			} catch {
-				// truly offline
-			}
+			// Offline — no server data available
 		}
 	}
 
