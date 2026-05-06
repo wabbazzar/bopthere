@@ -22,30 +22,32 @@
 		<section class="hero">
 			<img src="/favicon.png" alt="BopThere mascot" class="hero-mascot" />
 			<h1 class="font-display hero-title">BopThere</h1>
-			<p class="hero-tagline">A personal travel planner for two.</p>
+			<p class="hero-tagline">Plan trips. Find deals. Bop there.</p>
 			<p class="hero-lede">
-				Built for Wesley & Heather to plan, organize, and document trips together
-				 — from day-by-day itineraries to bookings, journals, and an AI travel companion.
+				A travel planning app with an AI companion, daily flight deals,
+				and everything you need to go from idea to itinerary
+				 — day-by-day planning, bookings, journals, and real-time alerts
+				when prices drop on routes you care about.
 			</p>
 		</section>
 
 		<section class="features">
 			<div class="feature-grid">
+				<div class="feature-card highlight">
+					<div class="feature-icon">&#128184;</div>
+					<h3>Daily Deal Alerts</h3>
+					<p>
+						Set your home airport and dream destinations. BopThere scans for flight deals
+						daily and sends alerts via Signal when prices drop on routes you care about.
+					</p>
+				</div>
+
 				<div class="feature-card">
 					<div class="feature-icon">&#9992;</div>
 					<h3>Trip Planning</h3>
 					<p>
 						Day-by-day itineraries with morning, afternoon, and evening slots.
-						Drag between week and day views. Add locations, notes, and accommodation details.
-					</p>
-				</div>
-
-				<div class="feature-card">
-					<div class="feature-icon">&#128203;</div>
-					<h3>Bookings & Tickets</h3>
-					<p>
-						Flights, hotels, and car rentals in one place. Attach PDF tickets with signed URLs
-						 — tap to open, no digging through email.
+						Week and day views. Locations, notes, and accommodation details.
 					</p>
 				</div>
 
@@ -55,6 +57,15 @@
 					<p>
 						Chat with Claude about your trip. Get activity suggestions, restaurant picks,
 						and logistics advice that understands your itinerary.
+					</p>
+				</div>
+
+				<div class="feature-card">
+					<div class="feature-icon">&#128203;</div>
+					<h3>Bookings & Tickets</h3>
+					<p>
+						Flights, hotels, and car rentals in one place. Attach PDF tickets
+						 — tap to open, no digging through email.
 					</p>
 				</div>
 
@@ -72,16 +83,7 @@
 					<h3>Shared Todos</h3>
 					<p>
 						Per-trip task lists for packing, reservations, and errands.
-						Both travelers see the same list, synced through the server.
-					</p>
-				</div>
-
-				<div class="feature-card">
-					<div class="feature-icon">&#128506;</div>
-					<h3>Map Links</h3>
-					<p>
-						Google Maps directions baked into each day. One tap to navigate
-						from hotel to morning activity to dinner.
+						Travel partners see the same list, synced through the server.
 					</p>
 				</div>
 			</div>
@@ -114,7 +116,7 @@
 	</main>
 
 	<footer class="about-footer">
-		<p>Wesley & Heather &middot; Austin, TX</p>
+		<p>BopThere &middot; Austin, TX</p>
 	</footer>
 </div>
 
@@ -224,6 +226,11 @@
 	.feature-icon {
 		font-size: 1.75rem;
 		margin-bottom: 0.5rem;
+	}
+
+	.feature-card.highlight {
+		border-color: var(--accent);
+		background: linear-gradient(135deg, var(--surface-raised), var(--surface-alt));
 	}
 
 	.feature-card h3 {
