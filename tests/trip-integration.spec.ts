@@ -129,14 +129,6 @@ async function goToDayView(page: Page, targetDay?: number) {
 	}
 }
 
-/** Navigate to trip page in week view */
-async function goToWeekView(page: Page) {
-	await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
-	await page.waitForSelector('h1', { timeout: 10000 });
-	await page.getByRole('tab', { name: 'Week' }).click();
-	await page.waitForSelector('button:has-text("+ Add day")', { timeout: 5000 });
-}
-
 /** Get the "Day X of Y" text content */
 async function getDayInfo(page: Page) {
 	// The subtitle shows "Day X of Y" — find it by text pattern
@@ -580,7 +572,7 @@ test.describe('Trip Header — Undo, Export, Reset, Name Edit', () => {
 
 // ─── WEEK VIEW → DAY VIEW FLOW ─────────────────────────────────
 
-test.describe('Week View — Day Card Interaction', () => {
+test.describe('Day View — Interaction', () => {
 	let _apiToken: string;
 	let _tripSnapshot: unknown;
 
@@ -607,66 +599,12 @@ test.describe('Week View — Day Card Interaction', () => {
 		await resetTripData(page);
 	});
 
-	test('Clicking a day card switches to day view for that day', async ({ page }) => {
-		await goToWeekView(page);
-
-		// Day cards have cursor=pointer and contain date info like "Wed 04-22"
-		const firstDayCard = page.locator('[cursor="pointer"]').first();
-		// More reliable: click the first card text showing a date
-		await page.locator('text=/\\w{3} \\d{2}-\\d{2}/').first().click();
-
-		// Should now be in day view — verify by presence of Next/Prev buttons
+	test('Day view shows navigation controls', async ({ page }) => {
+		await goToDayView(page);
 		await expect(page.locator('button[aria-label="Next day"]')).toBeVisible({ timeout: 5000 });
-		const { current } = await getDayInfo(page);
-		expect(current).toBe(1);
-	});
-
-	test('Week view shows correct number of day cards', async ({ page }) => {
-		await goToWeekView(page);
-
-		// Count elements that contain date patterns like "Wed 04-22"
-		const dayLabels = page.locator('text=/^\\w{3} \\d{2}-\\d{2}$/');
-		const count = await dayLabels.count();
-		expect(count).toBeGreaterThan(0);
-
-		// Should match the "X days" label
-		const daysText = await page.locator('text=/\\d+ days/').textContent();
-		const expectedCount = parseInt(daysText!.match(/(\d+)/)![1]);
-		expect(count).toBe(expectedCount);
-	});
-
-	test('Add Day in week view adds a card', async ({ page }) => {
-		await goToWeekView(page);
-
-		const dayLabels = page.locator('text=/^\\w{3} \\d{2}-\\d{2}$/');
-		const initialCount = await dayLabels.count();
-
-		await page.getByRole('button', { name: '+ Add day' }).click();
-
-		const newCount = await dayLabels.count();
-		expect(newCount).toBe(initialCount + 1);
-	});
-});
-
-// ─── VIEW TOGGLE ────────────────────────────────────────────────
-
-test.describe('View Toggle', () => {
-	test.beforeEach(async ({ page }) => {
-		await injectAuth(page);
-		await resetTripData(page);
-	});
-
-	test('Week/Day toggle switches views', async ({ page }) => {
-		await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
-		await page.waitForSelector('h1', { timeout: 10000 });
-
-		// Click Day tab
-		await page.getByRole('tab', { name: 'Day' }).click();
-		await expect(page.locator('button[aria-label="Next day"]')).toBeVisible({ timeout: 5000 });
-
-		// Click Week tab
-		await page.getByRole('tab', { name: 'Week' }).click();
-		await expect(page.getByRole('button', { name: '+ Add day' })).toBeVisible({ timeout: 5000 });
+		const { current, total } = await getDayInfo(page);
+		expect(current).toBeGreaterThanOrEqual(1);
+		expect(total).toBeGreaterThan(0);
 	});
 });
 

@@ -3,12 +3,10 @@
  *
  * Verifies:
  * 1. Day view defaults to today's day index (not day 1)
- * 2. Week view highlights today on the mini calendar
- * 3. Switching to day view from week preserves today-default
- * 4. No rapid week->day flash on load when day view was last used
+ * 2. Stale prefs don't override today-default
  */
 import { test, expect, type Page } from '@playwright/test';
-import { idbPut, idbGet } from './helpers/idb';
+import { idbPut } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 const TRIP_ID = 'china-2026';
@@ -67,7 +65,7 @@ function todayMMDD(): string {
 test.describe('Trip opens on today', () => {
 	test.beforeEach(async ({ page }) => {
 		await seedAuth(page);
-		// Clear any saved day preference and view preference
+		// Clear any saved day preference
 		await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
 		await page.evaluate(() => {
 			return new Promise<void>((resolve, reject) => {
@@ -85,7 +83,6 @@ test.describe('Trip opens on today', () => {
 					const tx = db.transaction('prefs', 'readwrite');
 					const store = tx.objectStore('prefs');
 					store.delete('hw-trip-day-china-2026');
-					store.delete('hw-trip-view-china-2026');
 					tx.oncomplete = () => resolve();
 					tx.onerror = () => reject(tx.error);
 				};
@@ -101,9 +98,8 @@ test.describe('Trip opens on today', () => {
 		await page.goto(`${BASE_URL}/trip/${TRIP_ID}`, { waitUntil: 'domcontentloaded' });
 		await page.waitForTimeout(4000);
 
-		// Switch to Day view
-		await page.locator('button[role="tab"]:has-text("Day")').click();
-		await page.waitForTimeout(1000);
+		// Day view is now the only view — day nav arrows should be visible
+		await expect(page.locator('button[aria-label="Next day"]')).toBeVisible({ timeout: 5000 });
 
 		// The day header should show today's date (e.g. "SUN 04-27")
 		const dayHeader = page.locator('main');
@@ -120,53 +116,13 @@ test.describe('Trip opens on today', () => {
 		await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
 		await idbPut(page, 'prefs', 'hw-trip-day-china-2026', '0');
 
-		const expected = expectedTodayIndex();
 		const todayDate = todayMMDD();
 
 		await page.goto(`${BASE_URL}/trip/${TRIP_ID}`, { waitUntil: 'domcontentloaded' });
 		await page.waitForTimeout(4000);
 
-		await page.locator('button[role="tab"]:has-text("Day")').click();
-		await page.waitForTimeout(1000);
+		await expect(page.locator('button[aria-label="Next day"]')).toBeVisible({ timeout: 5000 });
 
-		const text = await page.locator('main').textContent();
-		expect(text).toContain(todayDate);
-	});
-
-	test('no view flash when day view was previously saved', async ({ page }) => {
-		// Pre-save "day" as the view preference
-		await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-		await idbPut(page, 'prefs', 'hw-trip-view-china-2026', 'day');
-
-		// Set up mutation observer before navigation to catch any week->day flash
-		await page.addInitScript(() => {
-			(window as any).__viewFlashLog = [];
-			const observer = new MutationObserver(() => {
-				// Check if WeekView (with its mini-calendar grid) briefly appeared
-				const weekGrid = document.querySelector('[role="tablist"] + * table, [role="tablist"] + * .week-grid');
-				const dayNav = document.querySelector('button[aria-label="Next day"]');
-				if (weekGrid && !dayNav) {
-					(window as any).__viewFlashLog.push({
-						type: 'week-flash',
-						time: performance.now()
-					});
-				}
-			});
-			observer.observe(document.documentElement, {
-				childList: true,
-				subtree: true
-			});
-		});
-
-		await page.goto(`${BASE_URL}/trip/${TRIP_ID}`, { waitUntil: 'domcontentloaded' });
-		await page.waitForTimeout(4000);
-
-		// Should be in day view (day nav arrows visible)
-		const dayTab = page.locator('button[role="tab"]:has-text("Day")');
-		await expect(dayTab).toHaveAttribute('aria-selected', 'true');
-
-		// Verify today's date is shown
-		const todayDate = todayMMDD();
 		const text = await page.locator('main').textContent();
 		expect(text).toContain(todayDate);
 	});

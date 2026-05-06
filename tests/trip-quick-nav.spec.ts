@@ -76,23 +76,22 @@ test.describe('Trip page — quick nav buttons', () => {
 		expect(after).toBeGreaterThan(before + 50);
 	});
 
-	test('Quick-nav buttons sit beside the Week/Day toggle', async ({ page }) => {
+	test('Quick-nav buttons are visible in a row', async ({ page }) => {
 		await injectAuth(page);
 		await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
 		await page.waitForTimeout(1500);
 
-		const weekBtn = page.locator('button[role="tab"]:has-text("Week")');
+		const journalBtn = page.locator('button[aria-label="Jump to journal"]');
 		const todosBtn = page.locator('button[aria-label="Jump to todos"]');
-		await expect(weekBtn).toBeVisible({ timeout: 5000 });
+		await expect(journalBtn).toBeVisible({ timeout: 5000 });
 		await expect(todosBtn).toBeVisible();
 
-		const weekBox = await weekBtn.boundingBox();
+		const journalBox = await journalBtn.boundingBox();
 		const todosBox = await todosBtn.boundingBox();
-		expect(weekBox && todosBox).toBeTruthy();
-		// Same row (vertical center within 10px) and todos button to the right of week
-		const weekCenterY = weekBox!.y + weekBox!.height / 2;
+		expect(journalBox && todosBox).toBeTruthy();
+		// Same row (vertical center within 10px)
+		const journalCenterY = journalBox!.y + journalBox!.height / 2;
 		const todosCenterY = todosBox!.y + todosBox!.height / 2;
-		expect(Math.abs(weekCenterY - todosCenterY)).toBeLessThanOrEqual(10);
-		expect(todosBox!.x).toBeGreaterThan(weekBox!.x + weekBox!.width);
+		expect(Math.abs(journalCenterY - todosCenterY)).toBeLessThanOrEqual(10);
 	});
 });

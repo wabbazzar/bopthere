@@ -37,8 +37,7 @@ Edit this file to add new checks. Dev agent adds entries when new features are b
 ## Ad-hoc GUI Exploration (daily only)
 
 - [ ] Dashboard: navigate to /dashboard, verify >= 1 trip card renders
-- [ ] Trip page: navigate to /trip/china-2026, verify week view loads
-- [ ] Day view: toggle to day view, verify day content renders
+- [ ] Trip page: navigate to /trip/china-2026, verify day view loads with navigation arrows
 - [ ] Day actions: Add/Copy/Delete buttons respond to clicks
 - [ ] Chat: open FAB, verify drawer opens, close it
 - [ ] Console: no JavaScript errors on any page

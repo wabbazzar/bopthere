@@ -7,8 +7,6 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type { JournalEntry } from '$lib/types/trip';
 	import TripHeader from '$lib/components/trip/TripHeader.svelte';
-	import ViewToggle from '$lib/components/trip/ViewToggle.svelte';
-	import WeekView from '$lib/components/trip/WeekView.svelte';
 	import DayView from '$lib/components/trip/DayView.svelte';
 	import BookingsSection from '$lib/components/trip/BookingsSection.svelte';
 	import TodosSection from '$lib/components/trip/TodosSection.svelte';
@@ -17,13 +15,11 @@
 	import JournalBlocks from '$lib/components/journal/JournalBlocks.svelte';
 	import { getBookings } from '$lib/services/bookings';
 	import { initPhotoQueue } from '$lib/services/photo-queue';
-	import { dbGet } from '$lib/stores/db';
 	import type { Booking } from '$lib/types/trip';
 
 	$: tripId = $page.params.id as string;
 	$: trip = $trips[tripId];
 
-	let activeView: 'week' | 'day' = 'week';
 	let currentDayIndex = 0;
 	let userNavigated = false;
 	let _lastKnownDaysCount = 0;
@@ -66,11 +62,6 @@
 		scriptsStore.init(tripId);
 		initPhotoQueue();
 		document.addEventListener('visibilitychange', onVisibilityChange);
-		// Restore saved view preference before first render to avoid week->day flash
-		const savedView = await dbGet<string>('prefs', `hw-trip-view-${tripId}`);
-		if (savedView === 'week' || savedView === 'day') {
-			activeView = savedView;
-		}
 	});
 
 	onDestroy(() => {
@@ -85,7 +76,6 @@
 		bookingsError = null;
 		try {
 			bookings = await getBookings(id, (fresh) => {
-				// Server returned newer data — update silently
 				bookings = fresh;
 			});
 		} catch (e) {
@@ -94,23 +84,16 @@
 		}
 	}
 
-
 	// Journal entry for the current day
 	$: currentDay = trip?.days?.[currentDayIndex];
-	$: journalEntry = activeView === 'day' && currentDay
+	$: journalEntry = currentDay
 		? journalStore.createOrHydrate(tripId, currentDayIndex, currentDay)
 		: undefined;
 	// Re-read from store when it updates (same pattern as JournalDrawer)
-	$: if (activeView === 'day') {
+	$: {
 		const storeEntries = $journalStore[tripId] ?? [];
 		const found = storeEntries.find((e: JournalEntry) => e.dayIndex === currentDayIndex);
 		if (found) journalEntry = found;
-	}
-
-	function handleSelectDay(e: CustomEvent<number>) {
-		userNavigated = true;
-		currentDayIndex = e.detail;
-		activeView = 'day';
 	}
 
 	function scrollToSection(id: string) {
@@ -131,19 +114,16 @@
 	<TripHeader {trip} {tripId} />
 
 	<div class="view-row">
-		<ViewToggle bind:activeView {tripId} />
 		<div class="jump-nav" role="group" aria-label="Jump to section">
-			{#if activeView === 'day'}
-				<button
-					type="button"
-					class="jump-link"
-					on:click={() => scrollToSection('journal-section')}
-					aria-label="Jump to journal"
-				>
-					Journal
-				</button>
-				<span class="jump-sep" aria-hidden="true">·</span>
-			{/if}
+			<button
+				type="button"
+				class="jump-link"
+				on:click={() => scrollToSection('journal-section')}
+				aria-label="Jump to journal"
+			>
+				Journal
+			</button>
+			<span class="jump-sep" aria-hidden="true">·</span>
 			{#if $isAuthenticated}
 				<button
 					type="button"
@@ -166,13 +146,9 @@
 		</div>
 	</div>
 
-	{#if activeView === 'week'}
-		<WeekView {trip} {tripId} on:selectDay={handleSelectDay} />
-	{:else}
-		<DayView {trip} {tripId} bind:currentDayIndex />
-	{/if}
+	<DayView {trip} {tripId} bind:currentDayIndex />
 
-	{#if activeView === 'day' && journalEntry}
+	{#if journalEntry}
 		<div id="journal-section" class="section-wrap mt-6 scroll-mt-4">
 			<div class="card journal-card">
 				<div class="journal-card-header">
