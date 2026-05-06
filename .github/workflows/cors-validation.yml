@@ -5,97 +5,67 @@ on:
     branches: [ main, develop ]
     paths:
       - 'src/**'
-      - 'aws/**'
+      - 'server/**'
       - '.env*'
-      - 'infrastructure/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
-      - 'aws/**'
+      - 'server/**'
       - '.env*'
-      - 'infrastructure/**'
 
 jobs:
   cors-validation:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Check API Gateway Configuration
+    - uses: actions/checkout@v4
+
+    - name: Test BopThere API Health
       run: |
-        echo "Checking for correct API Gateway configuration..."
-        
-        # Check .env file
-        if grep -q "4q7jj56io8" .env 2>/dev/null; then
-          echo "❌ ERROR: .env contains wrong API Gateway ID (4q7jj56io8)"
-          echo "Auth endpoints are on emwkjk2c9d"
-          exit 1
-        fi
-        
-        # Check source files for hardcoded wrong gateway
-        if grep -r "4q7jj56io8" src/ --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null; then
-          echo "❌ ERROR: Source files contain wrong API Gateway ID"
-          echo "Found references to 4q7jj56io8, but auth endpoints are on emwkjk2c9d"
-          exit 1
-        fi
-        
-        echo "✅ API Gateway configuration looks correct"
-    
-    - name: Test CORS Configuration
-      run: |
-        # Use the correct API Gateway
-        API_URL="https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod"
-        
-        echo "Testing CORS preflight request..."
-        RESPONSE=$(curl -s -I -X OPTIONS "$API_URL/auth/login" \
-          -H "Origin: http://localhost:8080" \
-          -H "Access-Control-Request-Method: POST" \
-          -H "Access-Control-Request-Headers: Content-Type" || echo "FAILED")
-        
-        if echo "$RESPONSE" | grep -qi "Access-Control-Allow-Origin"; then
-          echo "✅ CORS headers present"
-          echo "Response headers:"
-          echo "$RESPONSE" | grep -i "access-control"
+        API_URL="https://api.bopthere.com"
+
+        echo "Testing API health..."
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/health")
+
+        if [ "$STATUS" = "200" ]; then
+          echo "API is healthy (status: $STATUS)"
         else
-          echo "❌ CORS headers missing!"
-          echo "Full response:"
-          echo "$RESPONSE"
+          echo "API health check failed (status: $STATUS)"
           exit 1
         fi
-    
+
     - name: Test Auth Endpoints
       run: |
-        API_URL="https://emwkjk2c9d.execute-api.us-east-1.amazonaws.com/prod"
-        
-        # Test login endpoint exists
+        API_URL="https://api.bopthere.com"
+
+        # Test login endpoint exists (should return 422 for missing body, not 404)
         STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL/auth/login" \
           -H "Content-Type: application/json" \
           -d '{"username":"test","password":"test"}')
-        
+
         if [ "$STATUS" = "404" ]; then
-          echo "❌ Auth login endpoint not found!"
+          echo "Auth login endpoint not found!"
           exit 1
         else
-          echo "✅ Auth login endpoint accessible (status: $STATUS)"
+          echo "Auth login endpoint accessible (status: $STATUS)"
         fi
-        
+
         # Test verify endpoint exists
         STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL/auth/verify" \
-          -H "Content-Type: application/json" \
-          -d '{}')
-        
+          -H "Content-Type: application/json")
+
         if [ "$STATUS" = "404" ]; then
-          echo "❌ Auth verify endpoint not found!"
+          echo "Auth verify endpoint not found!"
           exit 1
         else
-          echo "✅ Auth verify endpoint accessible (status: $STATUS)"
+          echo "Auth verify endpoint accessible (status: $STATUS)"
         fi
-    
+
     - name: Validate Frontend Build
       run: |
-        # This would normally build the frontend to ensure no CORS issues at build time
-        echo "Frontend build validation would run here"
-        # npm ci
-        # npm run build
+        npm ci
+        npm run build
+      env:
+        PUBLIC_API_GATEWAY_URL: https://api.bopthere.com
+        PUBLIC_CHAT_API_URL: https://api.bopthere.com
