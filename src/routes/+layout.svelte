@@ -45,7 +45,7 @@
 			>
 				<nav class="flex gap-5 items-center">
 					<a href="/dashboard" class="font-display text-lg tracking-wide no-underline" style="color: var(--ink)">
-						H&W
+						BopThere
 					</a>
 					<a href="/dashboard" class="text-sm no-underline" style="color: var(--ink-muted)">Trips</a>
 				</nav>

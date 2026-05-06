@@ -35,7 +35,7 @@
 </script>
 
 <svelte:head>
-	<title>H&W Travel</title>
+	<title>BopThere</title>
 </svelte:head>
 
 {#if $isLoading || $isAuthenticated}
@@ -51,7 +51,7 @@
 	<div class="relative z-10 w-full max-w-sm p-8">
 		<div class="card p-8">
 			<h1 class="font-display text-3xl font-semibold mb-1 text-center tracking-wide">
-				H&W Travel
+				BopThere
 			</h1>
 			<p class="text-center text-ink-muted text-sm mb-8">Your portal to everywhere</p>
 

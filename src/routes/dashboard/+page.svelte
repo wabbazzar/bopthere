@@ -34,7 +34,7 @@
 </script>
 
 <svelte:head>
-	<title>Trips - H&W Travel</title>
+	<title>Trips - BopThere</title>
 </svelte:head>
 
 <div class="flex items-center justify-between mb-6 max-w-2xl">

@@ -39,7 +39,7 @@ async function navigateAuthenticated(page: Page, path: string) {
 	const token = await injectAuth(page);
 	await page.goto(`${BASE_URL}${path}`, { waitUntil: 'domcontentloaded' });
 	await page.waitForTimeout(2000); // let Svelte hydrate and auth check run
-	await page.waitForSelector('a:has-text("H&W")', { timeout: 5000 }).catch(() => {});
+	await page.waitForSelector('a:has-text("BopThere")', { timeout: 5000 }).catch(() => {});
 	return token;
 }
 

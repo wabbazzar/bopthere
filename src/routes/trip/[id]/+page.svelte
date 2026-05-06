@@ -124,7 +124,7 @@
 </script>
 
 <svelte:head>
-	<title>{trip?.name || 'Trip'} - H&W Travel</title>
+	<title>{trip?.name || 'Trip'} - BopThere</title>
 </svelte:head>
 
 {#if trip}
