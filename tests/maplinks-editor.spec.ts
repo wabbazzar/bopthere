@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { idbGet, idbGetTripDay } from './helpers/idb';
+import { idbGet, idbPut, idbGetTripDay } from './helpers/idb';
 
 const BASE_URL = 'http://localhost:5174';
 
@@ -35,48 +35,41 @@ async function injectAuth(page: Page) {
 }
 
 async function openDayView(page: Page) {
-	// Block real trips API so we drive off localStorage defaults only
+	// Block real trips API so the store uses only IDB-seeded data
 	await page.route('**/api/trips/**', async (route) => {
 		await route.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
 	});
 	await injectAuth(page);
-	// Prime localStorage with a minimal single-day china-2026 before the trip
-	// page's onMount runs trips.init(). Starting from empty localStorage would
-	// let loadTrips() fall back to the default seed (which has its own mapLinks),
-	// defeating the test.
-	await page.evaluate(() => {
-		const minimal = {
-			'china-2026': {
-				id: 'china-2026',
-				name: 'China 2026 Test',
-				startDate: '2026-04-22',
-				endDate: '2026-04-22',
-				destinations: ['Shanghai'],
-				links: [],
-				days: [{
-					date: '2026-04-22',
-					dayOfWeek: 'Wed',
-					location: 'Shanghai',
-					travel: '',
-					morning: '',
-					afternoon: '',
-					evening: '',
-					accommodation: '',
-					notes: '',
-					ooo: false,
-					mapLinks: []
-				}]
-			}
-		};
-		localStorage.setItem('hw-trips', JSON.stringify(minimal));
-	});
+
+	// Seed a minimal single-day trip into IndexedDB (the app reads IDB, not localStorage)
+	// Use today's date so todayDayIndex() lands on day 0
+	const today = new Date().toISOString().slice(0, 10);
+	const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
+	const minimalDay = {
+		date: today, dayOfWeek: dow, location: 'Shanghai',
+		travel: '', morning: '', afternoon: '', evening: '',
+		accommodation: '', notes: '', ooo: false, mapLinks: []
+	};
+	const minimalMeta = {
+		name: 'China 2026 Test', startDate: today, endDate: today,
+		destinations: ['Shanghai'], links: []
+	};
+	await idbPut(page, 'trips', 'trip-meta:china-2026', minimalMeta);
+	await idbPut(page, 'trips', 'trip-day:china-2026:0', minimalDay);
+	// Ensure IDB writes are committed before navigation
+	await page.waitForTimeout(200);
+
 	await page.goto(`${BASE_URL}/trip/china-2026`, { waitUntil: 'domcontentloaded' });
+	await page.waitForSelector('h1', { timeout: 10000 });
+	// Wait for the store to hydrate from IDB and render the day card
 	await page.waitForTimeout(1000);
-	// Switch to Day view if needed
-	const dayToggle = page.locator('button', { hasText: /^Day$/ });
-	if (await dayToggle.isVisible().catch(() => false)) {
-		await dayToggle.click();
+	// Switch to Day view
+	const dayTab = page.getByRole('tab', { name: 'Day' });
+	if (await dayTab.isVisible().catch(() => false)) {
+		await dayTab.click();
 	}
+	// Wait for day card fields to render (not just the header)
+	await page.waitForSelector('[title="Tap to edit"], button[aria-label="Add directions link"]', { timeout: 10000 });
 }
 
 test.describe('MapLinks editor', () => {

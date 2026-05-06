@@ -284,7 +284,7 @@ test.describe('Field Editing — Tap to edit', () => {
 	});
 
 	test('Edited field value persists after navigating away and back', async ({ page }) => {
-		await goToDayView(page);
+		await goToDayView(page, 1);
 
 		// Edit the Notes field on Day 1 (last editable field)
 		const notesField = page.locator('[title="Tap to edit"]').last();
@@ -313,7 +313,7 @@ test.describe('Field Editing — Tap to edit', () => {
 	});
 
 	test('Edited field value persists after full page reload', async ({ page }) => {
-		await goToDayView(page);
+		await goToDayView(page, 1);
 
 		// Capture original notes value before editing
 		const notesField = page.locator('[title="Tap to edit"]').last();
@@ -327,12 +327,14 @@ test.describe('Field Editing — Tap to edit', () => {
 		// Wait for the debounced server sync to fire (2s debounce + margin)
 		await page.waitForTimeout(2500);
 
-		// Full page reload
+		// Full page reload, then navigate back to day 1
 		await page.reload({ waitUntil: 'domcontentloaded' });
 		await page.waitForSelector('h1', { timeout: 10000 });
-		// Switch back to day view
 		await page.getByRole('tab', { name: 'Day' }).click();
 		await page.waitForSelector('button[aria-label="Next day"]', { timeout: 5000 });
+		// Navigate to day 1 via mini-cal
+		await page.locator('button[aria-label="Go to day 1"]').click();
+		await page.waitForTimeout(300);
 
 		// Notes field should still have our value
 		await expect(page.locator('text=SURVIVES RELOAD XYZ')).toBeVisible();
@@ -429,7 +431,7 @@ test.describe('Day-nav location — tap to edit', () => {
 	});
 
 	test('Edited day-nav location persists after navigating away and back', async ({ page }) => {
-		await goToDayView(page);
+		await goToDayView(page, 1);
 		// Let the initial server pull settle so it can't race-overwrite our edit.
 		await page.waitForLoadState('networkidle');
 
