@@ -1030,6 +1030,55 @@ async def remove_script_entry(
     return {"ok": True, "version": version}
 
 
+# ─── Deal alerts ────────────────────────────────────────────────
+
+from travel_bop.db import (
+    get_db as get_deal_db,
+    get_alert_settings,
+    set_alert_settings,
+)
+
+
+@app.get("/api/deals")
+async def list_deals(authorization: str | None = Header(None)):
+    verify_token(authorization)
+    conn = get_deal_db()
+    rows = conn.execute("""
+        SELECT sd.*, f.reaction, f.note AS feedback_note
+        FROM sent_deals sd
+        LEFT JOIN feedback f ON f.deal_id = sd.id
+            AND f.id = (SELECT MAX(f2.id) FROM feedback f2 WHERE f2.deal_id = sd.id)
+        ORDER BY sd.id DESC
+        LIMIT 20
+    """).fetchall()
+    conn.close()
+    return {"deals": [dict(r) for r in rows]}
+
+
+class AlertSettingsRequest(BaseModel):
+    enabled: bool
+    signal_number: str = ""
+    home_airport: str = "AUS"
+
+
+@app.get("/api/deals/alerts")
+async def get_alerts(authorization: str | None = Header(None)):
+    payload = verify_token(authorization)
+    conn = get_deal_db()
+    settings = get_alert_settings(conn, payload["username"])
+    conn.close()
+    return settings
+
+
+@app.put("/api/deals/alerts")
+async def put_alerts(req: AlertSettingsRequest, authorization: str | None = Header(None)):
+    payload = verify_token(authorization)
+    conn = get_deal_db()
+    set_alert_settings(conn, payload["username"], req.enabled, req.signal_number, req.home_airport)
+    conn.close()
+    return {"ok": True}
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}

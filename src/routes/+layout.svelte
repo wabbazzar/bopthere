@@ -48,6 +48,7 @@
 						BopThere
 					</a>
 					<a href="/dashboard" class="text-sm no-underline" style="color: var(--ink-muted)">Trips</a>
+					<a href="/dashboard/deals" class="text-sm no-underline" style="color: var(--ink-muted)">Deals</a>
 				</nav>
 				<div class="flex gap-4 items-center">
 					<span class="text-sm" style="color: var(--ink-muted)">
