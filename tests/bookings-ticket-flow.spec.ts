@@ -53,7 +53,8 @@ test.describe('Bookings — backend-served with signed tickets', () => {
 		// hardcoding one in a test would re-leak it.
 		await expect(page.locator('#bookings-section')).toContainText('Austin');
 		await expect(page.locator('#bookings-section')).toContainText('Shanghai');
-		const bookingCount = await page.locator('#bookings-section .booking').count();
+		// Count booking items — use li elements inside the bookings list (not Svelte-scoped .booking class)
+		const bookingCount = await page.locator('#bookings-section li').count();
 		expect(bookingCount).toBeGreaterThanOrEqual(3);
 	});
 
@@ -75,8 +76,8 @@ test.describe('Bookings — backend-served with signed tickets', () => {
 		}
 
 		// Expand the first booking (Austin → Shanghai) so the ticket link shows
-		await page.locator('#bookings-section .booking').first().click();
-		const ticketLink = page.locator('#bookings-section a.booking-ticket').first();
+		await page.locator('#bookings-section li').first().click();
+		const ticketLink = page.locator('#bookings-section a[target="_blank"]').first();
 		await expect(ticketLink).toBeVisible({ timeout: 3000 });
 
 		// Listen at the context level so we catch the popup's navigation request
